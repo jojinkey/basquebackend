@@ -1,0 +1,146 @@
+.section {
+  position: relative;
+  background: var(--teak);
+  padding: var(--section-pad) var(--container-pad);
+  overflow: hidden;
+}
+
+.bgGrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+}
+
+.bgHotspot {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 40%, var(--amber-glow), transparent 70%);
+  pointer-events: none;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(2.8rem, 5vw, 6rem);
+  color: var(--ivory);
+  line-height: 1.1;
+  display: block;
+  text-align: left;
+}
+
+.subheading {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.6rem, 2.5vw, 2.8rem);
+  color: var(--amber);
+  display: block;
+  text-align: left;
+  margin-top: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.item {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  padding: 36px 0;
+  border-bottom: 1px solid rgba(200, 133, 42, 0.15);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.number {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 6rem;
+  color: var(--amber);
+  opacity: 0.25;
+  line-height: 1;
+  width: 140px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.itemContent {
+  padding-top: 12px;
+}
+
+.itemTitle {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--ivory);
+  margin-bottom: 8px;
+}
+
+.itemDetail {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: rgba(245, 240, 232, 0.62);
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px var(--container-pad);
+  }
+
+  .header {
+    margin-bottom: 48px;
+  }
+
+  .item {
+    gap: 16px;
+    padding: 28px 0;
+  }
+
+  .number {
+    font-size: 3rem;
+    width: 56px;
+  }
+
+  .itemTitle {
+    font-size: 0.95rem;
+  }
+
+  .itemDetail {
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+}
+
+@media (max-width: 480px) {
+  .number {
+    font-size: 2.2rem;
+    width: 44px;
+  }
+
+  .item {
+    gap: 12px;
+  }
+}

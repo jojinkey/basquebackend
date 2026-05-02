@@ -1,0 +1,257 @@
+.hero {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.videoBg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.videoBg video,
+.videoBg .videoPlaceholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.videoBg .videoPlaceholder {
+  background: linear-gradient(135deg, var(--teak), var(--teak-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    175deg,
+    rgba(28, 20, 16, 0.15) 0%,
+    rgba(28, 20, 16, 0.02) 35%,
+    rgba(28, 20, 16, 0) 50%,
+    rgba(28, 20, 16, 0.65) 100%
+  );
+}
+
+.content {
+  position: absolute;
+  bottom: 12%;
+  left: var(--container-pad);
+  right: var(--container-pad);
+  max-width: 800px;
+}
+
+.eyebrow {
+  font-family: var(--font-sc);
+  font-size: 0.65rem;
+  color: var(--amber-light);
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.headlineWrap {
+  display: block;
+  overflow: hidden;
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(3.5rem, 6.5vw, 8rem);
+  color: var(--warm-white);
+  line-height: 1.02;
+  display: block;
+}
+
+.tagline {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: rgba(254, 252, 248, 0.72);
+  letter-spacing: 0.22em;
+  margin-top: 20px;
+  display: block;
+}
+
+/* Backlit illuminated sign effect */
+.taglineBacklit {
+  display: inline-block;
+  margin-top: 22px;
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  color: var(--amber-light);
+  /* Layered amber glow — like a backlit sign */
+  text-shadow:
+    0 0 8px  rgba(232, 169, 74, 0.95),
+    0 0 20px rgba(200, 133, 42, 0.75),
+    0 0 45px rgba(200, 133, 42, 0.45),
+    0 0 80px rgba(200, 133, 42, 0.2);
+  /* Frosted pill backing */
+  background: rgba(200, 133, 42, 0.08);
+  border: 1px solid rgba(200, 133, 42, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 2px;
+  padding: 9px 20px;
+  /* Subtle pulse to simulate warm filament */
+  animation: backlitPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes backlitPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 8px  rgba(232, 169, 74, 0.95),
+      0 0 20px rgba(200, 133, 42, 0.75),
+      0 0 45px rgba(200, 133, 42, 0.45),
+      0 0 80px rgba(200, 133, 42, 0.2);
+    opacity: 1;
+  }
+  50% {
+    text-shadow:
+      0 0 12px rgba(232, 169, 74, 1),
+      0 0 28px rgba(200, 133, 42, 0.9),
+      0 0 60px rgba(200, 133, 42, 0.55),
+      0 0 100px rgba(200, 133, 42, 0.25);
+    opacity: 0.92;
+  }
+}
+
+.ctaRow {
+  display: flex;
+  gap: 16px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.ctaPrimary {
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  padding: 16px 36px;
+  border-radius: 2px;
+  background: var(--amber);
+  color: var(--warm-white);
+  cursor: none;
+  border: none;
+}
+
+.ctaSecondary {
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  padding: 16px 36px;
+  border-radius: 2px;
+  background: transparent;
+  border: 1.5px solid rgba(254, 252, 248, 0.5);
+  color: var(--warm-white);
+  cursor: none;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.ctaSecondary:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.scrollIndicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.scrollLabel {
+  font-family: var(--font-sc);
+  font-size: 0.55rem;
+  color: rgba(254, 252, 248, 0.5);
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+}
+
+.chevron {
+  width: 20px;
+  height: 12px;
+}
+
+/* Logo showcase strip */
+.logoStrip {
+  position: relative;
+  background: var(--ivory);
+  padding: 80px var(--container-pad) 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.logoImage {
+  max-width: min(520px, 80vw);
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 40px rgba(61, 35, 20, 0.12));
+}
+
+.logoStripDivider {
+  position: absolute;
+  bottom: 0;
+  left: var(--container-pad);
+  right: var(--container-pad);
+  height: 1px;
+  background: var(--amber-border);
+}
+
+@media (max-width: 768px) {
+  .content {
+    bottom: 10%;
+    right: var(--container-pad);
+  }
+
+  .ctaRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary {
+    text-align: center;
+    padding: 14px 28px;
+    width: 100%;
+  }
+
+  .logoStrip {
+    padding: 48px var(--container-pad) 40px;
+  }
+
+  .scrollIndicator {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .eyebrow {
+    font-size: 0.55rem;
+    letter-spacing: 0.4em;
+  }
+
+  .tagline {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+  }
+
+  .ctaRow {
+    margin-top: 28px;
+  }
+}

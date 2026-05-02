@@ -1,0 +1,55 @@
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  /* Simmering warm amber radial that breathes while loading */
+  animation: simmer 4s ease-in-out infinite;
+}
+
+@keyframes simmer {
+  0%   { background: radial-gradient(ellipse 55% 50% at 50% 52%, #5C3520 0%, #3D2314 55%); }
+  25%  { background: radial-gradient(ellipse 68% 42% at 46% 56%, #6B3A18 0%, #3D2314 55%); }
+  50%  { background: radial-gradient(ellipse 48% 62% at 54% 48%, #5A2E10 0%, #3D2314 55%); }
+  75%  { background: radial-gradient(ellipse 72% 38% at 48% 54%, #643215 0%, #3D2314 55%); }
+  100% { background: radial-gradient(ellipse 55% 50% at 50% 52%, #5C3520 0%, #3D2314 55%); }
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(3rem, 8vw, 7rem);
+  color: var(--amber);
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+}
+
+.rule {
+  width: 160px;
+  height: 1px;
+  background: var(--amber);
+  margin: 24px auto 20px;
+  transform-origin: left;
+}
+
+.tagline {
+  font-family: var(--font-sc);
+  font-size: 0.75rem;
+  color: var(--ivory);
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.progressBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--amber);
+  transform-origin: left;
+}
