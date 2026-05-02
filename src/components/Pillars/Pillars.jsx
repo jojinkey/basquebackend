@@ -19,8 +19,8 @@ const PILLARS = [
     title: 'Garden Events',
     sub: 'Open skies, craft cocktails, and good company.',
     accent: 'var(--sage)',
-    placeholder: 'linear-gradient(135deg, #4A6B50, #7A9175)',
-    video: null,
+    placeholder: null,
+    video: 'https://file.garden/aaq7u9giWjY0-o-W/BASQUE/2339-157269920_medium.mp4',
   },
   {
     num: '03',
@@ -36,8 +36,8 @@ const PILLARS = [
     title: 'Private Events',
     sub: 'Your milestone, our canvas.',
     accent: 'var(--cream)',
-    placeholder: 'linear-gradient(135deg, #EDE5D4, #C8852A)',
-    video: null,
+    placeholder: null,
+    video: 'https://file.garden/aaq7u9giWjY0-o-W/BASQUE/278182.mp4',
   },
 ]
 

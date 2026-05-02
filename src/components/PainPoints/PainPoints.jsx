@@ -53,6 +53,60 @@ const PainItem = ({ item, index }) => {
   )
 }
 
+const BLEED_ROWS = [
+  { label: 'Tables lost per week', value: '10', unit: 'tables' },
+  { label: 'Average bill per cover', value: '₹2,500', unit: 'per table' },
+  { label: 'Weekly revenue bleeding', value: '₹25,000', unit: '/ week', highlight: true },
+  { label: 'Monthly drain', value: '₹1,00,000', unit: '/ month', highlight: true },
+  { label: 'Annual opportunity cost', value: '₹13,00,000', unit: '/ year', big: true },
+]
+
+const RevenueBleed = () => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
+
+  return (
+    <motion.div
+      ref={ref}
+      className={styles.bleedBox}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div className={styles.bleedHeader}>
+        <span className={styles.bleedEyebrow}>THE COST OF INVISIBILITY</span>
+        <p className={styles.bleedHeadline}>
+          Every week you're unfindable,<br />
+          <em>the bill runs itself.</em>
+        </p>
+      </div>
+
+      <div className={styles.bleedTable}>
+        {BLEED_ROWS.map((row, i) => (
+          <motion.div
+            key={i}
+            className={`${styles.bleedRow} ${row.big ? styles.bleedRowBig : ''} ${row.highlight ? styles.bleedRowHighlight : ''}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <span className={styles.bleedLabel}>{row.label}</span>
+            <div className={styles.bleedValueWrap}>
+              <span className={styles.bleedValue}>{row.value}</span>
+              <span className={styles.bleedUnit}>{row.unit}</span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <p className={styles.bleedCaption}>
+        That's a conservative estimate — courts, bar tabs, and private events aren't even in this number yet.
+        <strong> A broken digital pin isn't a minor inconvenience. It's a structural revenue leak.</strong>
+      </p>
+    </motion.div>
+  )
+}
+
 const GridSVG = () => (
   <svg className={styles.bgGrid} width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -87,6 +141,8 @@ const PainPoints = () => (
         <PainItem key={item.num} item={item} index={i} />
       ))}
     </div>
+
+    <RevenueBleed />
   </section>
 )
 
