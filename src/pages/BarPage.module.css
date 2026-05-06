@@ -1,0 +1,527 @@
+.page {
+  padding-top: 0;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #0E0A06 0%, #1C1208 40%, #0A0806 100%);
+}
+
+.heroBg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 60%, rgba(200, 133, 42, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 70% 30%, rgba(200, 133, 42, 0.04) 0%, transparent 60%);
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(14, 10, 6, 0.9) 0%,
+    rgba(14, 10, 6, 0.4) 40%,
+    rgba(14, 10, 6, 0.1) 100%
+  );
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  padding: 0 var(--container-pad) 10%;
+  max-width: 800px;
+}
+
+.heroEyebrow {
+  display: block;
+  font-family: var(--font-sc);
+  font-size: 0.6rem;
+  letter-spacing: 0.45em;
+  color: var(--amber-light);
+  margin-bottom: 24px;
+}
+
+.heroHeading {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(3.2rem, 6.5vw, 8rem);
+  color: var(--warm-white);
+  line-height: 1.04;
+  margin-bottom: 20px;
+}
+
+.heroHeading em {
+  font-style: italic;
+  color: var(--amber);
+}
+
+.heroSub {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.92rem;
+  color: rgba(254, 252, 248, 0.6);
+  line-height: 1.75;
+  margin-bottom: 40px;
+}
+
+.heroCtas {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.heroCtaPrimary {
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  padding: 16px 36px;
+  background: var(--amber);
+  color: var(--warm-white);
+  border: none;
+  border-radius: 2px;
+  cursor: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.heroCtaSecondary {
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  padding: 16px 36px;
+  background: transparent;
+  border: 1.5px solid rgba(254, 252, 248, 0.35);
+  color: var(--warm-white);
+  border-radius: 2px;
+  cursor: none;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── Hours Strip ── */
+.hoursStrip {
+  background: var(--charcoal);
+  border-top: 1px solid rgba(200, 133, 42, 0.2);
+  border-bottom: 1px solid rgba(200, 133, 42, 0.1);
+  padding: 40px var(--container-pad);
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+
+.hoursLabel {
+  font-family: var(--font-sc);
+  font-size: 0.58rem;
+  letter-spacing: 0.4em;
+  color: var(--amber);
+  flex-shrink: 0;
+  min-width: 120px;
+}
+
+.hoursList {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.hoursItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hoursItemClosed .hoursDays,
+.hoursItemClosed .hoursTime {
+  opacity: 0.3;
+}
+
+.hoursDays {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.82rem;
+  color: rgba(245, 240, 232, 0.7);
+}
+
+.hoursDivider {
+  width: 20px;
+  height: 1px;
+  background: rgba(200, 133, 42, 0.4);
+  flex-shrink: 0;
+}
+
+.hoursTime {
+  font-family: var(--font-sc);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--amber-light);
+}
+
+/* ── Blocks ── */
+.blocksSection {
+  background: var(--ivory);
+  padding: 96px 0;
+}
+
+.blocksInner {
+  padding: 0 var(--container-pad);
+  max-width: var(--container);
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-sc);
+  font-size: 0.6rem;
+  letter-spacing: 0.45em;
+  color: var(--amber);
+  margin-bottom: 16px;
+}
+
+.sectionHeading {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  color: var(--teak);
+  line-height: 1.2;
+  margin: 0 0 48px;
+}
+
+.sectionHeading em {
+  font-style: italic;
+  color: var(--amber);
+}
+
+.blocksGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.blockCard {
+  background: var(--warm-white);
+  border: 1px solid rgba(61, 35, 20, 0.08);
+  border-radius: 4px;
+  padding: 40px 32px;
+}
+
+.blockIcon {
+  display: block;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+
+.blockTitle {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 1.5rem;
+  color: var(--teak);
+  margin-bottom: 14px;
+}
+
+.blockBody {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.88rem;
+  color: rgba(28, 20, 16, 0.62);
+  line-height: 1.85;
+  margin: 0;
+}
+
+/* ── Cocktails ── */
+.cocktailsSection {
+  background: var(--teak);
+  padding: 96px 0;
+}
+
+.cocktailsInner {
+  padding: 0 var(--container-pad);
+  max-width: var(--container);
+  margin: 0 auto;
+}
+
+.cocktailsSection .sectionHeading {
+  color: var(--ivory);
+}
+
+.cocktailsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 0;
+}
+
+.cocktailCard {
+  padding: 36px 0 32px;
+  border-top: 1px solid rgba(200, 133, 42, 0.25);
+  position: relative;
+}
+
+.cocktailNote {
+  display: block;
+  font-family: var(--font-sc);
+  font-size: 0.52rem;
+  letter-spacing: 0.3em;
+  color: var(--amber);
+  margin-bottom: 12px;
+}
+
+.cocktailName {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  color: var(--warm-white);
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+
+.cocktailDesc {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.85rem;
+  color: rgba(245, 240, 232, 0.55);
+  line-height: 1.8;
+  margin: 0;
+}
+
+.cocktailLine {
+  display: none;
+}
+
+.menuNote {
+  margin-top: 40px;
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.82rem;
+  color: rgba(245, 240, 232, 0.38);
+  font-style: italic;
+}
+
+/* ── Atmosphere ── */
+.atmosphereSection {
+  background: var(--charcoal);
+  padding: 96px var(--container-pad);
+  text-align: center;
+}
+
+.atmosphereInner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.atmosphereQuote {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  color: rgba(245, 240, 232, 0.78);
+  line-height: 1.75;
+  margin: 32px 0 20px;
+  border: none;
+  padding: 0;
+}
+
+.atmosphereSource {
+  font-family: var(--font-sc);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  color: rgba(245, 240, 232, 0.3);
+}
+
+/* ── CTA ── */
+.ctaSection {
+  background: var(--cream);
+  padding: 96px var(--container-pad);
+}
+
+.ctaInner {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.ctaHeading {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  color: var(--teak);
+  line-height: 1.1;
+  margin: 0 0 20px;
+}
+
+.ctaSub {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: rgba(28, 20, 16, 0.6);
+  line-height: 1.85;
+  margin: 0 0 36px;
+}
+
+.ctaBtns {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ctaBtnPrimary {
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  padding: 16px 32px;
+  background: var(--amber);
+  color: var(--warm-white);
+  border: none;
+  border-radius: 2px;
+  cursor: none;
+}
+
+.ctaBtnSecondary {
+  font-family: var(--font-sc);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  padding: 16px 32px;
+  background: transparent;
+  border: 1.5px solid rgba(61, 35, 20, 0.3);
+  color: var(--teak);
+  border-radius: 2px;
+  cursor: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.ctaInfoCard {
+  background: var(--warm-white);
+  border: 1px solid rgba(61, 35, 20, 0.1);
+  border-radius: 4px;
+  padding: 36px 32px;
+}
+
+.ctaInfoLabel {
+  display: block;
+  font-family: var(--font-sc);
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+
+.ctaInfoValue {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.88rem;
+  color: rgba(28, 20, 16, 0.65);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .blocksGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .cocktailsGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .ctaInner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroContent {
+    padding-bottom: 12%;
+  }
+
+  .heroSub {
+    font-size: 0.88rem;
+    margin-bottom: 32px;
+  }
+
+  .heroCtas {
+    flex-direction: column;
+  }
+
+  .heroCtaPrimary,
+  .heroCtaSecondary {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    text-align: center;
+    padding: 14px 24px;
+  }
+
+  .hoursStrip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 32px var(--container-pad);
+  }
+
+  .hoursList {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .blocksSection,
+  .cocktailsSection,
+  .atmosphereSection,
+  .ctaSection {
+    padding: 64px var(--container-pad);
+  }
+
+  .blocksGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .blockCard {
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroHeading {
+    font-size: clamp(2.6rem, 9.5vw, 4rem);
+  }
+
+  .ctaBtns {
+    flex-direction: column;
+  }
+
+  .ctaBtnPrimary,
+  .ctaBtnSecondary {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroHeading {
+    font-size: clamp(2.2rem, 10vw, 3.2rem);
+  }
+}

@@ -11,28 +11,31 @@
 .eyebrow {
   display: block;
   font-family: var(--font-sc);
-  font-size: 0.52rem;
-  letter-spacing: 0.32em;
-  color: rgba(61, 35, 20, 0.45);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  color: var(--amber);
   text-transform: uppercase;
-  margin-bottom: -8px;
+  margin-bottom: -4px;
+  opacity: 0.9;
 }
 
 .heading {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
   color: var(--teak);
-  line-height: 1.15;
+  line-height: 1.12;
   margin: 0;
 }
 
 .sub {
   font-family: var(--font-body);
   font-weight: 300;
-  font-size: 0.85rem;
-  color: rgba(28, 20, 16, 0.5);
-  margin: -8px 0 4px;
+  font-size: 0.88rem;
+  color: rgba(28, 20, 16, 0.58);
+  margin: -4px 0 8px;
+  line-height: 1.55;
+  max-width: 480px;
 }
 
 /* ── Layout ── */
@@ -40,6 +43,54 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+@media (max-width: 560px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+
+  .heading {
+    font-size: clamp(1.4rem, 6vw, 1.8rem);
+  }
+
+  .sub {
+    font-size: 0.84rem;
+  }
+
+  .input {
+    min-height: 46px;
+    font-size: 1rem; /* prevent iOS zoom on focus */
+  }
+
+  .chip {
+    min-height: 38px;
+    padding: 9px 14px;
+    font-size: 0.58rem;
+  }
+
+  .submit {
+    min-height: 52px;
+    font-size: 0.65rem;
+  }
+
+  .stepBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .stepVal {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .closeBtn {
+    min-height: 44px;
+    padding: 10px 24px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -57,19 +108,19 @@
 /* ── Labels ── */
 .label {
   font-family: var(--font-sc);
-  font-size: 0.52rem;
-  letter-spacing: 0.22em;
-  color: rgba(61, 35, 20, 0.55);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: rgba(61, 35, 20, 0.65);
   text-transform: uppercase;
 }
 
 .optional {
   font-family: var(--font-body);
   font-weight: 300;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0;
   text-transform: none;
-  color: rgba(28, 20, 16, 0.35);
+  color: rgba(28, 20, 16, 0.38);
 }
 
 /* ── Text inputs ── */
@@ -155,13 +206,14 @@
 }
 
 .chip {
-  padding: 7px 14px;
+  padding: 8px 16px;
+  min-height: 36px;
   border: 1px solid rgba(61, 35, 20, 0.18);
   border-radius: 2px;
   background: var(--warm-white);
   font-family: var(--font-sc);
-  font-size: 0.55rem;
-  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
   color: var(--teak);
   cursor: none;
   transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
@@ -182,14 +234,14 @@
 /* ── Submit button ── */
 .submit {
   width: 100%;
-  padding: 14px 24px;
+  padding: 16px 24px;
   background: var(--teak);
   color: var(--warm-white);
   border: none;
   border-radius: 2px;
   font-family: var(--font-sc);
-  font-size: 0.6rem;
-  letter-spacing: 0.24em;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   cursor: none;
   margin-top: 4px;

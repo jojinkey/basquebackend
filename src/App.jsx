@@ -24,6 +24,9 @@ import Footer from './components/Footer/Footer'
 
 // Pages
 import GolfPage from './pages/GolfPage'
+import WeddingsPage from './pages/WeddingsPage'
+import BarPage from './pages/BarPage'
+import EventsPage from './pages/EventsPage'
 
 const HomePage = ({ loaded }) => (
   <main>
@@ -75,9 +78,9 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage loaded={!isLoading} />} />
           <Route path="/golf" element={<GolfPage />} />
-          <Route path="/weddings" element={<div style={{ padding: '200px var(--container-pad)', textAlign: 'center', fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--teak)' }}>Weddings page — coming soon.</div>} />
-          <Route path="/bar" element={<div style={{ padding: '200px var(--container-pad)', textAlign: 'center', fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--teak)' }}>Bar page — coming soon.</div>} />
-          <Route path="/events" element={<div style={{ padding: '200px var(--container-pad)', textAlign: 'center', fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--teak)' }}>Events page — coming soon.</div>} />
+          <Route path="/weddings" element={<WeddingsPage />} />
+          <Route path="/bar" element={<BarPage />} />
+          <Route path="/events" element={<EventsPage />} />
         </Routes>
 
         <Footer id="footer" />

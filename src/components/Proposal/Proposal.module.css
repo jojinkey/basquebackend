@@ -213,7 +213,7 @@
 
 @media (max-width: 1024px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -226,7 +226,12 @@
     margin-bottom: 48px;
   }
 
+  .heading {
+    font-size: clamp(2rem, 5.5vw, 3.5rem);
+  }
+
   .grid {
+    grid-template-columns: 1fr;
     gap: 16px;
     margin-bottom: 60px;
   }
@@ -241,6 +246,10 @@
     border-radius: 0;
   }
 
+  .ctaBannerHeading {
+    font-size: clamp(1.8rem, 6vw, 3rem);
+  }
+
   .ctaBannerClaim {
     font-size: clamp(1rem, 4vw, 1.4rem);
   }
@@ -249,11 +258,20 @@
     padding: 14px 28px;
     width: 100%;
     display: block;
+    min-height: 48px;
   }
 }
 
 @media (max-width: 480px) {
   .watermark {
     font-size: 28vw;
+  }
+
+  .card {
+    padding: 22px 18px;
+  }
+
+  .ctaBannerHeading {
+    font-size: clamp(1.5rem, 7vw, 2.4rem);
   }
 }

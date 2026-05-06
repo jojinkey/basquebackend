@@ -31,25 +31,30 @@ const BookingModalShell = () => {
             transition={{ duration: 0.3 }}
             onClick={closeModal}
           />
-          <motion.div
-            className={styles.panel}
-            initial={{ y: '100%', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0 }}
-            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className={styles.topBar}>
-              <span className={styles.logo}>BASQUE</span>
-              <button className={styles.closeBtn} onClick={closeModal} aria-label="Close">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M1 1L17 17M17 1L1 17" stroke="var(--teak)" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </button>
-            </div>
-            <div className={styles.content}>
-              <ActiveModal prefill={modal.prefill} onClose={closeModal} />
-            </div>
-          </motion.div>
+          <div className={styles.panelWrap}>
+            <motion.div
+              className={styles.panel}
+              initial={{ scale: 0.94, opacity: 0, y: 32 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: 20 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className={styles.topBar}>
+                <div className={styles.topBarLeft}>
+                  <span className={styles.logo}>BASQUE</span>
+                  <span className={styles.logoTag}>Dehradun · Est. 1924</span>
+                </div>
+                <button className={styles.closeBtn} onClick={closeModal} aria-label="Close">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M1 1L13 13M13 1L1 13" stroke="var(--teak)" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div className={styles.content}>
+                <ActiveModal prefill={modal.prefill} onClose={closeModal} />
+              </div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

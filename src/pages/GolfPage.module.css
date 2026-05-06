@@ -410,10 +410,57 @@
   .editorial { grid-template-columns: 1fr; }
   .editorialImage { height: 360px; position: relative; }
   .editorialText { padding: 48px var(--container-pad); }
+  .packagesGrid { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .audienceGrid { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+@media (max-width: 768px) {
+  .heroContent {
+    padding: 0 var(--container-pad);
+  }
+
+  .heroSub {
+    font-size: 0.88rem;
+    margin-bottom: 28px;
+  }
+
+  .heroCta {
+    width: 100%;
+    min-height: 48px;
+    padding: 14px 28px;
+  }
+
+  .editorialImage { height: 280px; }
+  .editorialText { padding: 36px var(--container-pad); }
+  .editorialBody { font-size: 0.88rem; }
+
+  .coursesSection { padding: 56px 0; }
+  .courseCard { width: 170px; height: 220px; }
+
+  .packagesSection { padding: 56px 0; }
   .packagesGrid { grid-template-columns: 1fr; }
+
+  .audienceSection { padding: 56px 0; }
   .audienceGrid { grid-template-columns: 1fr; }
+
+  .bookingSection { padding: 56px var(--container-pad); }
+  .bookingForm { padding: 24px 20px; }
+
+  .sectionHeading {
+    font-size: clamp(1.6rem, 5vw, 2.5rem);
+    margin-bottom: 28px;
+  }
 }
 
 @media (max-width: 640px) {
-  .heroHeading { font-size: clamp(2.5rem, 8vw, 4rem); }
+  .heroHeading { font-size: clamp(2.4rem, 9vw, 3.5rem); }
+  .heroEyebrow { font-size: 0.55rem; letter-spacing: 0.35em; }
+
+  .pkgCard { padding: 24px 18px; }
+  .audienceCard { padding: 24px 18px; }
+}
+
+@media (max-width: 480px) {
+  .heroHeading { font-size: clamp(2rem, 9.5vw, 3rem); }
+  .courseCard { width: 150px; height: 200px; }
 }

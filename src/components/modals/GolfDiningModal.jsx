@@ -44,17 +44,17 @@ const GolfDiningModal = ({ onClose }) => {
           <path d="M5 14L11 20L23 8" stroke="#48b076" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-      <h3 className={styles.successTitle}>Enquiry Received</h3>
-      <p className={styles.successBody}>We'll WhatsApp you within 2 hours to confirm everything. Prepare for a great afternoon.</p>
+      <h3 className={styles.successTitle}>Afternoon Secured</h3>
+      <p className={styles.successBody}>We'll WhatsApp you within 2 hours with everything confirmed. Prepare to play — and dine — exceptionally well.</p>
       <button className={styles.closeBtn} onClick={onClose}>Done</button>
     </div>
   )
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <span className={styles.eyebrow}>Golf &amp; Dining at Basque</span>
-      <h2 className={styles.heading}>Book a Package</h2>
-      <p className={styles.sub}>Simulator bay + dining. We'll handle the timing.</p>
+      <span className={styles.eyebrow}>The Ultimate Basque Experience</span>
+      <h2 className={styles.heading}>Book the Full Experience</h2>
+      <p className={styles.sub}>Play the world's finest courses, then dine as though you own the place. One afternoon, zero compromises.</p>
 
       <div className={styles.field}>
         <label className={styles.label}>Select Package</label>
@@ -116,7 +116,7 @@ const GolfDiningModal = ({ onClose }) => {
       </div>
 
       <motion.button type="submit" className={styles.submit} disabled={loading} whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.98 }}>
-        {loading ? 'Sending…' : 'Enquire About Package →'}
+        {loading ? 'Booking your afternoon…' : 'Book My Experience →'}
       </motion.button>
     </form>
   )

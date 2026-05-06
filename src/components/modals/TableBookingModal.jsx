@@ -41,17 +41,17 @@ const TableBookingModal = ({ prefill = {}, onClose }) => {
           <path d="M5 14L11 20L23 8" stroke="#48b076" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-      <h3 className={styles.successTitle}>Reservation Received</h3>
-      <p className={styles.successBody}>We'll confirm on WhatsApp within 2 hours. See you at Basque.</p>
+      <h3 className={styles.successTitle}>Your Table Is Waiting</h3>
+      <p className={styles.successBody}>We'll confirm via WhatsApp within 2 hours. Dress the occasion — evenings at Basque have a way of becoming memories.</p>
       <button className={styles.closeBtn} onClick={onClose}>Done</button>
     </div>
   )
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <span className={styles.eyebrow}>The Restaurant at Basque</span>
-      <h2 className={styles.heading}>Reserve a Table</h2>
-      <p className={styles.sub}>We'll confirm within 2 hours via WhatsApp.</p>
+      <span className={styles.eyebrow}>Dehradun's Most Celebrated Table</span>
+      <h2 className={styles.heading}>Claim Your Table</h2>
+      <p className={styles.sub}>Fairy-lit evenings, heritage garden, food worth the drive. Weekend seats fill by Thursday — secure yours now.</p>
 
       <div className={styles.row2}>
         <div className={styles.field}>
@@ -95,7 +95,7 @@ const TableBookingModal = ({ prefill = {}, onClose }) => {
       </div>
 
       <motion.button type="submit" className={styles.submit} disabled={loading} whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.98 }}>
-        {loading ? 'Sending…' : 'Confirm Reservation →'}
+        {loading ? 'Securing your table…' : 'Reserve My Table →'}
       </motion.button>
     </form>
   )

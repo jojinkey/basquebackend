@@ -178,7 +178,7 @@ const IntentCard = ({ intent, index }) => {
 }
 
 const IntentSelector = () => (
-  <section className={styles.section}>
+  <section id="discover" className={styles.section}>
     <div className={styles.topRule} />
     <div className={styles.inner}>
       <motion.span

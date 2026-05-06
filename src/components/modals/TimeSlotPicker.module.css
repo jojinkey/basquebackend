@@ -50,9 +50,9 @@
 .groupLabel {
   display: block;
   font-family: var(--font-sc);
-  font-size: 0.55rem;
-  letter-spacing: 0.3em;
-  color: rgba(61, 35, 20, 0.45);
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  color: rgba(61, 35, 20, 0.58);
   margin-bottom: 8px;
 }
 
@@ -65,6 +65,7 @@
 .slot {
   position: relative;
   padding: 9px 16px;
+  min-height: 38px;
   border: 1px solid rgba(61, 35, 20, 0.18);
   border-radius: 2px;
   background: var(--warm-white);
@@ -75,6 +76,18 @@
   cursor: none;
   transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
   overflow: hidden;
+}
+
+@media (max-width: 560px) {
+  .slot {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.62rem;
+  }
+
+  .slotRow {
+    gap: 6px;
+  }
 }
 
 .slot:hover:not(:disabled) {

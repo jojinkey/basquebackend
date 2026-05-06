@@ -49,17 +49,17 @@ const EventEnquiryModal = ({ onClose }) => {
           <path d="M5 14L11 20L23 8" stroke="#48b076" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-      <h3 className={styles.successTitle}>Enquiry Received</h3>
-      <p className={styles.successBody}>We respond within 24 hours — personally, not automated. We look forward to hosting you.</p>
+      <h3 className={styles.successTitle}>We'll Be in Touch</h3>
+      <p className={styles.successBody}>A real person will call within 24 hours — not a bot, not a template. Great events start with great conversations.</p>
       <button className={styles.closeBtn} onClick={onClose}>Done</button>
     </div>
   )
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <span className={styles.eyebrow}>Events at Basque</span>
-      <h2 className={styles.heading}>Host an Event</h2>
-      <p className={styles.sub}>We respond within 24 hours. No automated replies.</p>
+      <span className={styles.eyebrow}>Dehradun's Finest Private Venue</span>
+      <h2 className={styles.heading}>Create Something Unforgettable</h2>
+      <p className={styles.sub}>Heritage gardens, 1924 architecture, bespoke hospitality. Tell us your vision — we'll make it happen exactly as you imagined.</p>
 
       <div className={styles.row2}>
         <div className={styles.field}>
@@ -116,7 +116,7 @@ const EventEnquiryModal = ({ onClose }) => {
       </div>
 
       <motion.button type="submit" className={styles.submit} disabled={loading} whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.98 }}>
-        {loading ? 'Sending…' : 'Send Event Enquiry →'}
+        {loading ? 'Sending your vision…' : 'Start Planning My Event →'}
       </motion.button>
     </form>
   )

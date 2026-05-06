@@ -214,11 +214,49 @@
   transform: translateX(12px);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .actions {
     display: none;
   }
   .hamburger {
     display: flex;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 16px var(--container-pad);
+  }
+
+  .logo {
+    font-size: 1.1rem;
+    letter-spacing: 0.35em;
+  }
+
+  .mobileItem {
+    font-size: clamp(2rem, 10vw, 3.5rem);
+    padding: 8px 0;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .mobileMenu {
+    gap: 4px;
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobileItem {
+    font-size: clamp(1.8rem, 9vw, 2.8rem);
   }
 }

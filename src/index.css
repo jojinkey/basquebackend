@@ -85,8 +85,23 @@ img, video {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   body {
     cursor: auto;
+  }
+
+  button, a, input, select, textarea, [role="button"] {
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 768px) {
+  * {
+    cursor: auto !important;
+  }
+  button, a, input, select, textarea, [role="button"] {
+    cursor: pointer !important;
   }
 }

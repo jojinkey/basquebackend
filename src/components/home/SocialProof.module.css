@@ -126,25 +126,75 @@
   .statsRow {
     grid-template-columns: repeat(2, 1fr);
     gap: 32px;
+    padding: 52px var(--container-pad);
   }
   .stat {
     border-right: none;
+  }
+
+  .section {
+    padding-bottom: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .statsRow {
+    gap: 24px;
+    padding: 44px var(--container-pad);
+  }
+
+  .statNum {
+    font-size: 2.8rem;
+  }
+
+  .carousel {
+    padding: 36px var(--container-pad) 0;
+  }
+
+  .card {
+    padding: 28px 24px;
   }
 }
 
 @media (max-width: 640px) {
   .statsRow {
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    padding: 40px var(--container-pad);
+    gap: 20px;
+    padding: 36px var(--container-pad);
   }
   .statNum {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
+  }
+  .statLabel {
+    font-size: 0.78rem;
+  }
+  .statSub {
+    font-size: 0.7rem;
   }
   .card {
-    padding: 24px 20px;
+    padding: 22px 18px;
   }
   .quote {
-    font-size: 1rem;
+    font-size: 0.98rem;
+  }
+
+  .section {
+    padding-bottom: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .statNum {
+    font-size: 2rem;
+  }
+
+  .quote {
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .card {
+    padding: 20px 16px;
+    margin-bottom: 20px;
   }
 }

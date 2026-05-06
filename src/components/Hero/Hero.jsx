@@ -95,6 +95,7 @@ const Hero = ({ loaded }) => {
               transition={{ delay: baseDelay + 1.2, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.96 }}
+              onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Discover Basque
             </motion.button>

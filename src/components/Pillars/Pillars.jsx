@@ -1,5 +1,6 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AnimatedText from '../shared/AnimatedText'
 import SectionLabel from '../shared/SectionLabel'
 import { useModal } from '../../context/ModalContext'
@@ -46,9 +47,19 @@ const PILLARS = [
     sub: 'Tour-grade simulation. 100+ world courses. Book a bay for one hour or an afternoon.',
     accent: 'var(--sage)',
     placeholder: 'linear-gradient(135deg, #1C2E1C, #2A3D28)',
-    video: null,
+    video: 'https://file.garden/aaq7u9giWjY0-o-W/BASQUE/Golf sim.mp4',
     cta: 'Book a Simulator Bay',
     golfModal: true,
+  },
+  {
+    num: '06',
+    title: 'Weddings',
+    sub: 'Heritage gardens, mountain backdrop, memories that outlast the occasion.',
+    accent: 'var(--amber)',
+    placeholder: 'linear-gradient(135deg, #2A1A0E 0%, #4A2A1A 100%)',
+    video: 'https://file.garden/aaq7u9giWjY0-o-W/BASQUE/Indian Wedding.mp4',
+    cta: 'Plan Your Wedding',
+    weddingRoute: true,
   },
 ]
 
@@ -56,6 +67,7 @@ const PillarCard = ({ pillar, index }) => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
   const { openModal } = useModal()
+  const navigate = useNavigate()
 
   return (
     <motion.div
@@ -72,8 +84,10 @@ const PillarCard = ({ pillar, index }) => {
     >
       <div className={styles.cardBg}>
         {pillar.video ? (
-          <video autoPlay muted loop playsInline loading="lazy">
+          <video autoPlay muted loop playsInline preload="auto">
             <source src={pillar.video} type="video/mp4" />
+            <source src={pillar.video.replace(/\.mp4$/i, '')} type="video/mp4" />
+            <source src={pillar.video.endsWith('.mp4') ? pillar.video : pillar.video + '.mp4'} type="video/mp4" />
           </video>
         ) : pillar.image ? (
           <img src={pillar.image} alt={pillar.title} className={styles.cardImg} />
@@ -105,13 +119,16 @@ const PillarCard = ({ pillar, index }) => {
           <motion.button
             className={styles.cardCta}
             whileHover="hover"
-            onClick={() => openModal(pillar.golfModal ? 'golf' : 'court')}
+            onClick={() => {
+              if (pillar.weddingRoute) navigate('/weddings')
+              else openModal(pillar.golfModal ? 'golf' : 'court')
+            }}
           >
             <motion.span
               variants={{ hover: { x: -2 } }}
               style={{ display: 'inline-block' }}
             >
-              {pillar.golfModal ? '⛳' : '🎾'}
+              {pillar.golfModal ? '⛳' : pillar.weddingRoute ? '💍' : '🎾'}
             </motion.span>
             {' '}{pillar.cta}
             <motion.span
@@ -146,7 +163,7 @@ const Pillars = () => (
       </SectionLabel>
 
       <AnimatedText
-        text="Five Worlds. One Address."
+        text="Six Worlds. One Address."
         type="words"
         className={styles.headerHeading}
         style={{ justifyContent: 'center' }}

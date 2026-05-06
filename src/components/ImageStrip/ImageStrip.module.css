@@ -1,6 +1,6 @@
 .strip {
   position: relative;
-  height: clamp(380px, 70vh, 820px);
+  height: clamp(280px, 60vh, 820px);
   overflow: hidden;
   display: flex;
   align-items: flex-start;
@@ -110,4 +110,37 @@
   background: linear-gradient(90deg, transparent, var(--amber), transparent);
   z-index: 3;
   opacity: 0.55;
+}
+
+@media (max-width: 768px) {
+  .stamp {
+    padding: 32px 20px 0;
+  }
+
+  .stampEyebrow {
+    font-size: 0.58rem;
+    letter-spacing: 0.5em;
+    margin-bottom: 12px;
+  }
+
+  .stampHeading {
+    font-size: clamp(1.8rem, 7vw, 3rem);
+  }
+
+  .stampRule {
+    margin: 16px auto;
+  }
+
+  .stampSub {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    bottom: 20px;
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stampHeading {
+    font-size: clamp(1.5rem, 7.5vw, 2.4rem);
+  }
 }

@@ -137,7 +137,7 @@
     grid-template-columns: 1fr;
   }
   .imageCol {
-    height: 360px;
+    height: 400px;
     position: relative;
   }
   .imageOverlay {
@@ -148,15 +148,49 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .imageCol {
-    height: 260px;
+    height: 300px;
   }
+
+  .textCol {
+    padding: 40px var(--container-pad);
+  }
+
+  .heading {
+    font-size: clamp(1.9rem, 6vw, 3rem);
+    margin-bottom: 18px;
+  }
+
+  .body {
+    font-size: 0.88rem;
+    margin-bottom: 22px;
+  }
+
+  .chips {
+    margin-bottom: 24px;
+  }
+
   .ctaRow {
     flex-direction: column;
+    gap: 10px;
   }
+
   .ctaPrimary,
   .ctaSecondary {
     text-align: center;
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .imageCol {
+    height: 240px;
+  }
+
+  .chip {
+    font-size: 0.58rem;
+    padding: 5px 12px;
   }
 }

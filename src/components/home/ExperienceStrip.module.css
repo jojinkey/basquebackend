@@ -97,6 +97,33 @@
   .block:nth-child(2n) {
     border-right: none;
   }
+
+  .heading {
+    font-size: 2rem;
+  }
+
+  .section {
+    padding: 52px var(--container-pad);
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 44px var(--container-pad);
+  }
+
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .heading {
+    font-size: 1.8rem;
+  }
+
+  .block {
+    padding: 26px 16px;
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -105,5 +132,20 @@
   }
   .block {
     border-right: none;
+    padding: 24px var(--container-pad);
+  }
+}
+
+@media (max-width: 480px) {
+  .heading {
+    font-size: 1.6rem;
+  }
+
+  .blockLabel {
+    font-size: 0.62rem;
+  }
+
+  .blockTime {
+    font-size: 0.75rem;
   }
 }

@@ -40,17 +40,17 @@ const CourtBookingModal = ({ onClose }) => {
           <path d="M5 14L11 20L23 8" stroke="#48b076" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-      <h3 className={styles.successTitle}>Court Reserved</h3>
-      <p className={styles.successBody}>We'll confirm on WhatsApp within 2 hours. See you on the court.</p>
+      <h3 className={styles.successTitle}>Court Is Yours</h3>
+      <p className={styles.successBody}>We'll WhatsApp you within 2 hours. Get your game face on — Dehradun's best court is waiting.</p>
       <button className={styles.closeBtn} onClick={onClose}>Done</button>
     </div>
   )
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <span className={styles.eyebrow}>The Courts at Basque</span>
-      <h2 className={styles.heading}>Book a Court</h2>
-      <p className={styles.sub}>Hourly slots. Equipment available on-site.</p>
+      <span className={styles.eyebrow}>Dehradun's Premier Pickleball Courts</span>
+      <h2 className={styles.heading}>Reserve Your Court</h2>
+      <p className={styles.sub}>Pro-grade courts, mountain air, flood-lit evenings. Courts go fast on weekends — lock in your slot now.</p>
 
       <div className={styles.row2}>
         <div className={styles.field}>
@@ -106,7 +106,7 @@ const CourtBookingModal = ({ onClose }) => {
       </div>
 
       <motion.button type="submit" className={styles.submit} disabled={loading} whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.98 }}>
-        {loading ? 'Sending…' : 'Confirm Court Booking →'}
+        {loading ? 'Reserving your court…' : 'Reserve My Court →'}
       </motion.button>
     </form>
   )

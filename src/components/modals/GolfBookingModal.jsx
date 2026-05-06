@@ -43,17 +43,17 @@ const GolfBookingModal = ({ onClose }) => {
           <path d="M5 14L11 20L23 8" stroke="#48b076" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-      <h3 className={styles.successTitle}>Simulator Bay Reserved</h3>
-      <p className={styles.successBody}>We'll confirm on WhatsApp within 2 hours. Get ready to play Augusta.</p>
+      <h3 className={styles.successTitle}>Bay Reserved. Tee Up.</h3>
+      <p className={styles.successBody}>We'll confirm via WhatsApp within 2 hours. Augusta, St Andrews, Pebble Beach — choose your course.</p>
       <button className={styles.closeBtn} onClick={onClose}>Done</button>
     </div>
   )
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <span className={styles.eyebrow}>The Golf Simulator at Basque</span>
-      <h2 className={styles.heading}>Book a Simulator Bay</h2>
-      <p className={styles.sub}>Private bay. 100+ courses. Equipment included.</p>
+      <span className={styles.eyebrow}>Where Augusta Meets Dehradun</span>
+      <h2 className={styles.heading}>Reserve Your Bay</h2>
+      <p className={styles.sub}>Play the world's greatest courses from a private bay in the Himalayas. Tour-grade tech, zero crowds, pure game.</p>
 
       <div className={styles.row2}>
         <div className={styles.field}>
@@ -107,7 +107,7 @@ const GolfBookingModal = ({ onClose }) => {
       </div>
 
       <motion.button type="submit" className={styles.submit} disabled={loading} whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.98 }}>
-        {loading ? 'Sending…' : 'Confirm Simulator Booking →'}
+        {loading ? 'Reserving your bay…' : 'Reserve My Bay →'}
       </motion.button>
     </form>
   )
