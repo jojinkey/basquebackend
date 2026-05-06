@@ -9,7 +9,7 @@ const BUDGETS = ['Under ₹2 lakhs','₹2–5 lakhs','₹5–15 lakhs','₹15–
 const SOURCES = ['Google Search','Instagram','Word of mouth','A friend','Drive-by','Other']
 
 const guestNote = (n) => {
-  if (n >= 150) return 'Full venue can accommodate this — we'll arrange everything.'
+  if (n >= 150) return "Full venue can accommodate this — we'll arrange everything."
   if (n >= 80) return 'Full garden available for your event.'
   if (n >= 30) return 'Garden section available.'
   return ''

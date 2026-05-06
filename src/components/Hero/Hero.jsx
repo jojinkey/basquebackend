@@ -4,9 +4,8 @@ import { useModal } from '../../context/ModalContext'
 import styles from './Hero.module.css'
 
 const HEADLINE_LINES = [
-  { text: 'Some places serve food.', amber: false },
-  { text: 'Basque serves', amber: false },
-  { text: 'everything else.', amber: true },
+  { text: 'Where finest', amber: false },
+  { text: 'hours begin.', amber: true },
 ]
 
 const Hero = ({ loaded }) => {
