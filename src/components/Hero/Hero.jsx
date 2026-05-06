@@ -1,11 +1,17 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
+import { useModal } from '../../context/ModalContext'
 import styles from './Hero.module.css'
 
-const HEADLINE_LINES = ['The Standard', 'Dehradun', 'Deserves.']
+const HEADLINE_LINES = [
+  { text: 'Some places serve food.', amber: false },
+  { text: 'Basque serves', amber: false },
+  { text: 'everything else.', amber: true },
+]
 
 const Hero = ({ loaded }) => {
   const heroRef = useRef(null)
+  const { openModal } = useModal()
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
@@ -38,14 +44,14 @@ const Hero = ({ loaded }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: baseDelay + 0, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            Dehradun · Uttarakhand
+            Dehradun · Uttarakhand · Est. 1924
           </motion.span>
 
           <div>
             {HEADLINE_LINES.map((line, i) => (
               <div key={i} className={styles.headlineWrap}>
                 <motion.span
-                  className={styles.headline}
+                  className={`${styles.headline} ${line.amber ? styles.headlineAmber : ''}`}
                   initial={{ y: '105%' }}
                   animate={{ y: '0%' }}
                   transition={{
@@ -54,7 +60,7 @@ const Hero = ({ loaded }) => {
                     ease: [0.76, 0, 0.24, 1],
                   }}
                 >
-                  {line}
+                  {line.text}
                 </motion.span>
               </div>
             ))}
@@ -67,7 +73,7 @@ const Hero = ({ loaded }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: baseDelay + 0.9, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           >
-            Restaurant&nbsp;&nbsp;·&nbsp;&nbsp;Bar&nbsp;&nbsp;·&nbsp;&nbsp;Garden&nbsp;&nbsp;·&nbsp;&nbsp;Pickleball
+            Restaurant&nbsp;&nbsp;·&nbsp;&nbsp;Bar&nbsp;&nbsp;·&nbsp;&nbsp;Garden&nbsp;&nbsp;·&nbsp;&nbsp;Pickleball&nbsp;&nbsp;·&nbsp;&nbsp;Golf&nbsp;&nbsp;·&nbsp;&nbsp;Weddings&nbsp;&nbsp;·&nbsp;&nbsp;Events
           </motion.span>
 
           <div className={styles.ctaRow}>
@@ -78,6 +84,7 @@ const Hero = ({ loaded }) => {
               transition={{ delay: baseDelay + 1.1, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
               whileHover={{ scale: 1.04, y: -3, boxShadow: '0 20px 50px rgba(200,133,42,0.45)' }}
               whileTap={{ scale: 0.96 }}
+              onClick={() => openModal('table')}
             >
               Reserve a Table →
             </motion.button>
@@ -90,7 +97,7 @@ const Hero = ({ loaded }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.96 }}
             >
-              Explore Basque
+              Discover Basque
             </motion.button>
           </div>
         </div>
@@ -125,7 +132,7 @@ const Hero = ({ loaded }) => {
       >
         <img
           src="https://file.garden/aaq7u9giWjY0-o-W/BASQUE/BASQUE%20Logo.png"
-          alt="Basque — Restaurant · Garden · Pickleball"
+          alt="Basque — Restaurant · Garden · Pickleball · Golf"
           className={styles.logoImage}
         />
         <div className={styles.logoStripDivider} />

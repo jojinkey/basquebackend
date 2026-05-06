@@ -3,8 +3,8 @@ import styles from './Footer.module.css'
 
 const NAV_LINKS = ['Reserve a Table', 'Book a Court', 'Host an Event', 'Menu', 'About Basque']
 
-const Footer = () => (
-  <footer className={styles.footer}>
+const Footer = ({ id }) => (
+  <footer className={styles.footer} id={id}>
     <div className={styles.grid}>
       {/* Brand */}
       <div className={styles.brand}>

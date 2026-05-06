@@ -1,13 +1,25 @@
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useModal } from '../../context/ModalContext'
 import styles from './Navbar.module.css'
 
-const NAV_ITEMS = ['Reserve a Table', 'Book a Court', 'Host an Event', 'Menu']
+const NAV_ITEMS = ['Reserve a Table', 'Book a Court', 'Host an Event', 'Golf Simulator', 'Menu']
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [courtDropdown, setCourtDropdown] = useState(false)
   const { scrollY } = useScroll()
-  const scrolled = useTransform(scrollY, [0, 80], [0, 1])
+  const { openModal } = useModal()
+  const navigate = useNavigate()
+
+  const handleNavAction = (item) => {
+    setMenuOpen(false)
+    if (item === 'Reserve a Table') openModal('table')
+    else if (item === 'Book a Court') openModal('court')
+    else if (item === 'Host an Event') openModal('event')
+    else if (item === 'Golf Simulator') openModal('golf')
+  }
 
   return (
     <>
@@ -23,7 +35,7 @@ const Navbar = () => {
         }}
       >
         <motion.a
-          href="#"
+          href="/"
           className={styles.logo}
           style={{
             color: useTransform(scrollY, [0, 80],
@@ -34,14 +46,63 @@ const Navbar = () => {
         </motion.a>
 
         <div className={styles.actions}>
-          <motion.button
-            className={styles.btnFilled}
-            whileHover={{ scale: 1.03, y: -2, boxShadow: '0 10px 30px var(--amber-glow)' }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          {/* Reserve a Table — with pulse dot */}
+          <div className={styles.btnWrap}>
+            <div className={styles.pulseDot}>
+              <div className={styles.pulseDotCore} />
+              <div className={styles.pulseDotRing} />
+            </div>
+            <motion.button
+              className={styles.btnFilled}
+              onClick={() => openModal('table')}
+              whileHover={{ scale: 1.03, y: -2, boxShadow: '0 10px 30px var(--amber-glow)' }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
+              Reserve a Table
+            </motion.button>
+          </div>
+
+          {/* Book a Court — with dropdown */}
+          <div
+            className={styles.dropdownWrap}
+            onMouseEnter={() => setCourtDropdown(true)}
+            onMouseLeave={() => setCourtDropdown(false)}
           >
-            Reserve a Table
-          </motion.button>
+            <motion.button
+              className={styles.btnOutlined}
+              style={{
+                color: useTransform(scrollY, [0, 80],
+                  ['var(--warm-white)', 'var(--amber)']),
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
+              Book a Court ▾
+            </motion.button>
+
+            <AnimatePresence>
+              {courtDropdown && (
+                <motion.div
+                  className={styles.dropdown}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <button className={styles.dropdownItem} onClick={() => { setCourtDropdown(false); openModal('court') }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="10" rx="5" ry="3.5" stroke="var(--amber)" strokeWidth="1.2"/><path d="M11 7l4-4" stroke="var(--amber)" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                    Pickleball Court
+                  </button>
+                  <button className={styles.dropdownItem} onClick={() => { setCourtDropdown(false); openModal('golf') }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12V5" stroke="var(--amber)" strokeWidth="1.2" strokeLinecap="round"/><path d="M8 5l5 2.5-5 2.5" stroke="var(--amber)" strokeWidth="1.2" strokeLinejoin="round"/><path d="M4 14h8" stroke="var(--amber)" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                    Golf Simulator
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <motion.button
             className={styles.btnOutlined}
@@ -49,19 +110,7 @@ const Navbar = () => {
               color: useTransform(scrollY, [0, 80],
                 ['var(--warm-white)', 'var(--amber)']),
             }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-          >
-            Book a Court
-          </motion.button>
-
-          <motion.button
-            className={styles.btnOutlined}
-            style={{
-              color: useTransform(scrollY, [0, 80],
-                ['var(--warm-white)', 'var(--amber)']),
-            }}
+            onClick={() => openModal('event')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -108,7 +157,7 @@ const Navbar = () => {
                 initial={{ y: 60, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: i * 0.1 + 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => setMenuOpen(false)}
+                onClick={() => handleNavAction(item)}
               >
                 {item}
               </motion.button>

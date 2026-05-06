@@ -2,6 +2,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import AnimatedText from '../shared/AnimatedText'
 import SectionLabel from '../shared/SectionLabel'
+import { useModal } from '../../context/ModalContext'
 import styles from './Pillars.module.css'
 
 const PILLARS = [
@@ -39,11 +40,22 @@ const PILLARS = [
     placeholder: null,
     video: 'https://file.garden/aaq7u9giWjY0-o-W/BASQUE/278182.mp4',
   },
+  {
+    num: '05',
+    title: 'The Golf Simulator',
+    sub: 'Tour-grade simulation. 100+ world courses. Book a bay for one hour or an afternoon.',
+    accent: 'var(--sage)',
+    placeholder: 'linear-gradient(135deg, #1C2E1C, #2A3D28)',
+    video: null,
+    cta: 'Book a Simulator Bay',
+    golfModal: true,
+  },
 ]
 
 const PillarCard = ({ pillar, index }) => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
+  const { openModal } = useModal()
 
   return (
     <motion.div
@@ -93,12 +105,13 @@ const PillarCard = ({ pillar, index }) => {
           <motion.button
             className={styles.cardCta}
             whileHover="hover"
+            onClick={() => openModal(pillar.golfModal ? 'golf' : 'court')}
           >
             <motion.span
               variants={{ hover: { x: -2 } }}
               style={{ display: 'inline-block' }}
             >
-              🎾
+              {pillar.golfModal ? '⛳' : '🎾'}
             </motion.span>
             {' '}{pillar.cta}
             <motion.span
@@ -133,7 +146,7 @@ const Pillars = () => (
       </SectionLabel>
 
       <AnimatedText
-        text="Four Worlds, One Address."
+        text="Five Worlds. One Address."
         type="words"
         className={styles.headerHeading}
         style={{ justifyContent: 'center' }}
@@ -146,7 +159,7 @@ const Pillars = () => (
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.3 }}
       >
-        From the dining room to the garden to the court.
+        Restaurant · Bar · Garden · Pickleball · Golf · Weddings
       </motion.p>
     </div>
 

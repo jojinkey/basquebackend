@@ -1,0 +1,150 @@
+.section {
+  background: var(--ivory);
+  padding: 0 0 80px;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid rgba(61, 35, 20, 0.08);
+  border-bottom: 1px solid rgba(61, 35, 20, 0.08);
+  padding: 60px var(--container-pad);
+}
+
+.stat {
+  text-align: center;
+  padding: 0 20px;
+  border-right: 1px solid var(--cream);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat:last-child {
+  border-right: none;
+}
+
+.statNum {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 3.5rem;
+  color: var(--amber);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--teak);
+}
+
+.statSub {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.75rem;
+  color: rgba(28, 20, 16, 0.5);
+}
+
+/* Carousel */
+.carousel {
+  padding: 48px var(--container-pad) 0;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.card {
+  background: var(--warm-white);
+  border: 1px solid rgba(61, 35, 20, 0.08);
+  border-top: 2px solid var(--amber);
+  border-radius: 4px;
+  padding: 36px 40px;
+  margin-bottom: 24px;
+}
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.star {
+  color: var(--amber);
+  font-size: 1rem;
+}
+
+.quote {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--teak);
+  line-height: 1.65;
+  margin-bottom: 20px;
+}
+
+.guest {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--teak);
+  margin-bottom: 6px;
+}
+
+.occasion {
+  font-family: var(--font-sc);
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: var(--amber);
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(200, 133, 42, 0.25);
+  border: none;
+  cursor: none;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.dotActive {
+  background: var(--amber);
+  transform: scale(1.25);
+}
+
+@media (max-width: 1024px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  .stat {
+    border-right: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .statsRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 40px var(--container-pad);
+  }
+  .statNum {
+    font-size: 2.5rem;
+  }
+  .card {
+    padding: 24px 20px;
+  }
+  .quote {
+    font-size: 1rem;
+  }
+}
