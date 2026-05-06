@@ -18,10 +18,6 @@ import IntentSelector from './components/home/IntentSelector'
 import GolfSimulator from './components/home/GolfSimulator'
 import WeddingPreview from './components/home/WeddingPreview'
 import ExperienceStrip from './components/home/ExperienceStrip'
-import ImageStrip from './components/ImageStrip/ImageStrip'
-import PhoneMockup from './components/PhoneMockup/PhoneMockup'
-import PainPoints from './components/PainPoints/PainPoints'
-import Proposal from './components/Proposal/Proposal'
 import SocialProof from './components/home/SocialProof'
 import FinalCTA from './components/home/FinalCTA'
 import Footer from './components/Footer/Footer'
@@ -38,10 +34,6 @@ const HomePage = ({ loaded }) => (
     <WeddingPreview />
     <ExperienceStrip />
     <SocialProof />
-    <ImageStrip />
-    <PhoneMockup />
-    <PainPoints />
-    <Proposal />
     <FinalCTA />
   </main>
 )

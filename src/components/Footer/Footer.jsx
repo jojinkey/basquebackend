@@ -77,7 +77,7 @@ const Footer = ({ id }) => (
     </div>
 
     <div className={styles.bottomBar}>
-      <span className={styles.bottomText}>© 2025 Basque. All Rights Reserved.</span>
+      <span className={styles.bottomText}>© 2026 Basque. All Rights Reserved.</span>
       <span className={styles.bottomText}>Crafted with precision by Digital Byte Solutions</span>
     </div>
   </footer>

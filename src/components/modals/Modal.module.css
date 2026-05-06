@@ -1,0 +1,265 @@
+/* ─── Modal.module.css — Shared form styles for all booking modals ─── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0 8px;
+}
+
+/* ── Eyebrow / heading / sub ── */
+.eyebrow {
+  display: block;
+  font-family: var(--font-sc);
+  font-size: 0.52rem;
+  letter-spacing: 0.32em;
+  color: rgba(61, 35, 20, 0.45);
+  text-transform: uppercase;
+  margin-bottom: -8px;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--teak);
+  line-height: 1.15;
+  margin: 0;
+}
+
+.sub {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.85rem;
+  color: rgba(28, 20, 16, 0.5);
+  margin: -8px 0 4px;
+}
+
+/* ── Layout ── */
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Labels ── */
+.label {
+  font-family: var(--font-sc);
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  color: rgba(61, 35, 20, 0.55);
+  text-transform: uppercase;
+}
+
+.optional {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(28, 20, 16, 0.35);
+}
+
+/* ── Text inputs ── */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(61, 35, 20, 0.18);
+  border-radius: 2px;
+  background: var(--warm-white);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: var(--teak);
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: rgba(61, 35, 20, 0.3);
+}
+
+.input:focus {
+  border-color: var(--amber);
+}
+
+/* ── Stepper (covers) ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid rgba(61, 35, 20, 0.18);
+  border-radius: 2px;
+  width: fit-content;
+  overflow: hidden;
+}
+
+.stepBtn {
+  width: 36px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warm-white);
+  border: none;
+  font-size: 1.1rem;
+  color: var(--teak);
+  cursor: none;
+  transition: background 0.15s ease;
+  line-height: 1;
+}
+
+.stepBtn:hover {
+  background: rgba(232, 169, 74, 0.12);
+  color: var(--amber);
+}
+
+.stepVal {
+  min-width: 40px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--teak);
+  border-left: 1px solid rgba(61, 35, 20, 0.12);
+  border-right: 1px solid rgba(61, 35, 20, 0.12);
+  padding: 8px 4px;
+}
+
+.fieldNote {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.75rem;
+  color: var(--amber);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* ── Chips ── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 7px 14px;
+  border: 1px solid rgba(61, 35, 20, 0.18);
+  border-radius: 2px;
+  background: var(--warm-white);
+  font-family: var(--font-sc);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  color: var(--teak);
+  cursor: none;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.chipActive {
+  background: var(--amber) !important;
+  border-color: var(--amber) !important;
+  color: var(--warm-white) !important;
+}
+
+/* ── Submit button ── */
+.submit {
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--teak);
+  color: var(--warm-white);
+  border: none;
+  border-radius: 2px;
+  font-family: var(--font-sc);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: none;
+  margin-top: 4px;
+  transition: background 0.2s ease;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--amber);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+}
+
+/* ── Success state ── */
+.successBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px 32px;
+  gap: 12px;
+  min-height: 260px;
+}
+
+.successIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(72, 176, 118, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.successTitle {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.6rem;
+  color: var(--teak);
+  margin: 0;
+}
+
+.successBody {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: rgba(28, 20, 16, 0.55);
+  max-width: 280px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.closeBtn {
+  margin-top: 8px;
+  padding: 11px 32px;
+  background: transparent;
+  border: 1px solid rgba(61, 35, 20, 0.25);
+  border-radius: 2px;
+  font-family: var(--font-sc);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  color: var(--teak);
+  cursor: none;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.closeBtn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
