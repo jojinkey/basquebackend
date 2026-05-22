@@ -27,6 +27,7 @@ import GolfPage from './pages/GolfPage'
 import WeddingsPage from './pages/WeddingsPage'
 import BarPage from './pages/BarPage'
 import EventsPage from './pages/EventsPage'
+import MenuPage from './pages/MenuPage'
 
 const HomePage = ({ loaded }) => (
   <main>
@@ -76,12 +77,13 @@ function App() {
         <BookingModalShell />
 
         <Routes>
-          <Route path="/" element={<HomePage loaded={!isLoading} />} />
-          <Route path="/golf" element={<GolfPage />} />
-          <Route path="/weddings" element={<WeddingsPage />} />
-          <Route path="/bar" element={<BarPage />} />
-          <Route path="/events" element={<EventsPage />} />
-        </Routes>
+  <Route path="/" element={<HomePage loaded={!isLoading} />} />
+  <Route path="/golf" element={<GolfPage />} />
+  <Route path="/weddings" element={<WeddingsPage />} />
+  <Route path="/bar" element={<BarPage />} />
+  <Route path="/events" element={<EventsPage />} />
+  <Route path="/menu/:tableId" element={<MenuPage />} />
+</Routes>
 
         <Footer id="footer" />
         <WhatsAppFloat />

@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
 import { useModal } from '../../context/ModalContext'
+import { useNavigate } from 'react-router-dom'
 import styles from './Hero.module.css'
 
 const HEADLINE_LINES = [
@@ -11,10 +12,13 @@ const HEADLINE_LINES = [
 const Hero = ({ loaded }) => {
   const heroRef = useRef(null)
   const { openModal } = useModal()
+  const navigate = useNavigate()
+
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
   })
+
   const videoY = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
 
   const baseDelay = loaded ? 0.4 : 3.2
@@ -25,10 +29,17 @@ const Hero = ({ loaded }) => {
         {/* Parallax video background */}
         <motion.div
           className={styles.videoBg}
-          style={{ y: videoY, scale: 1.3, transformOrigin: 'center center' }}
+          style={{
+            y: videoY,
+            scale: 1.3,
+            transformOrigin: 'center center',
+          }}
         >
           <video autoPlay muted loop playsInline preload="auto">
-            <source src="https://file.garden/aaq7u9giWjY0-o-W/BASQUE/20203969-uhd_3840_2160_30fps.mp4" type="video/mp4" />
+            <source
+              src="https://file.garden/aaq7u9giWjY0-o-W/BASQUE/20203969-uhd_3840_2160_30fps.mp4"
+              type="video/mp4"
+            />
           </video>
         </motion.div>
 
@@ -41,7 +52,11 @@ const Hero = ({ loaded }) => {
             className={styles.eyebrow}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: baseDelay + 0, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+              delay: baseDelay + 0,
+              duration: 0.8,
+              ease: [0.16, 1, 0.3, 1],
+            }}
           >
             Dehradun · Uttarakhand · Est. 1924
           </motion.span>
@@ -50,7 +65,9 @@ const Hero = ({ loaded }) => {
             {HEADLINE_LINES.map((line, i) => (
               <div key={i} className={styles.headlineWrap}>
                 <motion.span
-                  className={`${styles.headline} ${line.amber ? styles.headlineAmber : ''}`}
+                  className={`${styles.headline} ${
+                    line.amber ? styles.headlineAmber : ''
+                  }`}
                   initial={{ y: '105%' }}
                   animate={{ y: '0%' }}
                   transition={{
@@ -65,39 +82,79 @@ const Hero = ({ loaded }) => {
             ))}
           </div>
 
-          {/* Backlit pill tagline */}
+          {/* Backlit tagline */}
           <motion.span
             className={styles.taglineBacklit}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: baseDelay + 0.9, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+            transition={{
+              delay: baseDelay + 0.9,
+              duration: 1.1,
+              ease: [0.16, 1, 0.3, 1],
+            }}
           >
             Restaurant&nbsp;&nbsp;·&nbsp;&nbsp;Bar&nbsp;&nbsp;·&nbsp;&nbsp;Garden&nbsp;&nbsp;·&nbsp;&nbsp;Pickleball&nbsp;&nbsp;·&nbsp;&nbsp;Golf&nbsp;&nbsp;·&nbsp;&nbsp;Weddings&nbsp;&nbsp;·&nbsp;&nbsp;Events
           </motion.span>
 
+          {/* CTA BUTTONS */}
           <div className={styles.ctaRow}>
+            {/* Reserve Button */}
             <motion.button
               className={styles.ctaPrimary}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: baseDelay + 1.1, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
-              whileHover={{ scale: 1.04, y: -3, boxShadow: '0 20px 50px rgba(200,133,42,0.45)' }}
+              transition={{
+                delay: baseDelay + 1.1,
+                duration: 0.8,
+                ease: [0.34, 1.56, 0.64, 1],
+              }}
+              whileHover={{
+                scale: 1.04,
+                y: -3,
+                boxShadow: '0 20px 50px rgba(200,133,42,0.45)',
+              }}
               whileTap={{ scale: 0.96 }}
               onClick={() => openModal('table')}
             >
               Reserve a Table →
             </motion.button>
 
+            {/* Discover Button */}
             <motion.button
               className={styles.ctaSecondary}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: baseDelay + 1.2, duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+              transition={{
+                delay: baseDelay + 1.2,
+                duration: 0.8,
+                ease: [0.34, 1.56, 0.64, 1],
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.96 }}
-              onClick={() => document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() =>
+                document
+                  .getElementById('discover')
+                  ?.scrollIntoView({ behavior: 'smooth' })
+              }
             >
               Discover Basque
+            </motion.button>
+
+            {/* NEW MENU BUTTON */}
+            <motion.button
+              className={styles.ctaSecondary}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: baseDelay + 1.3,
+                duration: 0.8,
+                ease: [0.34, 1.56, 0.64, 1],
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => navigate('/menu/basque-menu')}
+            >
+              Explore Menu
             </motion.button>
           </div>
         </div>
@@ -107,17 +164,30 @@ const Hero = ({ loaded }) => {
           className={styles.scrollIndicator}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: baseDelay + 1.6, duration: 1.0 }}
+          transition={{
+            delay: baseDelay + 1.6,
+            duration: 1.0,
+          }}
         >
           <motion.svg
             className={styles.chevron}
             viewBox="0 0 20 12"
             fill="none"
             animate={{ y: [0, 6, 0] }}
-            transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+            transition={{
+              repeat: Infinity,
+              duration: 2.2,
+              ease: 'easeInOut',
+            }}
           >
-            <path d="M1 1L10 11L19 1" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" />
+            <path
+              d="M1 1L10 11L19 1"
+              stroke="var(--amber)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </motion.svg>
+
           <span className={styles.scrollLabel}>Scroll</span>
         </motion.div>
       </section>
@@ -128,13 +198,17 @@ const Hero = ({ loaded }) => {
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+        transition={{
+          duration: 1.0,
+          ease: [0.16, 1, 0.3, 1],
+        }}
       >
         <img
           src="https://file.garden/aaq7u9giWjY0-o-W/BASQUE/BASQUE%20Logo.png"
           alt="Basque — Restaurant · Garden · Pickleball · Golf"
           className={styles.logoImage}
         />
+
         <div className={styles.logoStripDivider} />
       </motion.div>
     </>

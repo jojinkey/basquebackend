@@ -116,6 +116,21 @@ const INTENTS = [
     ),
   },
   {
+  id: 'menu',
+  title: 'Scan the digital menu',
+  desc: 'Browse the Basque menu and place your order directly from your table.',
+  cta: 'Open Digital Menu →',
+  action: 'route:/menu/basque-menu',
+  icon: (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+      <rect x="8" y="6" width="20" height="24" rx="2" stroke="var(--amber)" strokeWidth="1.5"/>
+      <path d="M13 12H23" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M13 17H23" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M13 22H19" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
+},
+  {
     id: 'explore',
     title: 'I\'m just exploring',
     desc: 'Browse the property, menus, and everything Basque has to offer.',
