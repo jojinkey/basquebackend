@@ -93,4 +93,4 @@ export const menuData = [
       { name: "Morning in the Garden", price: 675, desc: "Vodka, lemon, honey-vanilla syrup, cereal milk foam" },
     ],
   },
-]
+];
