@@ -1,0 +1,302 @@
+.managerPage {
+  min-height: 100vh;
+  display: flex;
+  background: #f6f1ea;
+  color: #24150f;
+  font-family: Arial, sans-serif;
+}
+
+.managerSidebar {
+  width: 260px;
+  background: #1d120c;
+  color: white;
+  padding: 30px 22px;
+}
+
+.brand {
+  margin: 0;
+  font-size: 32px;
+}
+
+.brandSub {
+  color: #c9aa86;
+  margin-top: 6px;
+}
+
+.managerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 42px;
+}
+
+.managerNav button {
+  border: none;
+  text-align: left;
+  padding: 15px 16px;
+  border-radius: 16px;
+  background: transparent;
+  color: #d8c8b8;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.managerNav button.active,
+.managerNav button:hover {
+  background: #c59b6d;
+  color: #1d120c;
+  font-weight: 700;
+}
+
+.managerContent {
+  flex: 1;
+  padding: 34px;
+}
+
+.managerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 26px;
+}
+
+.eyebrow {
+  color: #9b7656;
+  font-weight: 700;
+  letter-spacing: 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.managerHeader h1 {
+  margin: 6px 0;
+  font-size: 38px;
+}
+
+.managerHeader p {
+  color: #7d6858;
+}
+
+.refreshBtn {
+  border: none;
+  background: #1d120c;
+  color: white;
+  padding: 13px 22px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.statCard,
+.dashboardPanel,
+.orderCard,
+.tableBox,
+.insightGrid div {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 12px 35px rgba(31, 19, 13, 0.08);
+}
+
+.statCard {
+  padding: 24px;
+}
+
+.statCard h3 {
+  font-size: 32px;
+  margin: 0;
+}
+
+.statCard p {
+  color: #7d6858;
+  margin-bottom: 0;
+}
+
+.dashboardPanel {
+  padding: 26px;
+}
+
+.panelTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.panelTop h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.panelTop span {
+  color: #9b7656;
+  font-weight: 700;
+}
+
+.ordersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 20px;
+}
+
+.orderCard {
+  padding: 22px;
+}
+
+.orderHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tableLabel {
+  margin: 0 0 5px;
+  color: #9b7656;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.orderHead h2 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.orderHead small {
+  color: #8a7668;
+}
+
+.statusPill {
+  height: fit-content;
+  padding: 8px 13px;
+  border-radius: 30px;
+  text-transform: capitalize;
+  font-weight: 800;
+  background: #f1dfc8;
+}
+
+.statusPill.new {
+  background: #ffe4b5;
+}
+
+.statusPill.preparing {
+  background: #dbeafe;
+}
+
+.statusPill.served {
+  background: #dcfce7;
+}
+
+.orderItems {
+  margin-top: 18px;
+  padding: 15px 0;
+  border-top: 1px solid #eee4d8;
+  border-bottom: 1px solid #eee4d8;
+}
+
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 19px;
+}
+
+.orderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.orderActions button {
+  border: none;
+  background: #ead7bf;
+  color: #24150f;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.orderActions .deleteBtn {
+  background: #7f1d1d;
+  color: white;
+}
+
+.emptyBox {
+  padding: 28px;
+  border-radius: 18px;
+  background: #fff8ef;
+  color: #7d6858;
+}
+
+.floorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 18px;
+}
+
+.tableBox {
+  padding: 24px;
+  border: 2px dashed #d8b992;
+}
+
+.tableBox strong {
+  font-size: 20px;
+}
+
+.tableBox p {
+  color: #8a7668;
+  font-size: 13px;
+}
+
+.insightGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.insightGrid div {
+  padding: 28px;
+}
+
+.insightGrid h3 {
+  font-size: 30px;
+  margin: 0;
+}
+
+.insightGrid p {
+  color: #7d6858;
+}
+
+@media (max-width: 900px) {
+  .managerPage {
+    flex-direction: column;
+  }
+
+  .managerSidebar {
+    width: auto;
+  }
+
+  .statsGrid,
+  .insightGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .managerHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
