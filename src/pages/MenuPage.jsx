@@ -46,22 +46,22 @@ const IMAGE_RULES = [
 
   {
     keyword: 'mango curry prawn',
-    url: 'https://images.pexels.com/photos/725991/pexels-photo-725991.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '/images/thai-yellow-curry-prawn.png'
   },
 
   {
     keyword: 'mango cheesecake',
-    url: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=1200&auto=format&fit=crop'
+    url:'/images/mango-cheeseckae.png'
   },
 
   {
     keyword: 'mango tiramisu',
-    url: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/mango-tiramisu.png'
   },
 
   {
     keyword: 'aam panna',
-    url: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/aam-panna.png'
   },
 
   {
@@ -71,12 +71,12 @@ const IMAGE_RULES = [
 
   {
     keyword: 'mango shake',
-    url: 'https://images.unsplash.com/photo-1577805947697-89e18249d767?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/thick-mango-shake.png'
   },
 
   {
     keyword: 'mango pahadi cooler',
-    url: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/mango-pahadi-cooler.png'
   },
 
   // =========================================================
@@ -85,12 +85,12 @@ const IMAGE_RULES = [
 
   {
     keyword: 'roast chicken',
-    url: 'https://images.pexels.com/photos/233305/pexels-photo-233305.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '/images/roast-chicken.png'
   },
 
   {
     keyword: 'cream of mushroom',
-    url: 'https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/cream-of-mushroom.png'
   },
 
   {
@@ -120,7 +120,7 @@ const IMAGE_RULES = [
 
   {
     keyword: 'quinoa edamame',
-    url: 'https://images.pexels.com/photos/5951680/pexels-photo-5951680.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '/images/quinoa-edamame-salad.png'
   },
 
   {
@@ -130,7 +130,7 @@ const IMAGE_RULES = [
 
   {
     keyword: 'caesar salad',
-    url: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/caesar-salad-veg.png'
   },
 
   // =========================================================
@@ -203,27 +203,27 @@ const IMAGE_RULES = [
 
   {
     keyword: 'fiamma',
-    url: 'https://images.unsplash.com/photo-1548365328-9f547fb0953b?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/fiama.png'
   },
 
   {
     keyword: 'burrata pizza',
-    url: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/burata.png'
   },
 
   {
     keyword: 'genovese',
-    url: 'https://images.unsplash.com/photo-1593246049226-ded77bf90326?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/genovese.png'
   },
 
   {
     keyword: 'funghi',
-    url: 'https://images.unsplash.com/photo-1601924582970-9238bcb495d9?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/al-fun.png'
   },
 
   {
     keyword: 'chicken tikka pizza',
-    url: 'https://images.unsplash.com/photo-1511689660979-10d2b1aada49?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/chicken.png'
   },
 
   {
@@ -242,7 +242,7 @@ const IMAGE_RULES = [
 
   {
     keyword: 'lasagna',
-    url: 'https://images.pexels.com/photos/4057739/pexels-photo-4057739.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '/images/baked.png'
   },
 
   {
@@ -252,7 +252,7 @@ const IMAGE_RULES = [
 
   {
     keyword: 'ravioli',
-    url: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?q=80&w=1200&auto=format&fit=crop'
+    url: '/images/truffle.png'
   },
 
   // =========================================================
