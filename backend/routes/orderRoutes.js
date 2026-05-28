@@ -6,18 +6,34 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
+
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch orders" });
+    res.status(500).json({
+      message: "Failed to fetch orders",
+    });
   }
 });
 
 router.post("/", async (req, res) => {
   try {
-    const { tableId, tableName, items, total } = req.body;
+    const {
+      tableId,
+      tableName,
+      items,
+      total,
+      status,
+    } = req.body;
 
-    if (!tableId || !tableName || !items || items.length === 0) {
-      return res.status(400).json({ message: "Invalid order data" });
+    if (
+      !tableId ||
+      !tableName ||
+      !items ||
+      items.length === 0
+    ) {
+      return res.status(400).json({
+        message: "Invalid order data",
+      });
     }
 
     const order = await Order.create({
@@ -25,11 +41,18 @@ router.post("/", async (req, res) => {
       tableName,
       items,
       total,
+      status: status || "new",
     });
+
+    const io = req.app.get("io");
+
+    io.emit("order:new", order);
 
     res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create order" });
+    res.status(500).json({
+      message: "Failed to create order",
+    });
   }
 });
 
@@ -44,26 +67,46 @@ router.put("/:id/status", async (req, res) => {
     );
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({
+        message: "Order not found",
+      });
     }
+
+    const io = req.app.get("io");
+
+    io.emit("order:updated", order);
 
     res.json(order);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update order" });
+    res.status(500).json({
+      message: "Failed to update order",
+    });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    const order = await Order.findByIdAndDelete(req.params.id);
+    const order = await Order.findByIdAndDelete(
+      req.params.id
+    );
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({
+        message: "Order not found",
+      });
     }
 
-    res.json({ message: "Order deleted successfully" });
+    const io = req.app.get("io");
+
+    io.emit("order:deleted", req.params.id);
+
+    res.json({
+      message: "Order deleted successfully",
+    });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete order" });
+    res.status(500).json({
+      message: "Failed to delete order",
+    });
   }
 });
 

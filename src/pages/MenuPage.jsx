@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { menuData } from '../data/menuData'
 import { createOrder } from '../services/orderApi'
+import { callWaiter, requestBill } from '../services/serviceRequestApi'
 import './MenuPage.css'
 
 const IMAGE_RULES = [
@@ -83,7 +84,7 @@ const IMAGE_RULES = [
   },
   {
     keyword: 'mexican corn salad',
-    url: 'https://images.pexels.com/photos/12316410/pexels-photo-12316410.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '/images/mexican-corn-salad.png'
   },
   {
     keyword: 'quinoa edamame',
@@ -91,7 +92,7 @@ const IMAGE_RULES = [
   },
   {
     keyword: 'chicken caesar salad',
-    url: 'https://images.pexels.com/photos/18314141/pexels-photo-18314141/free-photo-of-salad-with-grilled-chicken-breast.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '/images/cc.png'
   },
   {
     keyword: 'caesar salad',
@@ -199,7 +200,7 @@ const IMAGE_RULES = [
   },
   {
     keyword: 'bun tikki',
-    url: 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?q=80&w=1200&auto=format&fit=crop'
+    url: '< >'
   },
   {
     keyword: 'paneer tikka',
@@ -211,7 +212,7 @@ const IMAGE_RULES = [
   },
   {
     keyword: 'veg tandoori platter',
-    url: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=1200&auto=format&fit=crop'
+    url: '<>'
   },
   {
     keyword: 'non veg tandoori platter',
@@ -219,7 +220,7 @@ const IMAGE_RULES = [
   },
   {
     keyword: 'dal makhni',
-    url: 'https://images.pexels.com/photos/12737665/pexels-photo-12737665.jpeg?auto=compress&cs=tinysrgb&w=1200'
+    url: '<>'
   },
   {
     keyword: 'lababdar',
@@ -283,6 +284,8 @@ function MenuPage() {
   )
   const [activeTable, setActiveTable] = useState('Digital Menu')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCallingWaiter, setIsCallingWaiter] = useState(false)
+  const [isRequestingBill, setIsRequestingBill] = useState(false)
 
   useEffect(() => {
     if (tableId) {
@@ -351,25 +354,68 @@ function MenuPage() {
 
       const orderData = {
         tableId: tableId || 'digital-menu',
-        tableName: activeTable, // e.g., "Table 12"
+        tableName: activeTable,
         items: cart.map(item => ({
           name: item.name,
           price: item.price,
           qty: item.qty
         })),
         total,
-        status: 'new' // Explicit status initialized for dashboard mapping
+        status: 'new'
       }
 
-      await createOrder(orderData)
+      const result = await createOrder(orderData)
 
-      alert(`Order sent to kitchen successfully from ${activeTable}!`)
+      if (result?.offline) {
+        alert(
+          `Internet issue. Order saved offline for ${activeTable}. It will be sent when connection returns.`
+        )
+      } else {
+        alert(`Order sent to kitchen successfully from ${activeTable}!`)
+      }
+
       setCart([])
     } catch (error) {
       console.log(error)
       alert('Failed to send order. Please try again.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleCallWaiter = async () => {
+    try {
+      setIsCallingWaiter(true)
+
+      await callWaiter({
+        tableId: tableId || 'digital-menu',
+        tableName: activeTable
+      })
+
+      alert(`Waiter called for ${activeTable}`)
+    } catch (error) {
+      console.log(error)
+      alert('Failed to call waiter. Please try again.')
+    } finally {
+      setIsCallingWaiter(false)
+    }
+  }
+
+  const handleBillRequest = async () => {
+    try {
+      setIsRequestingBill(true)
+
+      await requestBill({
+        tableId: tableId || 'digital-menu',
+        tableName: activeTable
+      })
+
+      alert(`Bill requested for ${activeTable}`)
+    } catch (error) {
+      console.log(error)
+      alert('Failed to request bill. Please try again.')
+    } finally {
+      setIsRequestingBill(false)
     }
   }
 
@@ -392,13 +438,15 @@ function MenuPage() {
         <h1>Digital Table Menu</h1>
         <p className="tableBadge">{activeTable}</p>
         <p className="menuSubtext">
-          Browse the menu, add your favourites, and send your order directly to the kitchen.
+          Browse the menu, add your favourites, and send your order directly to
+          the kitchen.
         </p>
       </section>
 
       <section className="menuLayout">
         <aside className="categoryPanel">
           <h3>Categories</h3>
+
           <div className="categoryList">
             {menuData.map(section => (
               <button
@@ -453,9 +501,13 @@ function MenuPage() {
                       </button>
                     ) : (
                       <div className="qtyControls cardQtyControls">
-                        <button onClick={() => decreaseQty(item.name)}>-</button>
+                        <button onClick={() => decreaseQty(item.name)}>
+                          -
+                        </button>
                         <span>{currentQty}</span>
-                        <button onClick={() => increaseQty(item.name)}>+</button>
+                        <button onClick={() => increaseQty(item.name)}>
+                          +
+                        </button>
                       </div>
                     )}
                   </div>
@@ -494,6 +546,22 @@ function MenuPage() {
             <span>Total</span>
             <strong>₹{total}</strong>
           </div>
+
+          <button
+            className="whatsappBtn"
+            onClick={handleCallWaiter}
+            disabled={isCallingWaiter}
+          >
+            {isCallingWaiter ? 'Calling Waiter...' : 'Call Waiter'}
+          </button>
+
+          <button
+            className="whatsappBtn"
+            onClick={handleBillRequest}
+            disabled={isRequestingBill}
+          >
+            {isRequestingBill ? 'Requesting Bill...' : 'Request Bill'}
+          </button>
 
           <button
             className="whatsappBtn"

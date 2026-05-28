@@ -2,9 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
 
 import menuRoutes from "./routes/menuRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import serviceRequestRoutes from "./routes/serviceRequestRoutes.js";
 
 dotenv.config();
 
@@ -13,11 +16,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
+});
+
 app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/service-requests", serviceRequestRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Basque backend running");
+  res.send("Basque realtime backend running");
 });
 
 mongoose
@@ -25,7 +48,7 @@ mongoose
   .then(() => {
     console.log("MongoDB connected");
 
-    app.listen(process.env.PORT || 5000, () => {
+    server.listen(process.env.PORT || 5000, () => {
       console.log(`Server running on port ${process.env.PORT || 5000}`);
     });
   })
