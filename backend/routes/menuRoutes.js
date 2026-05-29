@@ -23,6 +23,16 @@ router.put("/:id", async (req, res) => {
   res.json(item);
 });
 
+router.put("/:id/availability", async (req, res) => {
+  const item = await MenuItem.findByIdAndUpdate(
+    req.params.id,
+    { isAvailable: req.body.isAvailable },
+    { new: true }
+  );
+  if (!item) return res.status(404).json({ message: "Item not found" });
+  res.json(item);
+});
+
 router.delete("/:id", async (req, res) => {
   const item = await MenuItem.findByIdAndDelete(req.params.id);
 

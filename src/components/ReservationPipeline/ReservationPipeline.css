@@ -1,0 +1,154 @@
+.pipelinePage {
+  max-width: 1200px;
+}
+
+.pipelineBoard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .pipelineBoard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .pipelineBoard {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pipelineCol {
+  background: rgba(253, 250, 245, 0.6);
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pipelineColHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid transparent;
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: #8C7B6A;
+  background: rgba(253, 250, 245, 0.95);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.col-new       { border-bottom-color: #4A7AB5; color: #4A7AB5; }
+.col-contacted { border-bottom-color: #C8852A; color: #C8852A; }
+.col-confirmed { border-bottom-color: #48B076; color: #48B076; }
+.col-declined  { border-bottom-color: #C04040; color: #C04040; }
+
+.pipelineColBadge {
+  background: currentColor;
+  color: #FDFAF5;
+  font-size: 0.6rem;
+  font-family: 'Jost', sans-serif;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.pipelineColBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  flex: 1;
+}
+
+/* Reservation Card */
+.resCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-left: 4px solid #C8852A;
+  border-radius: 2px;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.resCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resServiceLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+
+.resTimeAgo {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
+  color: #8C7B6A;
+}
+
+.resGuestName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.resCardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resMeta {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  color: #8C7B6A;
+}
+
+.resNote {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  color: #8C7B6A;
+  font-style: italic;
+}
+
+.resExpandBtn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: #C8852A;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  text-align: left;
+  margin-top: 4px;
+}
+
+.resActions {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.resActionBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}

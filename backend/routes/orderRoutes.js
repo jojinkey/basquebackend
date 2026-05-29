@@ -5,7 +5,11 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const query = {};
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.tableId) query.tableId = req.query.tableId;
+
+    const orders = await Order.find(query).sort({ createdAt: -1 });
 
     res.json(orders);
   } catch (error) {

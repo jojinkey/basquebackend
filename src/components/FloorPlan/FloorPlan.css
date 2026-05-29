@@ -1,0 +1,252 @@
+.floorPlanPage {
+  max-width: 1200px;
+}
+
+/* Section Summary Strip */
+.sectionSummaryStrip {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 1rem;
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+}
+
+.sectionSummaryItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.sectionSummaryItem + .sectionSummaryItem {
+  padding-left: 1rem;
+  border-left: 1px solid #E2D9CA;
+}
+
+.sectionSummaryName {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: #8C7B6A;
+}
+
+.sectionSummaryCount {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  color: #1A1008;
+  font-weight: 500;
+}
+
+/* Floor Grid */
+.floorGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+/* Table Card */
+.floorTableCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  padding: 0.875rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.floorTableCard.selected {
+  box-shadow: 0 0 0 2px #C8852A;
+}
+
+/* Status variants */
+.floorTableCard.status-available {
+  border-color: #E2D9CA;
+}
+
+.floorTableCard.status-seated {
+  border-color: #2C2C2C;
+  background: #FDFAF5;
+}
+
+.floorTableCard.status-reserved {
+  border-style: dashed;
+  border-color: #B0A99F;
+}
+
+.floorTableCard.status-needs_bussing {
+  border-color: #C04040;
+  background: rgba(192, 64, 64, 0.04);
+}
+
+.floorTableCard.vip {
+  border-color: #C8852A;
+  background: rgba(200, 133, 42, 0.05);
+}
+
+.tableCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.tableCardId {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.tableCardPax {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.7rem;
+  color: #8C7B6A;
+}
+
+.tableVip {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  color: #C8852A;
+  letter-spacing: 0.08em;
+}
+
+.tableCardGuest {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  color: #1A1008;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tableCardTime {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.7rem;
+  color: #8C7B6A;
+}
+
+.tableCardRes {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
+  color: #8C7B6A;
+  font-style: italic;
+}
+
+.tableCardBadges {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tableOrderBadge,
+.tableAlertBadge {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
+  color: #1A1008;
+}
+
+.tableAlertBadge {
+  color: #C04040;
+}
+
+/* Status bar at bottom */
+.tableStatusBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.tableStatusBar.status-available { background: #48B076; }
+.tableStatusBar.status-seated { background: #2C2C2C; }
+.tableStatusBar.status-reserved { background: #B0A99F; }
+.tableStatusBar.status-needs_bussing { background: #C04040; }
+
+/* Detail Drawer */
+.tableDetailDrawer {
+  width: min(380px, 92vw);
+}
+
+.detailSection {
+  border-top: 1px solid #E2D9CA;
+  padding-top: 1rem;
+}
+
+.detailSectionTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: #8C7B6A;
+  margin-bottom: 0.6rem;
+}
+
+.detailGuestName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  color: #1A1008;
+  font-weight: 600;
+}
+
+.detailSub {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  color: #8C7B6A;
+  margin-top: 2px;
+}
+
+.detailOrderBlock {
+  background: #F5F0E8;
+  border-radius: 2px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.detailOrderItem {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  color: #1A1008;
+  padding: 3px 0;
+}
+
+.detailOrderTotal {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1A1008;
+  border-top: 1px solid #E2D9CA;
+  padding-top: 6px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.detailServiceReq {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.85rem;
+  padding: 6px 0;
+  border-bottom: 1px solid #F0EAE0;
+}
+
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

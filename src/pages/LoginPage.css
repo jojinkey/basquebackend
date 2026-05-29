@@ -1,0 +1,261 @@
+.loginBg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F0E8;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+
+.loginBg *,
+.loginBg *::before,
+.loginBg *::after {
+  cursor: default;
+}
+
+.loginBg button,
+.loginBg select,
+.loginBg input {
+  cursor: pointer !important;
+}
+
+.grainOverlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  z-index: 0;
+}
+
+.loginCard {
+  position: relative;
+  z-index: 1;
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 4px;
+  padding: 3rem 2.5rem;
+  width: min(440px, 92vw);
+  box-shadow: 0 8px 48px rgba(44, 26, 14, 0.12);
+}
+
+.loginBrand {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.loginBrandName {
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  color: #C8852A;
+}
+
+.loginBrandSub {
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: #8C7B6A;
+  margin-top: 0.25rem;
+}
+
+.ornamentDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 2rem;
+}
+
+.ornDot {
+  width: 5px;
+  height: 5px;
+  background: #C8852A;
+  transform: rotate(45deg);
+  display: inline-block;
+  opacity: 0.7;
+}
+
+.ornLine {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C8852A, transparent);
+  display: inline-block;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.loginField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.loginLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: #8C7B6A;
+}
+
+.loginSelect,
+.loginInput {
+  padding: 0.75rem 1rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 2px;
+  background: #F5F0E8;
+  color: #1A1008;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: auto;
+}
+
+.loginSelect:focus,
+.loginInput:focus {
+  border-color: #C8852A;
+}
+
+.passInputWrap {
+  position: relative;
+}
+
+.passInputWrap .loginInput {
+  width: 100%;
+  padding-right: 4rem;
+}
+
+.showPassBtn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #C8852A;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+}
+
+.pinDisplay {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+
+.pinDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #C8852A;
+  background: transparent;
+  transition: background 0.2s;
+}
+
+.pinDot.filled {
+  background: #C8852A;
+}
+
+.pinPad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 240px;
+  margin: 0 auto;
+}
+
+.pinKey {
+  padding: 0.7rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 2px;
+  background: #F5F0E8;
+  font-family: 'Jost', sans-serif;
+  font-size: 1.1rem;
+  color: #1A1008;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: center;
+}
+
+.pinKey:hover:not(:disabled) {
+  background: #C8852A;
+  color: #FDFAF5;
+  border-color: #C8852A;
+}
+
+.pinKey:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.pinEmpty {
+  visibility: hidden;
+}
+
+.pinBack {
+  font-size: 0.9rem;
+  color: #8C7B6A;
+}
+
+.loginError {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  color: #C04040;
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(192, 64, 64, 0.08);
+  border-radius: 2px;
+  border: 1px solid rgba(192, 64, 64, 0.2);
+}
+
+.loginSubmit {
+  padding: 0.9rem;
+  background: #C8852A;
+  color: #FDFAF5;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+
+.loginSubmit:hover:not(:disabled) {
+  background: #E8A84A;
+}
+
+.loginSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loginMeta {
+  text-align: center;
+  margin-top: 1.75rem;
+  border-top: 1px solid #E2D9CA;
+  padding-top: 1rem;
+}
+
+.loginService {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: #C8852A;
+}
+
+.loginDate {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #8C7B6A;
+  margin-top: 0.25rem;
+}

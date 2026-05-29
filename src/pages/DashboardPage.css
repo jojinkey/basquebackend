@@ -1,0 +1,743 @@
+/* === BASQUE MANAGER OS — Dashboard Design System === */
+.dashboardOS {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #F5F0E8;
+  font-family: 'Jost', 'DM Sans', sans-serif;
+  position: relative;
+  cursor: default;
+}
+
+.dashboardOS *,
+.dashboardOS *::before,
+.dashboardOS *::after {
+  cursor: default;
+}
+
+.dashboardOS button,
+.dashboardOS a,
+.dashboardOS select,
+.dashboardOS input,
+.dashboardOS textarea,
+.dashboardOS [role="button"] {
+  cursor: pointer !important;
+}
+
+.grainOverlayDash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  z-index: 100;
+}
+
+/* === NOTIFICATION BAR === */
+.notifBar {
+  position: fixed;
+  top: 0;
+  left: 186px;
+  right: 0;
+  z-index: 200;
+  background: #C8852A;
+  color: #FDFAF5;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 1.5rem;
+  text-align: center;
+}
+
+/* === SIDEBAR === */
+.dashSidebar {
+  width: 186px;
+  min-width: 186px;
+  background: #2C1A0E;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 10;
+}
+
+.sidebarBrand {
+  padding: 1.5rem 1.2rem 1rem;
+}
+
+.sidebarBrandName {
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
+  color: #C8852A;
+  font-weight: 600;
+}
+
+.sidebarBrandSub {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: rgba(200, 133, 42, 0.5);
+  margin-top: 2px;
+}
+
+.sidebarDivider {
+  height: 1px;
+  background: rgba(200, 133, 42, 0.15);
+  margin: 0.5rem 0;
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.25rem 0.5rem;
+}
+
+.sidebarNavItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 2px;
+  color: rgba(245, 240, 232, 0.65);
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: left;
+  position: relative;
+  border: none;
+  background: none;
+  width: 100%;
+}
+
+.sidebarNavItem:hover {
+  background: rgba(200, 133, 42, 0.12);
+  color: #E8A84A;
+}
+
+.sidebarNavItem.active {
+  background: rgba(200, 133, 42, 0.2);
+  color: #C8852A;
+  border-left: 2px solid #C8852A;
+}
+
+.navIcon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.navLabel {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navBadge {
+  background: #4A7AB5;
+  color: #fff;
+  font-size: 0.6rem;
+  font-family: 'Jost', sans-serif;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.navBadge.badgeRed {
+  background: #C04040;
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* === RECENT ACTIVITY === */
+.recentActivity {
+  padding: 0.5rem 1rem;
+}
+
+.activityTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: rgba(200, 133, 42, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+.activityItem {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.65rem;
+  color: rgba(245, 240, 232, 0.45);
+  margin-bottom: 4px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === SIDEBAR FOOTER === */
+.sidebarFooter {
+  padding: 0.75rem 1rem;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebarFooterBtn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: rgba(200, 133, 42, 0.7);
+  cursor: pointer;
+  text-align: left;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  transition: color 0.2s;
+}
+
+.sidebarFooterBtn:hover {
+  color: #C8852A;
+}
+
+.sidebarUser {
+  padding: 0.5rem 0;
+}
+
+.sidebarUserName {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  color: rgba(245, 240, 232, 0.8);
+  font-weight: 500;
+}
+
+.sidebarUserRole {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: rgba(200, 133, 42, 0.6);
+}
+
+.logoutBtn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: rgba(192, 64, 64, 0.7);
+  cursor: pointer;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.logoutBtn:hover {
+  color: #C04040;
+}
+
+/* === MAIN CONTENT === */
+.dashMain {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashContent {
+  flex: 1;
+  padding: 1.5rem;
+  min-height: 100%;
+}
+
+/* === SHARED PANEL STYLES (used by sub-components) === */
+.dashPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dashPanelTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.dashPanelSub {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  color: #8C7B6A;
+}
+
+/* === STATS BAR === */
+.statsBar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.statChip {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  padding: 0.6rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 100px;
+}
+
+.statChipValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: #1A1008;
+  line-height: 1;
+}
+
+.statChipLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: #8C7B6A;
+}
+
+/* === STATUS PILLS === */
+.statusPillNew     { background: rgba(74, 122, 181, 0.15); color: #4A7AB5; }
+.statusPillPreparing { background: rgba(232, 168, 74, 0.15); color: #C8852A; }
+.statusPillServed  { background: rgba(72, 176, 118, 0.15); color: #48B076; }
+.statusPillDeclined { background: rgba(192, 64, 64, 0.12); color: #C04040; }
+
+.statusPill {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* === BUTTONS === */
+.btnPrimary {
+  background: #C8852A;
+  color: #FDFAF5;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btnPrimary:hover { background: #E8A84A; }
+
+.btnSecondary {
+  background: transparent;
+  color: #8C7B6A;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 1rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btnSecondary:hover { border-color: #C8852A; color: #C8852A; }
+
+.btnDanger {
+  background: transparent;
+  color: #C04040;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(192, 64, 64, 0.3);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btnDanger:hover { background: rgba(192, 64, 64, 0.08); }
+
+/* === CARD BASE === */
+.dashCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.dashCard:hover {
+  box-shadow: 0 4px 24px rgba(44, 26, 14, 0.1);
+  transform: translateY(-2px);
+}
+
+/* === DRAWER OVERLAY === */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 20, 16, 0.5);
+  z-index: 300;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawer {
+  width: min(420px, 92vw);
+  background: #FDFAF5;
+  height: 100%;
+  overflow-y: auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: slideInRight 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.drawerTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.drawerClose {
+  font-size: 1.2rem;
+  color: #8C7B6A;
+  cursor: pointer;
+  border: none;
+  background: none;
+  line-height: 1;
+}
+
+/* === TOAST === */
+.toastStack {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 300px;
+}
+
+.toast {
+  background: #2C1A0E;
+  color: #F5F0E8;
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid #C8852A;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.toastProgress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: #C8852A;
+  animation: toastProgress 4s linear forwards;
+}
+
+@keyframes toastProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* === SETTINGS === */
+.settingsTab {
+  max-width: 800px;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.settingsCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  padding: 1.5rem;
+}
+
+.settingsCard h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: #1A1008;
+  margin-bottom: 1rem;
+}
+
+.settingsCard p {
+  font-size: 0.85rem;
+  color: #8C7B6A;
+  margin-bottom: 0.4rem;
+}
+
+.settingsCard p strong {
+  color: #1A1008;
+}
+
+.settingsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.settingsTable th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: #8C7B6A;
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #E2D9CA;
+}
+
+.settingsTable td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #F0EAE0;
+  color: #1A1008;
+}
+
+/* === EMPTY STATE === */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #8C7B6A;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.emptyStateIcon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+
+.emptyStateText {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: #8C7B6A;
+}
+
+/* === SECTION FILTER TABS === */
+.filterTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filterTab {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 20px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: #8C7B6A;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.filterTab:hover { border-color: #C8852A; color: #C8852A; }
+.filterTab.activeTab {
+  background: #C8852A;
+  border-color: #C8852A;
+  color: #FDFAF5;
+}
+
+/* === CHIP GROUP === */
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 12px;
+  border: 1px solid #E2D9CA;
+  border-radius: 20px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  color: #8C7B6A;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+}
+
+.chip:hover { border-color: #C8852A; color: #C8852A; }
+.chip.selected {
+  background: #C8852A;
+  border-color: #C8852A;
+  color: #FDFAF5;
+}
+
+/* === VIP BADGE === */
+.vipBadge {
+  color: #C8852A;
+  font-size: 0.8rem;
+}
+
+/* === FORM ELEMENTS === */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: #8C7B6A;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 2px;
+  background: #F5F0E8;
+  color: #1A1008;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  border-color: #C8852A;
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* === STEPPER === */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stepperBtn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #E2D9CA;
+  border-radius: 2px;
+  background: #F5F0E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #1A1008;
+  transition: background 0.15s;
+}
+.stepperBtn:hover { background: #C8852A; color: #fff; border-color: #C8852A; }
+
+.stepperValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #1A1008;
+  min-width: 2ch;
+  text-align: center;
+}
+
+/* === TOGGLE === */
+.toggleSwitch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.toggleTrack {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #E2D9CA;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggleTrack.on { background: #C8852A; }
+
+.toggleThumb {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  top: 2px;
+  left: 2px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggleTrack.on .toggleThumb { left: 18px; }
+
+/* === CAPACITY WARNING BANNER === */
+.capacityWarning {
+  background: rgba(200, 133, 42, 0.15);
+  border: 1px solid rgba(200, 133, 42, 0.4);
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.85rem;
+  color: #C8852A;
+  margin-bottom: 1rem;
+  animation: pulseWarn 3s infinite;
+}
+
+@keyframes pulseWarn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

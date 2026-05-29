@@ -1,0 +1,97 @@
+.serviceAlertsPage {
+  max-width: 900px;
+}
+
+.alertsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.alertCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  transition: box-shadow 0.2s;
+}
+
+.alertCard:hover {
+  box-shadow: 0 4px 16px rgba(44,26,14,0.08);
+}
+
+.alertCard.type-bill_request {
+  border-left: 3px solid #C04040;
+}
+
+.alertCard.type-call_waiter {
+  border-left: 3px solid #C8852A;
+}
+
+.alertCard.status-completed {
+  opacity: 0.6;
+}
+
+.alertCardIcon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alertCardBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.alertCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 4px;
+}
+
+.alertCardType {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: #8C7B6A;
+}
+
+.alertCardTable {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.alertCardTime {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  color: #8C7B6A;
+  margin-top: 3px;
+}
+
+.alertCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.alertBtn {
+  font-size: 0.62rem !important;
+  padding: 0.4rem 0.75rem !important;
+  white-space: nowrap;
+}
+
+.alertDone {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  color: #48B076;
+  letter-spacing: 0.08em;
+  padding: 0.4rem 0;
+}

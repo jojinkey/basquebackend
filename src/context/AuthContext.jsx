@@ -1,0 +1,86 @@
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+
+const PERMISSIONS = {
+  owner: [
+    "floor_view", "floor_manage", "orders_view", "orders_manage",
+    "kitchen_view", "kitchen_manage", "waitlist_view", "waitlist_manage",
+    "reservations_view", "reservations_manage", "service_alerts",
+    "insights", "settings", "menu_availability", "audit_export",
+  ],
+  restaurant_manager: [
+    "floor_view", "floor_manage", "orders_view", "orders_manage",
+    "kitchen_view", "kitchen_manage", "waitlist_view", "waitlist_manage",
+    "reservations_view", "reservations_manage", "service_alerts",
+    "insights", "menu_availability", "audit_export",
+  ],
+  floor_manager: [
+    "floor_view", "floor_manage", "waitlist_view", "waitlist_manage",
+    "reservations_view", "service_alerts",
+  ],
+  server: [
+    "floor_view", "floor_manage", "orders_view", "service_alerts",
+  ],
+  kitchen: [
+    "kitchen_view", "kitchen_manage", "orders_view", "menu_availability",
+  ],
+};
+
+const AuthContext = createContext(null);
+
+const SESSION_KEY = "basque_session";
+const INACTIVITY_LIMIT = 8 * 60 * 60 * 1000;
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const session = JSON.parse(raw);
+        const age = Date.now() - new Date(session.loginTime).getTime();
+        if (age < INACTIVITY_LIMIT) {
+          setUser(session);
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+    } catch (_) {
+      localStorage.removeItem(SESSION_KEY);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const login = useCallback((userData) => {
+    const session = { ...userData, loginTime: new Date().toISOString() };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    setUser(session);
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY);
+    setUser(null);
+  }, []);
+
+  const can = useCallback(
+    (permission) => {
+      if (!user) return false;
+      return (PERMISSIONS[user.role] || []).includes(permission);
+    },
+    [user]
+  );
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout, can }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

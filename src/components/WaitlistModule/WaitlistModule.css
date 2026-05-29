@@ -1,0 +1,270 @@
+.waitlistPage {
+  max-width: 1100px;
+}
+
+.waitlistLayout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .waitlistLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Wait Queue */
+.waitlistQueue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.waitCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  padding: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.waitCard:hover { border-color: #C8852A; }
+.waitCard.selected { border-color: #C8852A; box-shadow: 0 0 0 1px #C8852A; }
+.waitCard.vip { border-color: rgba(200,133,42,0.5); background: rgba(200,133,42,0.03); }
+
+/* Left stripe by source */
+.waitCard.source-WALK_IN::before  { background: #4A7AB5; }
+.waitCard.source-PHONE::before    { background: #48B076; }
+.waitCard.source-WEBSITE::before  { background: #C8852A; }
+.waitCard.source-HOST_STAND::before { background: #8C7B6A; }
+.waitCard::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+.waitCardLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.waitCardPos {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  color: #8C7B6A;
+  min-width: 20px;
+  padding-top: 2px;
+}
+
+.waitCardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.waitCardNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.waitCardName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.waitCardPax {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #8C7B6A;
+}
+
+.waitCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.sourceBadge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(74, 122, 181, 0.12);
+  color: #4A7AB5;
+}
+
+.sectionPref {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: #8C7B6A;
+  background: #F0EAE0;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* Wait Timer */
+.waitTimer {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #48B076;
+}
+
+.waitTimer.timerWarn {
+  color: #C8852A;
+}
+
+.waitTimer.timerUrgent {
+  color: #C04040;
+  animation: urgentPulse 3s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.waitCardNotes {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: #8C7B6A;
+  margin-top: 4px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.waitCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.wcBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 2px;
+  border: 1px solid #E2D9CA;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wcNotify:hover { background: rgba(200,133,42,0.1); border-color: #C8852A; }
+.wcDecline:hover { background: rgba(192,64,64,0.08); border-color: #C04040; color: #C04040; }
+
+/* Smart Matcher */
+.waitlistRight {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.smartMatcher {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 3px;
+  padding: 1.25rem;
+}
+
+.smTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: #8C7B6A;
+  margin-bottom: 4px;
+}
+
+.smSub {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #1A1008;
+  margin-bottom: 1rem;
+}
+
+.smTableList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.smTableRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 2px;
+  background: #F5F0E8;
+}
+
+.smTableRow.smBestMatch {
+  border-color: #C8852A;
+  background: rgba(200,133,42,0.05);
+}
+
+.smTableHead {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.smTableId {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+.smBestBadge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  color: #C8852A;
+  background: rgba(200,133,42,0.15);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.smTableMeta {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  color: #8C7B6A;
+  margin: 3px 0;
+}
+
+.smPlaceholder {
+  background: #FDFAF5;
+  border: 1px dashed #E2D9CA;
+  border-radius: 3px;
+  padding: 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}

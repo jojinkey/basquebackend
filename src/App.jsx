@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 import { ModalProvider } from './context/ModalContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import CustomCursor from './components/shared/CustomCursor'
 import GrainOverlay from './components/shared/GrainOverlay'
 import WhatsAppFloat from './components/shared/WhatsAppFloat'
@@ -28,7 +29,8 @@ import WeddingsPage from './pages/WeddingsPage'
 import BarPage from './pages/BarPage'
 import EventsPage from './pages/EventsPage'
 import MenuPage from './pages/MenuPage'
-import ManagerDashboard from './pages/ManagerDashboard'
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 
 const HomePage = ({ loaded }) => (
   <main>
@@ -43,8 +45,77 @@ const HomePage = ({ loaded }) => (
   </main>
 )
 
+function AuthGuard({ children }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />
+  return children
+}
+
+function WebsiteLayout({ isLoading, setIsLoading }) {
+  return (
+    <>
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <Loader key="loader" onComplete={() => setIsLoading(false)} />
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <Navbar />
+        <BookingModalShell />
+        <Routes>
+          <Route path="/" element={<HomePage loaded={!isLoading} />} />
+          <Route path="/golf" element={<GolfPage />} />
+          <Route path="/weddings" element={<WeddingsPage />} />
+          <Route path="/bar" element={<BarPage />} />
+          <Route path="/events" element={<EventsPage />} />
+        </Routes>
+        <Footer id="footer" />
+        <WhatsAppFloat />
+      </motion.div>
+    </>
+  )
+}
+
 function App() {
   const [isLoading, setIsLoading] = useState(true)
+  const location = useLocation()
+
+  const isDashboard = location.pathname.startsWith('/dashboard')
+  const isLogin = location.pathname === '/login'
+  const isMenu = location.pathname.startsWith('/menu/')
+
+  if (isDashboard) {
+    return (
+      <AuthProvider>
+        <AuthGuard>
+          <DashboardPage />
+        </AuthGuard>
+      </AuthProvider>
+    )
+  }
+
+  if (isLogin) {
+    return (
+      <AuthProvider>
+        <LoginPage />
+      </AuthProvider>
+    )
+  }
+
+  if (isMenu) {
+    return (
+      <Routes>
+        <Route path="/menu/:tableId" element={<MenuPage />} />
+      </Routes>
+    )
+  }
 
   return (
     <ModalProvider>
@@ -62,34 +133,7 @@ function App() {
           },
         }}
       />
-
-      <AnimatePresence mode="wait">
-        {isLoading && (
-          <Loader key="loader" onComplete={() => setIsLoading(false)} />
-        )}
-      </AnimatePresence>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoading ? 0 : 1 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-      >
-        <Navbar />
-        <BookingModalShell />
-
-        <Routes>
-          <Route path="/" element={<HomePage loaded={!isLoading} />} />
-          <Route path="/golf" element={<GolfPage />} />
-          <Route path="/weddings" element={<WeddingsPage />} />
-          <Route path="/bar" element={<BarPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/menu/:tableId" element={<MenuPage />} />
-          <Route path="/manager" element={<ManagerDashboard />} />
-        </Routes>
-
-        <Footer id="footer" />
-        <WhatsAppFloat />
-      </motion.div>
+      <WebsiteLayout isLoading={isLoading} setIsLoading={setIsLoading} />
     </ModalProvider>
   )
 }
