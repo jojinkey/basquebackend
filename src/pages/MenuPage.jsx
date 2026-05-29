@@ -19,10 +19,6 @@ const IMAGE_RULES = [
     url: 'https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=1200'
   },
   {
-    keyword: 'mango burrata bomb',
-    url: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
     keyword: 'mango curry veg',
     url: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?q=80&w=1200&auto=format&fit=crop'
   },
@@ -47,10 +43,6 @@ const IMAGE_RULES = [
     url: '/images/aam-panna.png'
   },
   {
-    keyword: 'mango lassi',
-    url: 'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
     keyword: 'mango shake',
     url: '/images/thick-mango-shake.png'
   },
@@ -67,22 +59,6 @@ const IMAGE_RULES = [
     url: '/images/cream-of-mushroom.png'
   },
   {
-    keyword: 'minestrone',
-    url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'herb veloute',
-    url: 'https://images.pexels.com/photos/11504369/pexels-photo-11504369.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'veloute',
-    url: 'https://images.pexels.com/photos/11504369/pexels-photo-11504369.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'mediterranean salad',
-    url: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
     keyword: 'mexican corn salad',
     url: '/images/mexican-corn-salad.png'
   },
@@ -97,54 +73,6 @@ const IMAGE_RULES = [
   {
     keyword: 'caesar salad',
     url: '/images/caesar-salad-veg.png'
-  },
-  {
-    keyword: 'hummus pita',
-    url: 'https://images.pexels.com/photos/13444453/pexels-photo-13444453.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'hummus',
-    url: 'https://images.pexels.com/photos/13444453/pexels-photo-13444453.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'pesto mushrooms',
-    url: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'loaded nachos',
-    url: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'cheese fondue',
-    url: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'salted fries',
-    url: 'https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'peri peri fries',
-    url: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'truffle fries',
-    url: 'https://images.pexels.com/photos/18970427/pexels-photo-18970427/free-photo-of-gourmet-french-fries.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'fried chicken',
-    url: 'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'fish fingers',
-    url: 'https://images.pexels.com/photos/10184852/pexels-photo-10184852.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'butter garlic prawns',
-    url: 'https://images.pexels.com/photos/3763792/pexels-photo-3763792.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'margherita',
-    url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop'
   },
   {
     keyword: 'fiamma',
@@ -167,64 +95,16 @@ const IMAGE_RULES = [
     url: '/images/chicken.png'
   },
   {
-    keyword: 'pepperoni',
-    url: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'basque lasagna',
-    url: 'https://images.pexels.com/photos/4057739/pexels-photo-4057739.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
     keyword: 'lasagna',
     url: '/images/baked.png'
-  },
-  {
-    keyword: 'pasta',
-    url: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?q=80&w=1200&auto=format&fit=crop'
   },
   {
     keyword: 'ravioli',
     url: '/images/truffle.png'
   },
   {
-    keyword: 'kulcha',
-    url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'paneer khurchan',
-    url: 'https://images.pexels.com/photos/20857371/pexels-photo-20857371/free-photo-of-close-up-of-traditional-tacos.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'vada pav',
-    url: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'bun tikki',
-    url: '< >'
-  },
-  {
-    keyword: 'paneer tikka',
-    url: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'malai chicken tikka',
-    url: 'https://images.pexels.com/photos/7625056/pexels-photo-7625056.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'veg tandoori platter',
-    url: '<>'
-  },
-  {
-    keyword: 'non veg tandoori platter',
-    url: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'dal makhni',
-    url: '<>'
-  },
-  {
-    keyword: 'lababdar',
-    url: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=1200&auto=format&fit=crop'
+    keyword: 'margherita',
+    url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop'
   },
   {
     keyword: 'butter chicken',
@@ -237,43 +117,125 @@ const IMAGE_RULES = [
   {
     keyword: 'mutton biryani',
     url: 'https://images.pexels.com/photos/9609868/pexels-photo-9609868.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'rodo sour',
-    url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'thyme trails',
-    url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'sacred grove',
-    url: 'https://images.unsplash.com/photo-1546171753-97d7676e4602?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'rosewood calm',
-    url: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'garden bloom',
-    url: 'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?q=80&w=1200&auto=format&fit=crop'
-  },
-  {
-    keyword: 'caramel cloud',
-    url: 'https://images.pexels.com/photos/1189257/pexels-photo-1189257.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'wild ember',
-    url: 'https://images.pexels.com/photos/338713/pexels-photo-338713.jpeg?auto=compress&cs=tinysrgb&w=1200'
-  },
-  {
-    keyword: 'morning in the garden',
-    url: 'https://images.pexels.com/photos/2795026/pexels-photo-2795026.jpeg?auto=compress&cs=tinysrgb&w=1200'
   }
 ]
 
 const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop'
+
+const TEXT = {
+  en: {
+    title: 'Digital Table Menu',
+    subtitle:
+      'Browse the menu, add your favourites, and send your order directly to the kitchen.',
+    categories: 'Categories',
+    yourOrder: 'Your Order',
+    noItems: 'No items added yet.',
+    total: 'Total',
+    add: 'Add',
+    items: 'items',
+    noFilteredItems: 'No items found for this filter.',
+    callWaiter: 'Call Waiter',
+    callingWaiter: 'Calling Waiter...',
+    requestBill: 'Request Bill',
+    requestingBill: 'Requesting Bill...',
+    sendOrder: 'Send Order to Kitchen',
+    sendingOrder: 'Sending Order...',
+    all: 'All',
+    veg: 'Veg',
+    nonVeg: 'Non-Veg',
+    vegan: 'Vegan'
+  },
+  hi: {
+    title: 'डिजिटल टेबल मेन्यू',
+    subtitle:
+      'मेन्यू देखें, अपनी पसंद जोड़ें और ऑर्डर सीधे किचन में भेजें।',
+    categories: 'श्रेणियां',
+    yourOrder: 'आपका ऑर्डर',
+    noItems: 'अभी कोई आइटम नहीं जोड़ा गया।',
+    total: 'कुल',
+    add: 'जोड़ें',
+    items: 'आइटम',
+    noFilteredItems: 'इस फिल्टर में कोई आइटम नहीं मिला।',
+    callWaiter: 'वेटर बुलाएं',
+    callingWaiter: 'वेटर बुलाया जा रहा है...',
+    requestBill: 'बिल मंगाएं',
+    requestingBill: 'बिल मांगा जा रहा है...',
+    sendOrder: 'ऑर्डर किचन में भेजें',
+    sendingOrder: 'ऑर्डर भेजा जा रहा है...',
+    all: 'सभी',
+    veg: 'वेज',
+    nonVeg: 'नॉन-वेज',
+    vegan: 'वीगन'
+  }
+}
+
+const HINDI_MENU = {
+  'Thai Raw Mango Salad': 'थाई रॉ मैंगो सलाद',
+  'Mango Paneer Tikka': 'मैंगो पनीर टिक्का',
+  'Mango Chilli Chicken': 'मैंगो चिली चिकन',
+  'Mango Burrata Bomb': 'मैंगो बुराटा बॉम्ब',
+  'Mango Curry Veg': 'मैंगो करी वेज',
+  'Mango Curry Chicken': 'मैंगो करी चिकन',
+  'Mango Curry Prawn': 'मैंगो करी प्रॉन',
+  'Mango Cheesecake': 'मैंगो चीज़केक',
+  'Mango Tiramisu': 'मैंगो तिरामिसू',
+  'Aam Panna': 'आम पन्ना',
+  'Mango Shake': 'मैंगो शेक',
+  'Mango Pahadi Cooler': 'मैंगो पहाड़ी कूलर',
+  'Cream of Mushroom': 'क्रीम ऑफ मशरूम',
+  'Mexican Corn Salad': 'मैक्सिकन कॉर्न सलाद',
+  'Quinoa Edamame Salad': 'क्विनोआ एडामामे सलाद',
+  'Caesar Salad': 'सीज़र सलाद',
+  'Chicken Caesar Salad': 'चिकन सीज़र सलाद',
+  'Margherita Pizza': 'मार्घेरिटा पिज़्ज़ा',
+  'Fiamma Pizza': 'फियम्मा पिज़्ज़ा',
+  'Burrata Pizza': 'बुराटा पिज़्ज़ा',
+  'Genovese Pizza': 'जेनोवेज़ पिज़्ज़ा',
+  'Al Funghi Pizza': 'अल फंगी पिज़्ज़ा',
+  'Chicken Tikka Pizza': 'चिकन टिक्का पिज़्ज़ा',
+  'Truffle Cream Ravioli': 'ट्रफल क्रीम रवियोली',
+  'Baked Lasagna': 'बेक्ड लज़ान्या',
+  'Butter Chicken': 'बटर चिकन',
+  'Chicken Biryani': 'चिकन बिरयानी',
+  'Mutton Biryani': 'मटन बिरयानी'
+}
+
+const getDietType = item => {
+  const name = item.name.toLowerCase()
+
+  if (
+    name.includes('chicken') ||
+    name.includes('prawn') ||
+    name.includes('fish') ||
+    name.includes('mutton') ||
+    name.includes('pepperoni') ||
+    name.includes('non veg')
+  ) {
+    return 'nonVeg'
+  }
+
+  if (
+    name.includes('raw mango') ||
+    name.includes('aam panna') ||
+    name.includes('pahadi cooler') ||
+    name.includes('fries') ||
+    name.includes('quinoa') ||
+    name.includes('edamame')
+  ) {
+    return 'vegan'
+  }
+
+  return 'veg'
+}
+
+const getDisplayName = (item, language) => {
+  if (language === 'hi') {
+    return HINDI_MENU[item.name] || item.name
+  }
+
+  return item.name
+}
 
 function MenuPage() {
   const { tableId } = useParams()
@@ -286,6 +248,16 @@ function MenuPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isCallingWaiter, setIsCallingWaiter] = useState(false)
   const [isRequestingBill, setIsRequestingBill] = useState(false)
+
+  const [language, setLanguage] = useState(
+    sessionStorage.getItem('basque_language') || 'en'
+  )
+
+  const [dietFilter, setDietFilter] = useState(
+    sessionStorage.getItem('basque_diet_filter') || 'all'
+  )
+
+  const t = TEXT[language]
 
   useEffect(() => {
     if (tableId) {
@@ -301,9 +273,25 @@ function MenuPage() {
     }
   }, [tableId])
 
+  useEffect(() => {
+    sessionStorage.setItem('basque_language', language)
+  }, [language])
+
+  useEffect(() => {
+    sessionStorage.setItem('basque_diet_filter', dietFilter)
+  }, [dietFilter])
+
   const filteredMenu = menuData.find(
     section => section.category === activeCategory
   )
+
+  const filteredItems = useMemo(() => {
+    const items = filteredMenu?.items || []
+
+    if (dietFilter === 'all') return items
+
+    return items.filter(item => getDietType(item) === dietFilter)
+  }, [filteredMenu, dietFilter])
 
   const total = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.price * item.qty, 0)
@@ -428,24 +416,75 @@ function MenuPage() {
       nameNormalized.includes(rule.keyword)
     )
 
-    return exactMatch ? exactMatch.url : DEFAULT_IMAGE
+    if (!exactMatch || exactMatch.url.includes('<')) {
+      return DEFAULT_IMAGE
+    }
+
+    return exactMatch.url
   }
 
   return (
     <main className="menuPage">
       <section className="menuHero">
         <p className="eyebrow">Basque Dehradun</p>
-        <h1>Digital Table Menu</h1>
+
+        <h1>{t.title}</h1>
+
         <p className="tableBadge">{activeTable}</p>
-        <p className="menuSubtext">
-          Browse the menu, add your favourites, and send your order directly to
-          the kitchen.
-        </p>
+
+        <p className="menuSubtext">{t.subtitle}</p>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            marginTop: '18px'
+          }}
+        >
+          <button
+            className="cardAddBtn"
+            onClick={() => setLanguage('en')}
+            style={{ opacity: language === 'en' ? 1 : 0.65 }}
+          >
+            English
+          </button>
+
+          <button
+            className="cardAddBtn"
+            onClick={() => setLanguage('hi')}
+            style={{ opacity: language === 'hi' ? 1 : 0.65 }}
+          >
+            हिंदी
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            marginTop: '14px'
+          }}
+        >
+          {['all', 'veg', 'nonVeg', 'vegan'].map(filter => (
+            <button
+              key={filter}
+              className="cardAddBtn"
+              onClick={() => setDietFilter(filter)}
+              style={{ opacity: dietFilter === filter ? 1 : 0.65 }}
+            >
+              {t[filter]}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="menuLayout">
         <aside className="categoryPanel">
-          <h3>Categories</h3>
+          <h3>{t.categories}</h3>
 
           <div className="categoryList">
             {menuData.map(section => (
@@ -463,72 +502,78 @@ function MenuPage() {
         <section className="itemsPanel">
           <div className="itemsHeader">
             <h2>{filteredMenu?.category}</h2>
-            <p>{filteredMenu?.items.length} items</p>
+            <p>
+              {filteredItems.length} {t.items}
+            </p>
           </div>
 
-          <div className="itemsGrid">
-            {filteredMenu?.items.map(item => {
-              const cartItem = cart.find(c => c.name === item.name)
-              const currentQty = cartItem ? cartItem.qty : 0
+          {filteredItems.length === 0 ? (
+            <p className="emptyCart">{t.noFilteredItems}</p>
+          ) : (
+            <div className="itemsGrid">
+              {filteredItems.map(item => {
+                const cartItem = cart.find(c => c.name === item.name)
+                const currentQty = cartItem ? cartItem.qty : 0
 
-              return (
-                <article className="menuCard" key={item.name}>
-                  <div className="cardTop">
-                    <div className="cardInfo">
-                      <h3>{item.name}</h3>
-                      {item.desc && <p>{item.desc}</p>}
-                    </div>
-
-                    <div className="cardImageWrapper">
-                      <img
-                        src={getItemImage(item)}
-                        alt={item.name}
-                        loading="lazy"
-                        className="foodImg"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="cardBottom">
-                    <span>₹{item.price}</span>
-
-                    {currentQty === 0 ? (
-                      <button
-                        className="cardAddBtn"
-                        onClick={() => addToCart(item)}
-                      >
-                        Add
-                      </button>
-                    ) : (
-                      <div className="qtyControls cardQtyControls">
-                        <button onClick={() => decreaseQty(item.name)}>
-                          -
-                        </button>
-                        <span>{currentQty}</span>
-                        <button onClick={() => increaseQty(item.name)}>
-                          +
-                        </button>
+                return (
+                  <article className="menuCard" key={item.name}>
+                    <div className="cardTop">
+                      <div className="cardInfo">
+                        <h3>{getDisplayName(item, language)}</h3>
+                        {item.desc && <p>{item.desc}</p>}
                       </div>
-                    )}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+
+                      <div className="cardImageWrapper">
+                        <img
+                          src={getItemImage(item)}
+                          alt={item.name}
+                          loading="lazy"
+                          className="foodImg"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="cardBottom">
+                      <span>₹{item.price}</span>
+
+                      {currentQty === 0 ? (
+                        <button
+                          className="cardAddBtn"
+                          onClick={() => addToCart(item)}
+                        >
+                          {t.add}
+                        </button>
+                      ) : (
+                        <div className="qtyControls cardQtyControls">
+                          <button onClick={() => decreaseQty(item.name)}>
+                            -
+                          </button>
+                          <span>{currentQty}</span>
+                          <button onClick={() => increaseQty(item.name)}>
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         <aside className="cartPanel">
-          <h3>Your Order</h3>
+          <h3>{t.yourOrder}</h3>
           <p className="cartTable">{activeTable}</p>
 
           {cart.length === 0 ? (
-            <p className="emptyCart">No items added yet.</p>
+            <p className="emptyCart">{t.noItems}</p>
           ) : (
             <div className="cartItems">
               {cart.map(item => (
                 <div className="cartItem" key={item.name}>
                   <div>
-                    <h4>{item.name}</h4>
+                    <h4>{getDisplayName(item, language)}</h4>
                     <p>₹{item.price * item.qty}</p>
                   </div>
 
@@ -543,7 +588,7 @@ function MenuPage() {
           )}
 
           <div className="cartTotal">
-            <span>Total</span>
+            <span>{t.total}</span>
             <strong>₹{total}</strong>
           </div>
 
@@ -552,7 +597,7 @@ function MenuPage() {
             onClick={handleCallWaiter}
             disabled={isCallingWaiter}
           >
-            {isCallingWaiter ? 'Calling Waiter...' : 'Call Waiter'}
+            {isCallingWaiter ? t.callingWaiter : t.callWaiter}
           </button>
 
           <button
@@ -560,7 +605,7 @@ function MenuPage() {
             onClick={handleBillRequest}
             disabled={isRequestingBill}
           >
-            {isRequestingBill ? 'Requesting Bill...' : 'Request Bill'}
+            {isRequestingBill ? t.requestingBill : t.requestBill}
           </button>
 
           <button
@@ -568,7 +613,7 @@ function MenuPage() {
             onClick={sendOrderToKitchen}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Sending Order...' : 'Send Order to Kitchen'}
+            {isSubmitting ? t.sendingOrder : t.sendOrder}
           </button>
         </aside>
       </section>

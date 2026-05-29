@@ -83,7 +83,13 @@ function App() {
           <Route path="/weddings" element={<WeddingsPage />} />
           <Route path="/bar" element={<BarPage />} />
           <Route path="/events" element={<EventsPage />} />
+
+          {/* Normal menu page */}
+          <Route path="/menu" element={<MenuPage />} />
+
+          {/* QR/table menu page */}
           <Route path="/menu/:tableId" element={<MenuPage />} />
+
           <Route path="/manager" element={<ManagerDashboard />} />
         </Routes>
 
