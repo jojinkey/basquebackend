@@ -1,15 +1,21 @@
 {
+  "name": "basque-manager-os-backend",
+  "version": "1.0.0",
   "type": "module",
+  "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node --dns-result-order=ipv4first server.js",
+    "seed": "node --dns-result-order=ipv4first seedData.js",
+    "dev": "nodemon --dns-result-order=ipv4first server.js"
   },
   "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "mongoose": "^9.6.2",
-    "nodemon": "^3.1.14",
-    "socket.io": "^4.8.3"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.0.0",
+    "pg": "^8.12.0",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }
