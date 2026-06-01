@@ -10,6 +10,7 @@ const DEMO_USERS = [
   { role: "floor_manager",      name: "Priya",   credential: "4455",       inputType: "pin" },
   { role: "server",             name: "Rahul",   credential: "1122",       inputType: "pin" },
   { role: "kitchen",            name: "Kitchen", credential: "7788",       inputType: "pin" },
+  { role: "auditor",            name: "Audit",   credential: "audit@26",   inputType: "password" },
 ];
 
 const ROLES = [
@@ -18,6 +19,7 @@ const ROLES = [
   { value: "floor_manager",      label: "Floor Manager",       inputType: "pin",      placeholder: "4-Digit PIN" },
   { value: "server",             label: "Server",              inputType: "pin",      placeholder: "4-Digit PIN" },
   { value: "kitchen",            label: "Kitchen Display",     inputType: "pin",      placeholder: "4-Digit PIN" },
+  { value: "auditor",            label: "Auditor",             inputType: "password", placeholder: "Password" },
 ];
 
 const PIN_DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];

@@ -254,10 +254,70 @@
   flex-direction: column;
 }
 
+.overrideWarning {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: #FFF7EB;
+  border: 1px solid #E2D9CA;
+  border-left: 4px solid #C8852A;
+  color: #1A1008;
+  padding: 14px 16px;
+  margin: 12px 20px 0;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.overrideCopy {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #2C1A0E;
+}
+
+.overrideBtn {
+  background: #C04040;
+  color: #FDFAF5;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 24px rgba(192,64,64,0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.overrideBtn:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(192,64,64,0.32); }
+
+.overrideActive {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  margin: 12px 20px 0;
+  padding: 10px 12px;
+  background: #2C1A0E;
+  color: #FDFAF5;
+  border-radius: 10px;
+  border: 1px solid rgba(244, 196, 124, 0.35);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .dashContent {
   flex: 1;
   padding: 1.5rem;
   min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashContent > * {
+  flex: 1;
+  min-height: 0;
 }
 
 /* === SHARED PANEL STYLES (used by sub-components) === */

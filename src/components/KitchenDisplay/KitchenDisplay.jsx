@@ -30,7 +30,10 @@ function OrderCard({ order, onStatusChange, can }) {
   const handleStatus = async (status) => {
     setUpdating(true);
     try {
-      await ordersApi.updateStatus(order._id, status);
+      const res = await ordersApi.updateStatus(order._id, status);
+      if (res?.data) {
+        onStatusChange?.({ type: "update", order: res.data });
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -42,6 +45,7 @@ function OrderCard({ order, onStatusChange, can }) {
     if (!window.confirm("Cancel this order?")) return;
     try {
       await ordersApi.deleteOrder(order._id);
+      onStatusChange?.({ type: "delete", id: order._id });
     } catch (e) {
       console.error(e);
     }
@@ -158,6 +162,19 @@ export default function KitchenDisplay() {
     revenue: orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0),
   };
 
+  const handleOrderChange = ({ type, order: updatedOrder, id }) => {
+    setOrders((prev) => {
+      switch (type) {
+        case "update":
+          return prev.map((ord) => (ord._id === updatedOrder._id ? { ...ord, ...updatedOrder } : ord));
+        case "delete":
+          return prev.filter((ord) => ord._id !== id);
+        default:
+          return prev;
+      }
+    });
+  };
+
   if (loading) return <div className="emptyState"><p className="emptyStateText">Loading orders...</p></div>;
 
   return (
@@ -186,7 +203,7 @@ export default function KitchenDisplay() {
           <AnimatePresence>
             {newOrders.length === 0
               ? <div className="emptyState" style={{ padding: "2rem" }}><span className="emptyStateIcon">🍳</span><p className="emptyStateText">No new orders</p></div>
-              : newOrders.map((o) => <OrderCard key={o._id} order={o} can={can} />)
+              : newOrders.map((o) => <OrderCard key={o._id} order={o} can={can} onStatusChange={handleOrderChange} />)
             }
           </AnimatePresence>
         </div>
@@ -199,7 +216,7 @@ export default function KitchenDisplay() {
           <AnimatePresence>
             {preparingOrders.length === 0
               ? <div className="emptyState" style={{ padding: "2rem" }}><span className="emptyStateIcon">⏳</span><p className="emptyStateText">No orders preparing</p></div>
-              : preparingOrders.map((o) => <OrderCard key={o._id} order={o} can={can} />)
+              : preparingOrders.map((o) => <OrderCard key={o._id} order={o} can={can} onStatusChange={handleOrderChange} />)
             }
           </AnimatePresence>
         </div>
@@ -212,7 +229,7 @@ export default function KitchenDisplay() {
           <AnimatePresence>
             {servedOrders.length === 0
               ? <div className="emptyState" style={{ padding: "2rem" }}><span className="emptyStateIcon">✅</span><p className="emptyStateText">No orders served yet</p></div>
-              : servedOrders.map((o) => <OrderCard key={o._id} order={o} can={can} />)
+              : servedOrders.map((o) => <OrderCard key={o._id} order={o} can={can} onStatusChange={handleOrderChange} />)
             }
           </AnimatePresence>
         </div>

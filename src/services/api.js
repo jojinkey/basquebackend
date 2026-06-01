@@ -54,6 +54,164 @@ let _reservations = [
   { _id: "r5", name: "Suresh Pillai", phone: "+91 91234 56789", service: "table",        guests: 3,  date: "2026-05-28", time: "20:00", stage: "new",        createdAt: new Date(Date.now() -  1 * 3600000).toISOString() },
 ];
 
+let MOCK_FINANCIAL_TXNS = [
+  {
+    id: "tx1001",
+    date: "2026-05-30",
+    channel: "dine_in",
+    payment: "card",
+    subtotal: 4820,
+    tax: 434,
+    discount: 120,
+    aggregator: null,
+    items: [
+      { name: "Truffle Fries", category: "Food", qty: 2, total: 760 },
+      { name: "Txuleta Steak", category: "Bar", qty: 1, total: 1800 },
+      { name: "Basque Old Fashioned", category: "Beverage", qty: 2, total: 1100 },
+      { name: "Mango Cheesecake", category: "Dessert", qty: 2, total: 860 },
+    ],
+  },
+  {
+    id: "tx1002",
+    date: "2026-05-30",
+    channel: "swiggy",
+    payment: "aggregator",
+    subtotal: 1620,
+    tax: 146,
+    discount: 80,
+    aggregator: "Swiggy",
+    items: [
+      { name: "Butter Chicken Fondue", category: "Food", qty: 1, total: 545 },
+      { name: "Quinoa Edamame Salad", category: "Food", qty: 1, total: 410 },
+      { name: "Garden Bloom", category: "Beverage", qty: 2, total: 540 },
+    ],
+  },
+  {
+    id: "tx1003",
+    date: "2026-05-29",
+    channel: "dine_in",
+    payment: "upi",
+    subtotal: 3280,
+    tax: 295,
+    discount: 0,
+    aggregator: null,
+    items: [
+      { name: "Pork Pepperoni Pizza", category: "Food", qty: 1, total: 925 },
+      { name: "Sacred Grove", category: "Beverage", qty: 2, total: 1350 },
+      { name: "Basque Cheesecake", category: "Dessert", qty: 1, total: 420 },
+      { name: "Gin & Tonic", category: "Bar", qty: 2, total: 585 },
+    ],
+  },
+  {
+    id: "tx1004",
+    date: "2026-05-28",
+    channel: "zomato",
+    payment: "aggregator",
+    subtotal: 2180,
+    tax: 196,
+    discount: 150,
+    aggregator: "Zomato",
+    items: [
+      { name: "Fiamma Pizza", category: "Food", qty: 1, total: 695 },
+      { name: "Cream of Mushroom", category: "Food", qty: 2, total: 620 },
+      { name: "Rosewood Calm", category: "Beverage", qty: 2, total: 810 },
+    ],
+  },
+  {
+    id: "tx1005",
+    date: "2026-05-27",
+    channel: "banquet",
+    payment: "bank_transfer",
+    subtotal: 12800,
+    tax: 1152,
+    discount: 1000,
+    aggregator: null,
+    items: [
+      { name: "Vegetarian Tandoori Platter", category: "Food", qty: 4, total: 5196 },
+      { name: "Basque Classic Butter Chicken", category: "Food", qty: 3, total: 2385 },
+      { name: "Garden Bloom", category: "Beverage", qty: 6, total: 4050 },
+      { name: "Basque Dal Makhni", category: "Food", qty: 4, total: 2580 },
+    ],
+  },
+  {
+    id: "tx1006",
+    date: "2026-05-26",
+    channel: "dine_in",
+    payment: "cash",
+    subtotal: 960,
+    tax: 86,
+    discount: 0,
+    aggregator: null,
+    items: [
+      { name: "Morning in the Garden", category: "Beverage", qty: 2, total: 450 },
+      { name: "Mini Vada Pav", category: "Food", qty: 2, total: 570 },
+    ],
+  },
+  {
+    id: "tx1007",
+    date: "2026-05-25",
+    channel: "swiggy",
+    payment: "aggregator",
+    subtotal: 1840,
+    tax: 166,
+    discount: 90,
+    aggregator: "Swiggy",
+    items: [
+      { name: "Thai Raw Mango Salad", category: "Food", qty: 1, total: 330 },
+      { name: "Mango Paneer Tikka", category: "Food", qty: 1, total: 510 },
+      { name: "Mango Cheesecake", category: "Dessert", qty: 1, total: 360 },
+      { name: "Mango Pahadi Cooler", category: "Beverage", qty: 2, total: 640 },
+    ],
+  },
+  {
+    id: "tx1008",
+    date: "2026-05-24",
+    channel: "events",
+    payment: "invoice",
+    subtotal: 15400,
+    tax: 1386,
+    discount: 1320,
+    aggregator: null,
+    items: [
+      { name: "Non-Vegetarian Tandoori Platter", category: "Food", qty: 4, total: 7196 },
+      { name: "Burrata Pizza", category: "Food", qty: 6, total: 5250 },
+      { name: "Sacred Grove", category: "Beverage", qty: 8, total: 5400 },
+      { name: "Mango Tiramisu", category: "Dessert", qty: 6, total: 2280 },
+    ],
+  },
+];
+
+const toDate = (dateStr) => new Date(`${dateStr}T00:00:00`);
+
+const isWithinRange = (date, range, from, to) => {
+  const target = typeof date === "string" ? toDate(date) : new Date(date);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  switch (range) {
+    case "today":
+      return target >= startOfToday;
+    case "7d": {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 6);
+      return target >= start && target <= startOfToday;
+    }
+    case "30d": {
+      const start = new Date(startOfToday);
+      start.setDate(start.getDate() - 29);
+      return target >= start && target <= startOfToday;
+    }
+    case "custom": {
+      if (!from || !to) return true;
+      const start = toDate(from);
+      const end = toDate(to);
+      return target >= start && target <= end;
+    }
+    default:
+      return true;
+  }
+};
+
 export const tablesApi = {
   getAll: async (params) => {
     await delay();
@@ -217,6 +375,90 @@ export const insightsApi = {
 
 export const authApi = {
   login: async (role) => ({ data: { user: { role } } }),
+};
+
+export const auditApi = {
+  getReport: async ({ range = "7d", from, to } = {}) => {
+    await delay();
+    const filtered = MOCK_FINANCIAL_TXNS.filter((txn) => isWithinRange(txn.date, range, from, to));
+
+    const summary = filtered.reduce(
+      (acc, txn) => {
+        const gross = txn.subtotal + txn.tax;
+        const net = gross - txn.discount;
+        acc.gross += gross;
+        acc.net += net;
+        acc.discount += txn.discount;
+        acc.tax += txn.tax;
+        return acc;
+      },
+      { gross: 0, net: 0, discount: 0, tax: 0 }
+    );
+
+    const categories = {};
+    const payments = {};
+    const channels = {};
+    const itemMap = {};
+    const timelineMap = {};
+
+    filtered.forEach((txn) => {
+      const gross = txn.subtotal + txn.tax;
+
+      channels[txn.channel] = (channels[txn.channel] || 0) + gross;
+      payments[txn.payment] = (payments[txn.payment] || 0) + gross;
+
+      txn.items.forEach((item) => {
+        categories.total = (categories.total || 0) + item.total;
+        categories[item.category] = (categories[item.category] || 0) + item.total;
+        const key = item.name;
+        if (!itemMap[key]) {
+          itemMap[key] = { name: item.name, category: item.category, qty: 0, revenue: 0 };
+        }
+        itemMap[key].qty += item.qty;
+        itemMap[key].revenue += item.total;
+      });
+
+      const day = txn.date;
+      if (!timelineMap[day]) {
+        timelineMap[day] = { date: day, gross: 0, net: 0, discount: 0 };
+      }
+      timelineMap[day].gross += gross;
+      timelineMap[day].net += gross - txn.discount;
+      timelineMap[day].discount += txn.discount;
+    });
+
+    const timeline = Object.values(timelineMap).sort((a, b) => new Date(a.date) - new Date(b.date));
+    const items = Object.values(itemMap)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 12);
+
+    return {
+      data: {
+        summary,
+        categories,
+        payments,
+        channels,
+        items,
+        timeline,
+      },
+    };
+  },
+
+  exportCsv: (report) => {
+    if (!report) return;
+    const headers = ["Item", "Category", "Qty", "Revenue"];
+    const rows = report.items.map((item) => [item.name, item.category, item.qty, item.revenue]);
+    const csv = [headers.join(",")]
+      .concat(rows.map((r) => r.join(",")))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "audit_items.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };
 
 export default {};

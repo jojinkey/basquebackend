@@ -11,21 +11,28 @@ import WaitlistModule from "../components/WaitlistModule/WaitlistModule";
 import ServiceAlerts from "../components/ServiceAlerts/ServiceAlerts";
 import ReservationPipeline from "../components/ReservationPipeline/ReservationPipeline";
 import Insights from "../components/Insights/Insights";
+import TableOrdering from "../components/TableOrdering/TableOrdering";
+import AuditReports from "../components/AuditReports/AuditReports";
+import OwnerGodView from "./OwnerGodView";
 
 import "./DashboardPage.css";
 
 const NAV = [
+  { id: "god", label: "God View", icon: "👁", perm: "god_view" },
   { id: "floor", label: "Floor Plan", icon: "⊞", perm: "floor_view" },
   { id: "orders", label: "Kitchen Orders", icon: "🍳", perm: "kitchen_view" },
+  { id: "tableOrders", label: "Table Ordering", icon: "🧾", perm: "table_orders" },
   { id: "alerts", label: "Service Alerts", icon: "🔔", perm: "service_alerts", badge: "alerts" },
   { id: "waitlist", label: "Waitlist & Queue", icon: "≡", perm: "waitlist_view", badge: "waitlist" },
   { id: "reservations", label: "Reservations", icon: "📋", perm: "reservations_view", badge: "reservations" },
   { id: "insights", label: "Insights", icon: "⊙", perm: "insights" },
+  { id: "audit", label: "Audit Reports", icon: "📊", perm: "audit_reports" },
   { id: "settings", label: "Settings", icon: "⚙", perm: "settings" },
 ];
 
-function getDefaultTab(can) {
-  const order = ["floor", "orders", "alerts", "waitlist", "reservations", "insights", "settings"];
+function getDefaultTab(can, isOwner) {
+  if (isOwner) return "god";
+  const order = ["floor", "orders", "tableOrders", "alerts", "waitlist", "reservations", "insights", "audit", "settings"];
   for (const id of order) {
     const nav = NAV.find((n) => n.id === id);
     if (nav && can(nav.perm)) return id;
@@ -34,10 +41,11 @@ function getDefaultTab(can) {
 }
 
 export default function DashboardPage() {
-  const { user, can, logout } = useAuth();
+  const { user, can, logout, overrideMode, toggleOverride } = useAuth();
   const navigate = useNavigate();
+  const isOwner = user?.role === "owner";
 
-  const [activeTab, setActiveTab] = useState(() => getDefaultTab(can));
+  const [activeTab, setActiveTab] = useState(() => getDefaultTab(can, isOwner));
   const [badges, setBadges] = useState({ alerts: 0, waitlist: 0, reservations: 0 });
   const [recentActivity, setRecentActivity] = useState([]);
   const [notifBar, setNotifBar] = useState(null);
@@ -107,14 +115,20 @@ export default function DashboardPage() {
 
   const handleAlertAck = () => setBadges((prev) => ({ ...prev, alerts: Math.max(0, prev.alerts - 1) }));
 
+  const WRITE_TABS = ["floor", "orders", "tableOrders", "waitlist", "reservations"];
+  const showOverrideBtn = isOwner && !overrideMode && WRITE_TABS.includes(activeTab);
+
   const tabContent = () => {
     switch (activeTab) {
+      case "god":        return <OwnerGodView />;
       case "floor":       return <FloorPlan />;
       case "orders":      return <KitchenDisplay />;
       case "waitlist":    return <WaitlistModule />;
       case "alerts":      return <ServiceAlerts onAck={handleAlertAck} />;
+      case "tableOrders": return <TableOrdering />;
       case "reservations":return <ReservationPipeline />;
       case "insights":    return <Insights />;
+      case "audit":       return <AuditReports />;
       case "settings":    return <SettingsTab />;
       default:            return null;
     }
@@ -198,6 +212,17 @@ export default function DashboardPage() {
       </aside>
 
       <main className="dashMain">
+        {showOverrideBtn && (
+          <div className="overrideWarning">
+            <div className="overrideCopy">
+              You are in read-only Owner mode. To manipulate data in real time, enable Override (actions are live & logged).
+            </div>
+            <button className="overrideBtn" onClick={toggleOverride}>Enable Override</button>
+          </div>
+        )}
+        {overrideMode && isOwner && (
+          <div className="overrideActive">Override ON — changes will apply immediately. Toggle off to return to read-only.</div>
+        )}
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 8 }}

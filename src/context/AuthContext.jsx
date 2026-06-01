@@ -2,26 +2,35 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 
 const PERMISSIONS = {
   owner: [
+    "floor_view", "orders_view", "kitchen_view", "waitlist_view",
+    "reservations_view", "service_alerts", "insights",
+    "audit_reports", "audit_export", "settings", "god_view",
+  ],
+  owner_full: [
     "floor_view", "floor_manage", "orders_view", "orders_manage",
     "kitchen_view", "kitchen_manage", "waitlist_view", "waitlist_manage",
     "reservations_view", "reservations_manage", "service_alerts",
-    "insights", "settings", "menu_availability", "audit_export",
+    "insights", "menu_availability", "audit_reports", "audit_export",
+    "settings", "god_view", "table_orders",
   ],
   restaurant_manager: [
     "floor_view", "floor_manage", "orders_view", "orders_manage",
     "kitchen_view", "kitchen_manage", "waitlist_view", "waitlist_manage",
     "reservations_view", "reservations_manage", "service_alerts",
-    "insights", "menu_availability", "audit_export",
+    "insights", "menu_availability", "audit_export", "table_orders", "audit_reports",
   ],
   floor_manager: [
     "floor_view", "floor_manage", "waitlist_view", "waitlist_manage",
-    "reservations_view", "service_alerts",
+    "reservations_view", "service_alerts", "table_orders",
   ],
   server: [
-    "floor_view", "floor_manage", "orders_view", "service_alerts",
+    "floor_view", "floor_manage", "orders_view", "service_alerts", "table_orders",
   ],
   kitchen: [
     "kitchen_view", "kitchen_manage", "orders_view", "menu_availability",
+  ],
+  auditor: [
+    "audit_reports", "audit_export",
   ],
 };
 
@@ -33,6 +42,7 @@ const INACTIVITY_LIMIT = 8 * 60 * 60 * 1000;
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [overrideMode, setOverrideMode] = useState(false);
 
   useEffect(() => {
     try {
@@ -67,13 +77,20 @@ export function AuthProvider({ children }) {
   const can = useCallback(
     (permission) => {
       if (!user) return false;
+      if (user.role === "owner" && overrideMode) {
+        return (PERMISSIONS.owner_full || []).includes(permission);
+      }
       return (PERMISSIONS[user.role] || []).includes(permission);
     },
-    [user]
+    [user, overrideMode]
   );
 
+  const toggleOverride = useCallback(() => {
+    setOverrideMode((prev) => !prev);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, can }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, can, overrideMode, toggleOverride }}>
       {children}
     </AuthContext.Provider>
   );
