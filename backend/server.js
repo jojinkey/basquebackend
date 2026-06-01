@@ -21,15 +21,30 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// 🟢 NEW: Define exactly who is allowed to talk to your backend
+const allowedOrigins = [
+  "http://localhost:5174",             // Your local development frontend
+  "https://basquedehradun.com",        // Your live domain
+  "https://www.basquedehradun.com"     // Your live domain (with www)
+];
+
+// 🟢 NEW: Apply strict CORS for Express API routes
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
 const server = http.createServer(app);
 
+// 🟢 NEW: Apply strict CORS for Socket.io (Realtime connections)
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
 });
 
@@ -119,7 +134,7 @@ app.get("/api/audit/export", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Basque Manager OS backend running");
+  res.send("Basque Manager OS backend running securely");
 });
 
 const TABLES_SEED = [

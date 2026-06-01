@@ -1,24 +1,35 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { reservationsApi } from "../../services/api";
-import { socket } from "../../services/socket";
+import { supabase } from "../../lib/supabase"; // Make sure this path matches your project structure
 import { useAuth } from "../../context/AuthContext";
 import "./ReservationPipeline.css";
 
-const STAGES = ["new", "contacted", "confirmed", "declined"];
+// Updated stages to match your Supabase PostgreSQL ENUM exactly
+const STAGES = ["new", "reviewing", "accepted", "declined"];
 
 const STAGE_LABELS = {
   new: "New Leads",
-  contacted: "Contacted",
-  confirmed: "Confirmed",
+  reviewing: "Reviewing / Contacted",
+  accepted: "Accepted / Confirmed",
   declined: "Declined",
 };
 
 const SERVICE_COLORS = {
-  table:      "#C8852A",
-  event:      "#2A8C7A",
-  golf:       "#4A7AB5",
+  table:       "#C8852A",
+  event:       "#2A8C7A",
+  golf:        "#4A7AB5",
   golf_dining: "#7A5AB5",
+};
+
+// Helper to translate Supabase modal sources to your Kanban labels
+const getServiceType = (sourceModal) => {
+  switch (sourceModal) {
+    case 'TableBookingModal': return 'table';
+    case 'EventEnquiryModal': return 'event';
+    case 'GolfBookingModal': return 'golf';
+    case 'GolfDiningModal': return 'golf_dining';
+    default: return 'table';
+  }
 };
 
 const SERVICE_LABELS = {
@@ -29,6 +40,7 @@ const SERVICE_LABELS = {
 };
 
 function timeAgo(date) {
+  if (!date) return "";
   const mins = Math.floor((Date.now() - new Date(date)) / 60000);
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
@@ -38,21 +50,31 @@ function timeAgo(date) {
 
 function ReservationCard({ reservation, onStageChange, canManage }) {
   const [expanded, setExpanded] = useState(false);
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(reservation.manager_notes || "");
   const { user } = useAuth();
 
   const handleStage = async (stage) => {
     try {
-      await reservationsApi.updateStage(reservation._id, {
-        stage,
-        stageNote: note,
-        performer: { name: user?.name, role: user?.role },
-      });
-      onStageChange();
-    } catch (e) { console.error(e); }
+      const { error } = await supabase
+        .from('reservations')
+        .update({ 
+          stage: stage,
+          manager_notes: note 
+        })
+        .eq('id', reservation.id); // Supabase uses 'id', not '_id'
+        
+      if (error) throw error;
+      onStageChange(); // trigger UI refresh or rely on Realtime
+    } catch (e) { 
+      console.error("Error updating stage:", e); 
+    }
   };
 
-  const color = SERVICE_COLORS[reservation.service] || "#8C7B6A";
+  const serviceKey = getServiceType(reservation.source_modal);
+  const color = SERVICE_COLORS[serviceKey] || "#8C7B6A";
+
+  // Parse Supabase JSONB details
+  const details = reservation.details || {};
 
   return (
     <motion.div
@@ -64,20 +86,20 @@ function ReservationCard({ reservation, onStageChange, canManage }) {
       exit={{ opacity: 0, scale: 0.95 }}
     >
       <div className="resCardTop">
-        <span className="resServiceLabel" style={{ color }}>{SERVICE_LABELS[reservation.service]}</span>
-        <span className="resTimeAgo">{timeAgo(reservation.createdAt)}</span>
+        <span className="resServiceLabel" style={{ color }}>{SERVICE_LABELS[serviceKey]}</span>
+        <span className="resTimeAgo">{timeAgo(reservation.created_at)}</span>
       </div>
 
       <h3 className="resGuestName">{reservation.name}</h3>
 
       <div className="resCardMeta">
         {reservation.phone && <p className="resMeta">📞 {reservation.phone}</p>}
-        {reservation.date && <p className="resMeta">📅 {reservation.date}{reservation.time ? `, ${reservation.time}` : ""}</p>}
+        {reservation.date && <p className="resMeta">📅 {reservation.date}{reservation.time_slot ? `, ${reservation.time_slot}` : ""}</p>}
         {reservation.guests && <p className="resMeta">👥 {reservation.guests} guests</p>}
       </div>
 
-      {reservation.details?.occasion && (
-        <p className="resNote">{reservation.details.occasion}</p>
+      {details.occasion && (
+        <p className="resNote">{details.occasion}</p>
       )}
 
       <button className="resExpandBtn" onClick={() => setExpanded((p) => !p)}>
@@ -94,7 +116,7 @@ function ReservationCard({ reservation, onStageChange, canManage }) {
           >
             <input
               className="formInput"
-              placeholder="Add a note (optional)..."
+              placeholder="Add a manager note (optional)..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
               style={{ fontSize: "0.78rem", marginBottom: "0.5rem" }}
@@ -102,19 +124,19 @@ function ReservationCard({ reservation, onStageChange, canManage }) {
             <div className="resActionBtns">
               {reservation.stage === "new" && canManage && (
                 <button className="btnSecondary" style={{ fontSize: "0.62rem" }}
-                  onClick={() => handleStage("contacted")}>Mark Contacted</button>
+                  onClick={() => handleStage("reviewing")}>Mark Contacted</button>
               )}
-              {reservation.stage === "contacted" && canManage && (
+              {reservation.stage === "reviewing" && canManage && (
                 <>
                   <button className="btnPrimary" style={{ fontSize: "0.62rem" }}
-                    onClick={() => handleStage("confirmed")}>Confirm ✓</button>
+                    onClick={() => handleStage("accepted")}>Confirm ✓</button>
                   <button className="btnDanger" style={{ fontSize: "0.62rem" }}
                     onClick={() => handleStage("declined")}>Decline ✕</button>
                 </>
               )}
-              {reservation.stage === "confirmed" && (
+              {reservation.stage === "accepted" && (
                 <button className="btnPrimary" style={{ fontSize: "0.62rem", background: "#48B076" }}
-                  onClick={() => handleStage("checked_in")}>Check In ✓</button>
+                  onClick={() => handleStage("completed")}>Check In ✓</button>
               )}
               {reservation.phone && (
                 <a
@@ -141,9 +163,9 @@ function ReservationCard({ reservation, onStageChange, canManage }) {
         )}
       </AnimatePresence>
 
-      {reservation.stageNote && (
+      {reservation.manager_notes && (
         <p className="resNote" style={{ marginTop: "0.4rem", borderTop: "1px solid #F0EAE0", paddingTop: "0.4rem" }}>
-          Note: {reservation.stageNote}
+          Note: {reservation.manager_notes}
         </p>
       )}
     </motion.div>
@@ -159,36 +181,69 @@ export default function ReservationPipeline() {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [resRes, statsRes] = await Promise.all([
-        reservationsApi.getAll(),
-        reservationsApi.getStats(),
-      ]);
-      setReservations(resRes.data);
-      setStats(statsRes.data);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setReservations(data || []);
+      
+      // Calculate stats locally from Supabase data
+      setStats({
+        newLeads: data?.filter(r => r.stage === 'new').length || 0,
+        contacted: data?.filter(r => r.stage === 'reviewing').length || 0,
+        confirmed: data?.filter(r => r.stage === 'accepted').length || 0,
+        declined: data?.filter(r => r.stage === 'declined').length || 0,
+      });
+
+    } catch (e) { 
+      console.error("Error fetching reservations:", e); 
+    } finally { 
+      setLoading(false); 
+    }
   }, []);
 
   useEffect(() => {
     fetchAll();
 
-    socket.on("reservation:new", (res) => {
-      setReservations((prev) => {
-        const exists = prev.some((r) => r._id === res._id);
-        if (exists) return prev;
-        return [res, ...prev];
-      });
-    });
-
-    socket.on("reservation:updated", (updated) => {
-      setReservations((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
-    });
+    // Supabase Realtime Subscription
+    const channel = supabase
+      .channel('reservations-pipeline')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reservations' },
+        (payload) => {
+          setReservations((prev) => [payload.new, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'reservations' },
+        (payload) => {
+          setReservations((prev) => 
+            prev.map((r) => (r.id === payload.new.id ? payload.new : r))
+          );
+        }
+      )
+      .subscribe();
 
     return () => {
-      socket.off("reservation:new");
-      socket.off("reservation:updated");
+      supabase.removeChannel(channel);
     };
   }, [fetchAll]);
+
+  // Recalculate stats whenever reservations state changes (keeps top chips live)
+  useEffect(() => {
+    setStats({
+      newLeads: reservations.filter(r => r.stage === 'new').length,
+      contacted: reservations.filter(r => r.stage === 'reviewing').length,
+      confirmed: reservations.filter(r => r.stage === 'accepted').length,
+      declined: reservations.filter(r => r.stage === 'declined').length,
+    });
+  }, [reservations]);
 
   const byStage = (stage) => reservations.filter((r) => r.stage === stage);
 
@@ -197,26 +252,26 @@ export default function ReservationPipeline() {
       <div className="dashPanelHeader">
         <div>
           <h2 className="dashPanelTitle">Reservation Pipeline</h2>
-          <p className="dashPanelSub">Website leads · Golf · Events · Dining</p>
+          <p className="dashPanelSub">Live Supabase Connection · Leads & Events</p>
         </div>
         <button className="btnSecondary" onClick={fetchAll}>Refresh</button>
       </div>
 
       <div className="statsBar">
         <div className="statChip">
-          <span className="statChipValue" style={{ color: "#4A7AB5" }}>{stats.newLeads ?? "—"}</span>
+          <span className="statChipValue" style={{ color: "#4A7AB5" }}>{stats.newLeads}</span>
           <span className="statChipLabel">NEW LEADS</span>
         </div>
         <div className="statChip">
-          <span className="statChipValue" style={{ color: "#C8852A" }}>{stats.contacted ?? "—"}</span>
+          <span className="statChipValue" style={{ color: "#C8852A" }}>{stats.contacted}</span>
           <span className="statChipLabel">CONTACTED</span>
         </div>
         <div className="statChip">
-          <span className="statChipValue" style={{ color: "#48B076" }}>{stats.confirmed ?? "—"}</span>
+          <span className="statChipValue" style={{ color: "#48B076" }}>{stats.confirmed}</span>
           <span className="statChipLabel">CONFIRMED</span>
         </div>
         <div className="statChip">
-          <span className="statChipValue" style={{ color: "#C04040" }}>{stats.declined ?? "—"}</span>
+          <span className="statChipValue" style={{ color: "#C04040" }}>{stats.declined}</span>
           <span className="statChipLabel">DECLINED</span>
         </div>
       </div>
@@ -242,7 +297,7 @@ export default function ReservationPipeline() {
                     ) : (
                       cards.map((r) => (
                         <ReservationCard
-                          key={r._id}
+                          key={r.id}
                           reservation={r}
                           canManage={canManage}
                           onStageChange={fetchAll}

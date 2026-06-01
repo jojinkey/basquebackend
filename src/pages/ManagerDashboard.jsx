@@ -3,6 +3,7 @@ import axios from "axios";
 import "./ManagerDashboard.css";
 import { socket } from "../services/socket";
 import { syncOfflineOrders } from "../services/orderApi";
+import { supabase } from "../lib/supabase";
 
 const ORDER_API_URL = "http://localhost:5000/api/orders";
 const SERVICE_API_URL = "http://localhost:5000/api/service-requests";
@@ -12,6 +13,9 @@ function ManagerDashboard() {
   const [serviceRequests, setServiceRequests] = useState([]);
   const [activeTab, setActiveTab] = useState("orders");
   const [loading, setLoading] = useState(true);
+  
+  // NEW: State for the reservations notification badge
+  const [newReservationCount, setNewReservationCount] = useState(0);
 
   const fetchOrders = async () => {
     try {
@@ -172,6 +176,14 @@ function ManagerDashboard() {
             onClick={() => setActiveTab("insights")}
           >
             Insights
+          </button>
+
+          {/* NEW: Reservations Tab Button */}
+          <button
+            className={activeTab === "reservations" ? "active" : ""}
+            onClick={() => setActiveTab("reservations")}
+          >
+            Reservations {newReservationCount > 0 && <span className="navBadge">{newReservationCount}</span>}
           </button>
         </nav>
       </aside>
@@ -436,9 +448,219 @@ function ManagerDashboard() {
             </div>
           </section>
         )}
+
+        {/* NEW: Reservations Tab Render */}
+        {activeTab === "reservations" && (
+          <ReservationsTab onNewCount={setNewReservationCount} />
+        )}
       </section>
     </main>
   );
 }
+
+// ─── HELPER FUNCTIONS FOR RESERVATIONS TAB ─────────────────────────────
+const getTypeInfo = (sourceModal) => {
+  switch (sourceModal) {
+    case 'TableBookingModal':  return { label: 'Table',      icon: '🍽️' };
+    case 'CourtBookingModal':  return { label: 'Court',      icon: '🏓' };
+    case 'GolfBookingModal':   return { label: 'Golf',       icon: '⛳' };
+    case 'GolfDiningModal':    return { label: 'Golf+Dining',icon: '🍷' };
+    case 'EventEnquiryModal':  return { label: 'Event',      icon: '🎉' };
+    default:                   return { label: 'Booking',    icon: '📋' };
+  }
+};
+
+const getStageBadgeColor = (stage) => {
+  const colors = {
+    new:                '#2196f3',   // blue
+    reviewing:          '#ff9800',   // orange
+    accepted:           '#4caf50',   // green
+    declined:           '#f44336',   // red
+    waitlisted:         '#9c27b0',   // purple
+    callback_requested: '#ff5722',   // deep orange
+    completed:          '#607d8b',   // grey-blue
+    no_show:            '#9e9e9e',   // grey
+  };
+  return colors[stage] || '#9e9e9e';
+};
+
+const getDetailsSummary = (reservation) => {
+  const d = reservation.details || {};
+  switch (reservation.source_modal) {
+    case 'TableBookingModal':
+      return d.occasion ? `Occasion: ${d.occasion}` : 'No occasion specified';
+    case 'CourtBookingModal':
+      return `${d.duration_hours || 1}hr · ${d.equipment || 'No equipment'}`;
+    case 'GolfBookingModal':
+      return `${d.duration || '1 hr'} · ${d.experience || 'Experience not specified'}`;
+    case 'GolfDiningModal':
+      const pkgNames = { round: 'The Round', afternoon: 'The Afternoon', corporate: 'Corporate Day' };
+      return pkgNames[d.package] || d.package || 'Package not specified';
+    case 'EventEnquiryModal':
+      return [d.event_type, d.space, d.budget].filter(Boolean).join(' · ') || 'No details';
+    default:
+      return '—';
+  }
+};
+
+// ─── NEW: RESERVATIONS TAB COMPONENT ───────────────────────────────────
+const ReservationsTab = ({ onNewCount }) => {
+  const [reservations, setReservations] = useState([]);
+  const [filter, setFilter] = useState('All');
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (data) setReservations(data);
+      if (error) console.error("Error fetching reservations:", error);
+    };
+
+    fetchReservations();
+
+    const channel = supabase
+      .channel('reservations-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reservations' },
+        (payload) => {
+          setReservations((prev) => [payload.new, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'reservations' },
+        (payload) => {
+          setReservations((prev) =>
+            prev.map((r) => (r.id === payload.new.id ? payload.new : r))
+          );
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  useEffect(() => {
+    const newCount = reservations.filter(r => r.stage === 'new').length;
+    onNewCount(newCount);
+  }, [reservations, onNewCount]);
+
+  const updateStage = async (id, newStage) => {
+    const { error } = await supabase
+      .from('reservations')
+      .update({ stage: newStage })
+      .eq('id', id);
+    if (error) alert('Failed to update stage');
+  };
+
+  const filteredReservations = reservations.filter((r) => {
+    if (filter === 'All') return true;
+    if (filter === 'Tables') return r.source_modal === 'TableBookingModal';
+    if (filter === 'Courts') return r.source_modal === 'CourtBookingModal';
+    if (filter === 'Golf') return r.source_modal === 'GolfBookingModal';
+    if (filter === 'Golf+Dining') return r.source_modal === 'GolfDiningModal';
+    if (filter === 'Events') return r.source_modal === 'EventEnquiryModal';
+    return true;
+  });
+
+  return (
+    <section className="dashboardPanel">
+      <div className="panelTop" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2>Reservations</h2>
+          <span className="liveIndicator">
+            <span className="liveDot"></span>
+            Live Connection
+          </span>
+        </div>
+      </div>
+
+      <div className="filterBar">
+        {['All', 'Tables', 'Courts', 'Golf', 'Golf+Dining', 'Events'].map(f => (
+          <button 
+            key={f} 
+            className={`filterBtn ${filter === f ? 'active' : ''}`}
+            onClick={() => setFilter(f)}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {filteredReservations.length === 0 ? (
+        <div className="resEmptyBox">No reservations found for this filter.</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table className="reservationsTable">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Guests</th>
+                <th>Details</th>
+                <th>Stage</th>
+                <th>Received</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredReservations.map((res) => {
+                const typeInfo = getTypeInfo(res.source_modal);
+                return (
+                  <tr key={res.id}>
+                    <td>
+                      <div className="typeCell">
+                        <span>{typeInfo.icon}</span> {typeInfo.label}
+                      </div>
+                    </td>
+                    <td><strong>{res.name}</strong></td>
+                    <td>{res.phone}</td>
+                    <td>{res.date ? new Date(res.date).toLocaleDateString() : 'Flexible'}</td>
+                    <td>{res.time_slot || '—'}</td>
+                    <td>{res.guests || '—'}</td>
+                    <td style={{ color: 'rgba(0,0,0,0.6)' }}>{getDetailsSummary(res)}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span 
+                          className="stageBadge" 
+                          style={{ backgroundColor: getStageBadgeColor(res.stage) }}
+                        >
+                          {res.stage.toUpperCase()}
+                        </span>
+                        <select
+                          className="stageSelect"
+                          value={res.stage}
+                          onChange={(e) => updateStage(res.id, e.target.value)}
+                        >
+                          <option value="new">New</option>
+                          <option value="reviewing">Reviewing</option>
+                          <option value="accepted">Accepted</option>
+                          <option value="declined">Declined</option>
+                          <option value="waitlisted">Waitlisted</option>
+                          <option value="callback_requested">Callback Requested</option>
+                          <option value="completed">Completed</option>
+                          <option value="no_show">No Show</option>
+                        </select>
+                      </div>
+                    </td>
+                    <td style={{ fontSize: '0.8rem', color: 'rgba(0,0,0,0.5)' }}>
+                      {new Date(res.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+};
 
 export default ManagerDashboard;

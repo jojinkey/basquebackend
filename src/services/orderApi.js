@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/orders";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const API_URL = `${BACKEND_URL}/api/orders`;
 
 const QUEUE_KEY = "basque_offline_orders";
 
