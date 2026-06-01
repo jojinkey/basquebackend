@@ -4,6 +4,10 @@ import { Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 import { ModalProvider } from './context/ModalContext'
+import { CartProvider } from './context/CartContext'
+import OrderFoodPage from './pages/OrderFoodPage'
+import OrderTrackingPage from './pages/OrderTrackingPage'
+
 import CustomCursor from './components/shared/CustomCursor'
 import GrainOverlay from './components/shared/GrainOverlay'
 import WhatsAppFloat from './components/shared/WhatsAppFloat'
@@ -48,54 +52,60 @@ function App() {
 
   return (
     <ModalProvider>
-      <CustomCursor />
-      <GrainOverlay />
-      <Toaster
-        position="bottom-center"
-        toastOptions={{
-          style: {
-            fontFamily: 'var(--font-body)',
-            fontSize: '0.85rem',
-            background: 'var(--teak)',
-            color: 'var(--warm-white)',
-            borderRadius: '2px',
-          },
-        }}
-      />
+      <CartProvider>
+        <CustomCursor />
+        <GrainOverlay />
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              fontFamily: 'var(--font-body)',
+              fontSize: '0.85rem',
+              background: 'var(--teak)',
+              color: 'var(--warm-white)',
+              borderRadius: '2px',
+            },
+          }}
+        />
 
-      <AnimatePresence mode="wait">
-        {isLoading && (
-          <Loader key="loader" onComplete={() => setIsLoading(false)} />
-        )}
-      </AnimatePresence>
+        <AnimatePresence mode="wait">
+          {isLoading && (
+            <Loader key="loader" onComplete={() => setIsLoading(false)} />
+          )}
+        </AnimatePresence>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoading ? 0 : 1 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-      >
-        <Navbar />
-        <BookingModalShell />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isLoading ? 0 : 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <Navbar />
+          <BookingModalShell />
 
-        <Routes>
-          <Route path="/" element={<HomePage loaded={!isLoading} />} />
-          <Route path="/golf" element={<GolfPage />} />
-          <Route path="/weddings" element={<WeddingsPage />} />
-          <Route path="/bar" element={<BarPage />} />
-          <Route path="/events" element={<EventsPage />} />
+          <Routes>
+            <Route path="/" element={<HomePage loaded={!isLoading} />} />
+            <Route path="/golf" element={<GolfPage />} />
+            <Route path="/weddings" element={<WeddingsPage />} />
+            <Route path="/bar" element={<BarPage />} />
+            <Route path="/events" element={<EventsPage />} />
 
-          {/* Normal menu page */}
-          <Route path="/menu" element={<MenuPage />} />
+            {/* Normal menu page */}
+            <Route path="/menu" element={<MenuPage />} />
 
-          {/* QR/table menu page */}
-          <Route path="/menu/:tableId" element={<MenuPage />} />
+            {/* QR/table menu page */}
+            <Route path="/menu/:tableId" element={<MenuPage />} />
 
-          <Route path="/manager" element={<ManagerDashboard />} />
-        </Routes>
+            <Route path="/manager" element={<ManagerDashboard />} />
+            
+            {/* New Delivery Routes */}
+            <Route path="/order-food" element={<OrderFoodPage />} />
+            <Route path="/order-tracking/:orderId" element={<OrderTrackingPage />} />
+          </Routes>
 
-        <Footer id="footer" />
-        <WhatsAppFloat />
-      </motion.div>
+          <Footer id="footer" />
+          <WhatsAppFloat />
+        </motion.div>
+      </CartProvider>
     </ModalProvider>
   )
 }

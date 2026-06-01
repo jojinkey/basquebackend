@@ -81,5 +81,15 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  
+  // --- ADDED: Vite Development Server Proxy ---
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      }
+    }
+  }
 })

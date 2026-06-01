@@ -7,6 +7,7 @@ import { syncOfflineOrders } from './services/orderApi'
 
 import './index.css'
 import App from './App.jsx'
+import { CartProvider } from './context/CartContext.jsx'
 
 const lenis = new Lenis({
   duration: 1.4,
@@ -43,8 +44,10 @@ window.addEventListener('online', () => {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <CartProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </CartProvider>
   </StrictMode>
 )

@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Delivery Order ───────────────────────────────────────────────────────────
+// This is the NEW model for online delivery orders.
+// The existing dine-in Order model stays in Mongoose (models/Order.js).
+model DeliveryOrder {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  clientOrderNumber   String   @unique
+  customerName        String
+  customerPhone       String
+  customerEmail       String?
+  deliveryAddress     String
+  deliveryCity        String
+  deliveryState       String
+  deliveryPincode     String
+  items               Json     // Array of { name, price, qty, desc }
+  subtotal            Float
+  deliveryCharge      Float    @default(60)
+  total               Float
+  paymentMethod       String   @default("prepaid")  // "prepaid" | "cod"
+  paymentStatus       String   @default("pending")  // "pending" | "paid" | "failed"
+  orderStatus         String   @default("placed")  // "placed" | "confirmed" | "preparing" | "dispatched" | "out_for_delivery" | "delivered" | "cancelled" | "failed"
+  
+  // Shadowfax fields
+  shadowfaxAwb        String?
+  shadowfaxStatus     String?
+  shadowfaxRiderName  String?
+  shadowfaxRiderPhone String?
+  shadowfaxLabelUrl   String?
+  isServiceable       Boolean  @default(false)
+  errorLog            String?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}

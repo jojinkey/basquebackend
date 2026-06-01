@@ -18,7 +18,7 @@
   letter-spacing: 0.45em;
   text-indent: 0.45em;
   text-decoration: none;
-  transition: color 0.3s ease;
+  color: var(--teak);
 }
 
 .actions {
@@ -27,6 +27,7 @@
   gap: 10px;
 }
 
+/* Filled amber — Reserve a Table */
 .btnFilled {
   font-family: var(--font-sc);
   font-size: 0.68rem;
@@ -40,6 +41,7 @@
   white-space: nowrap;
 }
 
+/* Outlined — Book a Court, Host an Event, Order Food, Menu */
 .btnOutlined {
   font-family: var(--font-sc);
   font-size: 0.68rem;
@@ -47,6 +49,8 @@
   padding: 10px 22px;
   border-radius: 2px;
   border: 1.5px solid var(--amber);
+  background: transparent;
+  color: var(--amber);
   cursor: none;
   transition: background 0.25s ease, color 0.25s ease;
   white-space: nowrap;
@@ -57,32 +61,28 @@
   color: var(--warm-white);
 }
 
-.btnGhost {
+/* Order Food — outlined + icon, always amber */
+.btnOrderFood {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border: 1.5px solid var(--amber);
+  background: transparent;
+  color: var(--amber);
+  border-radius: 2px;
   font-family: var(--font-sc);
   font-size: 0.68rem;
+  font-weight: 400;
   letter-spacing: 0.12em;
-  padding: 10px 16px;
   cursor: none;
-  position: relative;
-  transition: color 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease;
   white-space: nowrap;
 }
 
-.btnGhost::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 16px;
-  right: 16px;
-  height: 1px;
+.btnOrderFood:hover {
   background: var(--amber);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s ease;
-}
-
-.btnGhost:hover::after {
-  transform: scaleX(1);
+  color: var(--warm-white);
 }
 
 /* Pulse dot on Reserve button */

@@ -1,0 +1,239 @@
+.pageContainer {
+  min-height: 100vh;
+  background-color: var(--warm-white);
+  color: var(--ink);
+  padding: 120px 5% 60px;
+  font-family: inherit;
+  display: flex;
+  justify-content: center;
+}
+
+.loader, .errorCard {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 1.2rem;
+  color: var(--teak);
+}
+
+.errorCard {
+  background: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.contentWrapper {
+  display: flex;
+  gap: 40px;
+  max-width: 1000px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* Summary Card */
+.summaryCard, .trackingCard {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  flex: 1;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  padding-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.cardHeader h2, .trackingCard h2 {
+  margin: 0;
+  color: var(--teak);
+  font-size: 1.5rem;
+}
+
+.orderId {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.date {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-bottom: 25px;
+}
+
+.itemsList {
+  margin-bottom: 25px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.itemName {
+  opacity: 0.9;
+}
+
+.itemPrice {
+  font-weight: 500;
+}
+
+.totals {
+  border-top: 1px dashed rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  padding: 15px 0;
+  margin-bottom: 25px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.grandTotal {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--teak);
+  margin-top: 10px;
+}
+
+.deliveryInfo h3 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.deliveryInfo p {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Tracking Stepper */
+.trackingCard h2 {
+  margin-bottom: 30px;
+}
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  min-height: 70px; /* gives space for the connecting line */
+}
+
+.stepIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 100%;
+}
+
+.circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 2;
+  position: relative;
+  background: #fff;
+}
+
+.completed {
+  background: var(--amber);
+  color: var(--warm-white);
+  border: 2px solid var(--amber);
+}
+
+.active {
+  border: 3px solid var(--amber);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.pending {
+  border: 3px solid rgba(0,0,0,0.15);
+}
+
+.line {
+  width: 2px;
+  height: calc(100% - 28px + 70px);
+  background: rgba(0,0,0,0.1);
+  position: absolute;
+  top: 28px;
+  z-index: 1;
+}
+
+.stepLabel {
+  padding-top: 4px;
+  font-size: 1.05rem;
+  opacity: 0.5;
+  font-weight: 500;
+}
+
+.activeText {
+  opacity: 1;
+  color: var(--amber);
+  font-weight: 600;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(200, 133, 42, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(200, 133, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(200, 133, 42, 0); }
+}
+
+/* Rider Card */
+.riderCard {
+  margin-top: 30px;
+  background: #fffdf7;
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.riderIcon {
+  font-size: 2rem;
+}
+
+.riderDetails h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  color: var(--amber);
+}
+
+.riderDetails p {
+  margin: 0 0 4px 0;
+  font-size: 0.9rem;
+}
+
+.riderDetails a {
+  color: var(--teak);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@media (max-width: 800px) {
+  .contentWrapper {
+    flex-direction: column-reverse;
+  }
+}

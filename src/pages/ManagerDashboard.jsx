@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./ManagerDashboard.css";
 import { socket } from "../services/socket";
 import { syncOfflineOrders } from "../services/orderApi";
+
+// --- NEW IMPORTS FOR DELIVERY ---
+import { getAllDeliveryOrders, updateDeliveryOrderStatus } from "../services/deliveryOrderApi";
 
 const ORDER_API_URL = "http://localhost:5000/api/orders";
 const SERVICE_API_URL = "http://localhost:5000/api/service-requests";
@@ -152,6 +155,14 @@ function ManagerDashboard() {
           >
             Kitchen Orders
           </button>
+          
+          {/* --- NEW TAB FOR DELIVERY --- */}
+          <button
+            className={activeTab === "delivery" ? "active" : ""}
+            onClick={() => setActiveTab("delivery")}
+          >
+            Delivery Orders
+          </button>
 
           <button
             className={activeTab === "floor" ? "active" : ""}
@@ -294,6 +305,9 @@ function ManagerDashboard() {
             )}
           </section>
         )}
+
+        {/* --- NEW CONTENT SECTION FOR DELIVERY --- */}
+        {activeTab === "delivery" && <DeliveryOrdersTab />}
 
         {activeTab === "floor" && (
           <section className="dashboardPanel">
@@ -440,5 +454,164 @@ function ManagerDashboard() {
     </main>
   );
 }
+
+// --- NEW SUB-COMPONENT FOR DELIVERY ORDERS TAB ---
+const DeliveryOrdersTab = () => {
+  const [orders, setOrders] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
+
+  useEffect(() => {
+    fetchOrders();
+
+    const handleNewOrder = (order) => setOrders((prev) => [order, ...prev]);
+    const handleOrderUpdated = (updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o))
+      );
+    };
+
+    socket.on('deliveryOrder:new', handleNewOrder);
+    socket.on('deliveryOrder:updated', handleOrderUpdated);
+
+    return () => {
+      socket.off('deliveryOrder:new', handleNewOrder);
+      socket.off('deliveryOrder:updated', handleOrderUpdated);
+    };
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const data = await getAllDeliveryOrders();
+      if (data) setOrders(data);
+    } catch (err) {
+      console.error('Failed to fetch delivery orders');
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await updateDeliveryOrderStatus(id, newStatus);
+      // Optimistically update the UI status
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, orderStatus: newStatus } : o));
+    } catch (err) {
+      alert('Failed to update status');
+    }
+  };
+
+  const getBadgeColor = (status) => {
+    const colors = {
+      placed: '#9e9e9e',       // grey
+      confirmed: '#2196f3',    // blue
+      preparing: '#ff9800',    // orange
+      dispatched: '#9c27b0',   // purple
+      out_for_delivery: 'var(--amber)', // amber
+      delivered: '#4caf50',    // green
+      cancelled: '#f44336',    // red
+      failed: '#f44336'        // red
+    };
+    return colors[status] || '#9e9e9e';
+  };
+
+  return (
+    <section className="dashboardPanel" style={{ overflowX: 'auto' }}>
+      <div className="panelTop">
+        <h2>Delivery Orders</h2>
+        <span>{orders.length} delivery orders</span>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginTop: '20px' }}>
+        <thead>
+          <tr style={{ borderBottom: '2px solid rgba(0,0,0,0.1)' }}>
+            <th style={{ padding: '12px' }}>Order ID</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>AWB</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <React.Fragment key={order.id}>
+              <tr 
+                onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                style={{ borderBottom: '1px solid rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <td style={{ padding: '12px', fontWeight: 'bold' }}>{order.clientOrderNumber}</td>
+                <td>{order.customerName}</td>
+                <td>{order.customerPhone}</td>
+                <td>{order.items?.length || 0} items</td>
+                <td>₹{order.total}</td>
+                <td>
+                  <span style={{
+                    background: getBadgeColor(order.orderStatus),
+                    color: '#fff',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {order.orderStatus?.replace(/_/g, ' ').toUpperCase() || 'PLACED'}
+                  </span>
+                </td>
+                <td>{order.shadowfaxAwb || 'Pending'}</td>
+                <td>{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+              </tr>
+              
+              {/* Expandable Details Row */}
+              {expandedId === order.id && (
+                <tr style={{ background: '#fafafa' }}>
+                  <td colSpan="8" style={{ padding: '20px' }}>
+                    <div style={{ display: 'flex', gap: '40px' }}>
+                      <div>
+                        <h4 style={{ margin: '0 0 10px 0' }}>Order Items</h4>
+                        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                          {order.items?.map((item, i) => (
+                            <li key={i}>{item.qty}x {item.name} (₹{item.price * item.qty})</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 10px 0' }}>Delivery Details</h4>
+                        <p style={{ margin: '0 0 4px 0' }}>{order.deliveryAddress}</p>
+                        <p style={{ margin: 0 }}>{order.deliveryCity}, {order.deliveryState} {order.deliveryPincode}</p>
+                      </div>
+                      <div>
+                        <h4 style={{ margin: '0 0 10px 0' }}>Actions & Tracking</h4>
+                        {order.shadowfaxLabelUrl ? (
+                          <a href={order.shadowfaxLabelUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--amber)', display: 'block', marginBottom: '10px' }}>
+                            📄 Print Shipping Label
+                          </a>
+                        ) : (
+                          <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem', opacity: 0.6 }}>No label generated yet</p>
+                        )}
+                        <select 
+                          value={order.orderStatus} 
+                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          style={{ padding: '6px' }}
+                        >
+                          <option value="placed">Placed</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="preparing">Preparing</option>
+                          <option value="dispatched">Dispatched</option>
+                          <option value="out_for_delivery">Out for Delivery</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+};
 
 export default ManagerDashboard;
