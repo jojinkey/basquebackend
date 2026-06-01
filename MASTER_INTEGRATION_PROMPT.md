@@ -604,7 +604,7 @@ Each stage change:
 All real-time events across the system:
 
 ```javascript
-// Orders (existing from menu branch)
+// Orders (existing from menu branch) 
 'order:new'           → KDS new column, table card badge, stats update
 'order:updated'       → KDS move card between columns, table card update
 'order:deleted'       → KDS remove card, table card clear

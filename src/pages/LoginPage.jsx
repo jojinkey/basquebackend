@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
 import "./LoginPage.css";
 
 const DEMO_USERS = [
@@ -44,6 +45,24 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetMsg, setResetMsg] = useState("");
+
+  const handleResetDemo = async () => {
+    if (!window.confirm("Reset all demo data to the default state?\n\nThis will clear current orders, sessions, and waitlist — and restore the demo scenario. Real reservations from the website will be kept.")) return;
+    setResetting(true);
+    setResetMsg("");
+    try {
+      const { error: fnError } = await supabase.rpc("reset_demo_data");
+      if (fnError) throw fnError;
+      setResetMsg("Demo data reset successfully.");
+    } catch (e) {
+      setResetMsg("Reset failed: " + (e.message || "unknown error"));
+    } finally {
+      setResetting(false);
+      setTimeout(() => setResetMsg(""), 4000);
+    }
+  };
 
   useEffect(() => {
     if (user) navigate("/dashboard");
@@ -176,6 +195,18 @@ export default function LoginPage() {
         <div className="loginMeta">
           <p className="loginService">Current Service: {getService()}</p>
           <p className="loginDate">{formatDate()}</p>
+        </div>
+
+        <div className="loginResetRow">
+          <button
+            type="button"
+            className="resetDemoBtn"
+            onClick={handleResetDemo}
+            disabled={resetting}
+          >
+            {resetting ? "Resetting…" : "↺ Reset Demo Data"}
+          </button>
+          {resetMsg && <p className="resetMsg">{resetMsg}</p>}
         </div>
       </motion.div>
     </div>

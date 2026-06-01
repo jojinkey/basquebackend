@@ -1,8 +1,8 @@
 /* === BASQUE MANAGER OS — Dashboard Design System === */
 .dashboardOS {
   display: flex;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
   background: #F5F0E8;
   font-family: 'Jost', 'DM Sans', sans-serif;
   position: relative;
@@ -252,6 +252,7 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 .overrideWarning {

@@ -259,3 +259,40 @@
   color: #8C7B6A;
   margin-top: 0.25rem;
 }
+
+/* ── Reset Demo ─────────────────────────────────────── */
+.loginResetRow {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resetDemoBtn {
+  background: transparent;
+  border: 1px solid rgba(44, 26, 14, 0.18);
+  color: var(--basque-text-muted, #8C7B6A);
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 0.45rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.resetDemoBtn:hover:not(:disabled) {
+  border-color: #C8852A;
+  color: #C8852A;
+}
+.resetDemoBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resetMsg {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: #48B076;
+  text-align: center;
+}
