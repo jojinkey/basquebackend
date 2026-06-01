@@ -4,6 +4,7 @@ import TimeSlotPicker from './TimeSlotPicker'
 import { trackBookingCompleted } from '../../utils/analytics'
 import toast from 'react-hot-toast'
 import styles from './Modal.module.css'
+import { createTableBooking } from '../../services/bookingApi'
 
 const OCCASIONS = ['Anniversary', 'Birthday', 'Proposal', 'Business Dinner', 'Sunday Brunch', 'None']
 
@@ -26,7 +27,7 @@ const TableBookingModal = ({ prefill = {}, onClose }) => {
     }
     setLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 900))
+      await createTableBooking(form)
       setSuccess(true)
       trackBookingCompleted('table', form.date)
     } catch {

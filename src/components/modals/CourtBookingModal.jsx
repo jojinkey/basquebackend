@@ -4,6 +4,7 @@ import TimeSlotPicker from './TimeSlotPicker'
 import { trackBookingCompleted } from '../../utils/analytics'
 import toast from 'react-hot-toast'
 import styles from './Modal.module.css'
+import { createCourtBooking } from '../../services/bookingApi'
 
 const CourtBookingModal = ({ onClose }) => {
   const [form, setForm] = useState({
@@ -25,7 +26,7 @@ const CourtBookingModal = ({ onClose }) => {
     }
     setLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 900))
+      await createCourtBooking(form)
       setSuccess(true)
       trackBookingCompleted('court', form.date)
     } catch {

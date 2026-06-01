@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { trackBookingCompleted } from '../../utils/analytics'
 import toast from 'react-hot-toast'
 import styles from './Modal.module.css'
+import { createGolfDiningBooking } from '../../services/bookingApi'
 
 const PACKAGES = [
   { id: 'round', label: 'The Round', desc: '2 hrs simulator · Bar table after' },
@@ -29,7 +30,7 @@ const GolfDiningModal = ({ onClose }) => {
     }
     setLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 900))
+      await createGolfDiningBooking(form)
       setSuccess(true)
       trackBookingCompleted('golf_dining', form.date)
     } catch {

@@ -4,6 +4,7 @@ import TimeSlotPicker from './TimeSlotPicker'
 import { trackBookingCompleted } from '../../utils/analytics'
 import toast from 'react-hot-toast'
 import styles from './Modal.module.css'
+import { createGolfBooking } from '../../services/bookingApi'
 
 const DURATIONS = ['1 hr', '2 hrs', '3 hrs', '4 hrs']
 const EXPERIENCE = ['First time', 'Occasional', 'Regular', 'Competitive']
@@ -28,7 +29,7 @@ const GolfBookingModal = ({ onClose }) => {
     }
     setLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 900))
+      await createGolfBooking(form)
       setSuccess(true)
       trackBookingCompleted('golf', form.date)
     } catch {

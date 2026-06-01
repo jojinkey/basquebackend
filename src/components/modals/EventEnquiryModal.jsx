@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { trackBookingCompleted } from '../../utils/analytics'
 import toast from 'react-hot-toast'
 import styles from './Modal.module.css'
+import { createEventEnquiry } from '../../services/bookingApi'
 
 const EVENT_TYPES = ['Corporate retreat', 'Private dining', 'Birthday', 'Anniversary', 'Pre-wedding', 'Sangeet / Mehendi', 'Pickleball tournament', 'Golf day', 'Product launch', 'Other']
 const SPACES = ['Garden', 'Verandah / Indoor', 'Terrace', 'Full venue']
@@ -34,7 +35,7 @@ const EventEnquiryModal = ({ onClose }) => {
     }
     setLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 900))
+      await createEventEnquiry(form)
       setSuccess(true)
       trackBookingCompleted('event', form.date)
     } catch {
