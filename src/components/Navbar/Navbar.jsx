@@ -62,85 +62,7 @@ const Navbar = () => {
 
         <div className={styles.actions}>
 
-          {/* Reserve a Table — filled */}
-          <div className={styles.btnWrap}>
-            <div className={styles.pulseDot}>
-              <div className={styles.pulseDotCore} />
-              <div className={styles.pulseDotRing} />
-            </div>
-            <motion.button
-              className={styles.btnFilled}
-              onClick={() => openModal('table')}
-              whileHover={{ scale: 1.03, y: -2, boxShadow: '0 10px 30px var(--amber-glow)' }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            >
-              Reserve a Table
-            </motion.button>
-          </div>
-
-          {/* Book a Court — outlined + dropdown */}
-          <div
-            className={styles.dropdownWrap}
-            onMouseEnter={() => setCourtDropdown(true)}
-            onMouseLeave={() => setCourtDropdown(false)}
-          >
-            <motion.button
-              className={styles.btnOutlined}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            >
-              Book a Court ▾
-            </motion.button>
-
-            <AnimatePresence>
-              {courtDropdown && (
-                <motion.div
-                  className={styles.dropdown}
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={() => { setCourtDropdown(false); openModal('court') }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <ellipse cx="8" cy="10" rx="5" ry="3.5" stroke="var(--amber)" strokeWidth="1.2" />
-                      <path d="M11 7l4-4" stroke="var(--amber)" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                    Pickleball Court
-                  </button>
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={() => { setCourtDropdown(false); openModal('golf') }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M8 12V5" stroke="var(--amber)" strokeWidth="1.2" strokeLinecap="round" />
-                      <path d="M8 5l5 2.5-5 2.5" stroke="var(--amber)" strokeWidth="1.2" strokeLinejoin="round" />
-                      <path d="M4 14h8" stroke="var(--amber)" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                    Golf Simulator
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Host an Event — outlined */}
-          <motion.button
-            className={styles.btnOutlined}
-            onClick={() => openModal('event')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-          >
-            Host an Event
-          </motion.button>
-
-          {/* Order Food — outlined + icon */}
+          {/* Order Food — the only button in the topbar */}
           <motion.button
             className={styles.btnOrderFood}
             onClick={() => navigate('/order-food')}
@@ -155,17 +77,6 @@ const Navbar = () => {
               <circle cx="18.5" cy="18.5" r="2.5"/>
             </svg>
             Order Food
-          </motion.button>
-
-          {/* Menu — outlined */}
-          <motion.button
-            className={styles.btnOutlined}
-            onClick={() => navigate('/menu')}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-          >
-            Menu
           </motion.button>
 
         </div>

@@ -424,3 +424,110 @@
   .cartPanel { position: static; max-height: none; }
   .headline { font-size: 1.8rem; }
 }
+/* ── Cart Mode Tabs ── */
+.cartTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(245,240,232,0.12);
+}
+
+.cartTabBtn {
+  flex: 1;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  color: rgba(245,240,232,0.5);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+  font-family: var(--font-body, sans-serif);
+}
+
+.cartTabBtn:first-child {
+  border-right: 1px solid rgba(245,240,232,0.12);
+}
+
+.cartTabBtn:hover {
+  background: rgba(200,133,42,0.1);
+  color: var(--warm-white, #f5f0e8);
+}
+
+.cartTabActive {
+  background: var(--amber, #c8852a) !important;
+  color: #fff !important;
+}
+
+/* ── Dine-In Section ── */
+.dineInSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.tableInput {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(245,240,232,0.15);
+  border-radius: 4px;
+  color: var(--warm-white, #f5f0e8);
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  font-family: var(--font-body, sans-serif);
+}
+.tableInput::placeholder { color: rgba(245,240,232,0.35); }
+.tableInput:focus { border-color: var(--amber, #c8852a); }
+
+/* ── Delivery Section ── */
+.deliverySection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Pincode checker inside cart (compact) */
+.pincodeCheckerCart {
+  display: flex;
+  gap: 8px;
+}
+
+.pincodeCheckerCart input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(245,240,232,0.15);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  color: var(--warm-white, #f5f0e8);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+  font-family: var(--font-body, sans-serif);
+}
+.pincodeCheckerCart input::placeholder { color: rgba(245,240,232,0.35); }
+.pincodeCheckerCart input:focus { border-color: var(--amber, #c8852a); }
+
+.pincodeCheckerCart button {
+  padding: 10px 14px;
+  background: var(--amber, #c8852a);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+.pincodeCheckerCart button:disabled { opacity: 0.45; cursor: not-allowed; }
+.pincodeCheckerCart button:hover:not(:disabled) { opacity: 0.85; }
