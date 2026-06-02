@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { serviceApi, waitlistApi, reservationsApi } from "../services/api";
 import { socket } from "../services/socket";
+import { supabase } from "../lib/supabase";
 
 import FloorPlan from "../components/FloorPlan/FloorPlan";
 import KitchenDisplay from "../components/KitchenDisplay/KitchenDisplay";
@@ -242,6 +243,25 @@ export default function DashboardPage() {
 
 function SettingsTab() {
   const { user } = useAuth();
+  const [busy, setBusy] = useState("");
+  const [msg, setMsg] = useState(null);
+
+  const runRpc = async (fn, label, confirmText) => {
+    if (!window.confirm(confirmText)) return;
+    setBusy(fn);
+    setMsg(null);
+    try {
+      const { error } = await supabase.rpc(fn);
+      if (error) throw error;
+      setMsg({ ok: true, text: `${label} complete. Refresh any open tab to see the change.` });
+    } catch (e) {
+      setMsg({ ok: false, text: `${label} failed: ${e.message || "unknown error"}` });
+    } finally {
+      setBusy("");
+      setTimeout(() => setMsg(null), 6000);
+    }
+  };
+
   return (
     <div className="settingsTab">
       <div className="dashPanelHeader">
@@ -268,6 +288,35 @@ function SettingsTab() {
           <p><strong>Name:</strong> {user?.name}</p>
           <p><strong>Role:</strong> {user?.role}</p>
           <p><strong>Logged in:</strong> {user?.loginTime ? new Date(user.loginTime).toLocaleString() : "—"}</p>
+        </div>
+        <div className="settingsCard">
+          <h3>Data Management</h3>
+          <p style={{ fontSize: "0.82rem", color: "#8C7B6A", marginBottom: "1rem" }}>
+            Restore the demo scenario, or wipe everything to a clean slate. These actions are immediate and apply to every connected device.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            <button
+              className="btnSecondary"
+              disabled={!!busy}
+              onClick={() => runRpc("reset_demo_data", "Reset to demo data",
+                "Reset all data back to the demo scenario?\n\nClears current orders/sessions/waitlist and restores the sample evening. Real website reservations are kept.")}
+            >
+              {busy === "reset_demo_data" ? "Resetting…" : "↺ Reset Demo Data"}
+            </button>
+            <button
+              className="btnDanger"
+              disabled={!!busy}
+              onClick={() => runRpc("clear_all_data", "Clear all data",
+                "⚠ Clear ALL data?\n\nThis permanently deletes every order, session, waitlist entry, service request, audit log AND all reservations, then resets all 18 tables to available. This cannot be undone.")}
+            >
+              {busy === "clear_all_data" ? "Clearing…" : "🗑 Clear All Data"}
+            </button>
+          </div>
+          {msg && (
+            <p style={{ marginTop: "0.9rem", fontSize: "0.8rem", color: msg.ok ? "#48B076" : "#C04040" }}>
+              {msg.text}
+            </p>
+          )}
         </div>
       </div>
     </div>
