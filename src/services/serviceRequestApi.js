@@ -1,21 +1,19 @@
-import axios from "axios";
+import { supabase } from "../lib/supabase";
 
-const API_URL = "http://localhost:5000/api/service-requests";
+async function createRequest(data, type) {
+  const { data: row, error } = await supabase
+    .from("service_requests")
+    .insert({
+      table_id: data.tableId,
+      table_name: data.tableName,
+      type,
+      status: "new",
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return row;
+}
 
-export const callWaiter = async (data) => {
-  const response = await axios.post(API_URL, {
-    ...data,
-    type: "call_waiter",
-  });
-
-  return response.data;
-};
-
-export const requestBill = async (data) => {
-  const response = await axios.post(API_URL, {
-    ...data,
-    type: "bill_request",
-  });
-
-  return response.data;
-};
+export const callWaiter = (data) => createRequest(data, "call_waiter");
+export const requestBill = (data) => createRequest(data, "bill_request");

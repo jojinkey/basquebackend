@@ -234,3 +234,62 @@
   color: #48B076;
   letter-spacing: 0.1em;
 }
+
+/* ── Pending Approval Bar ─────────────────────────────── */
+.kdsPendingBar {
+  background: rgba(200, 133, 42, 0.08);
+  border: 1px solid rgba(200, 133, 42, 0.3);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+.kdsPendingHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: #C8852A;
+  margin-bottom: 0.75rem;
+}
+.kdsPendingCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.kdsPendingCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 320px;
+  flex: 1 1 320px;
+}
+.kdsPendingCard strong {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  color: #2C1A0E;
+  display: block;
+}
+.kdsPendingItems {
+  display: block;
+  font-size: 0.74rem;
+  color: #8C7B6A;
+  margin: 2px 0;
+  max-width: 220px;
+}
+.kdsPendingTotal {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #C8852A;
+}
+.kdsPendingActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}

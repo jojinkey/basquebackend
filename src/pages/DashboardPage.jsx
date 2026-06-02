@@ -14,6 +14,7 @@ import Insights from "../components/Insights/Insights";
 import TableOrdering from "../components/TableOrdering/TableOrdering";
 import AuditReports from "../components/AuditReports/AuditReports";
 import OwnerGodView from "./OwnerGodView";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 import "./DashboardPage.css";
 
@@ -230,7 +231,9 @@ export default function DashboardPage() {
           transition={{ duration: 0.3 }}
           className="dashContent"
         >
-          {tabContent()}
+          <ErrorBoundary resetKey={activeTab}>
+            {tabContent()}
+          </ErrorBoundary>
         </motion.div>
       </main>
     </div>

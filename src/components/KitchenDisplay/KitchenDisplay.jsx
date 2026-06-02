@@ -151,9 +151,24 @@ export default function KitchenDisplay() {
     };
   }, [fetchOrders]);
 
+  const pendingOrders   = orders.filter((o) => o.status === "pending");
   const newOrders      = orders.filter((o) => o.status === "new");
   const preparingOrders = orders.filter((o) => o.status === "preparing");
   const servedOrders   = orders.filter((o) => o.status === "served").slice(0, 8);
+
+  const approveOrder = async (id) => {
+    try {
+      await ordersApi.updateStatus(id, "approve");
+      setOrders((prev) => prev.map((o) => (o._id === id ? { ...o, status: "new" } : o)));
+    } catch (e) { console.error(e); }
+  };
+  const declineOrder = async (id) => {
+    if (!window.confirm("Decline and remove this order?")) return;
+    try {
+      await ordersApi.deleteOrder(id);
+      setOrders((prev) => prev.filter((o) => o._id !== id));
+    } catch (e) { console.error(e); }
+  };
 
   const stats = {
     new: newOrders.length,
@@ -193,6 +208,30 @@ export default function KitchenDisplay() {
         <div className="statChip"><span className="statChipValue" style={{ color: "#48B076" }}>{stats.served}</span><span className="statChipLabel">SERVED</span></div>
         <div className="statChip"><span className="statChipValue">₹{stats.revenue.toLocaleString()}</span><span className="statChipLabel">REVENUE</span></div>
       </div>
+
+      {pendingOrders.length > 0 && can("orders_manage") && (
+        <div className="kdsPendingBar">
+          <div className="kdsPendingHead">
+            <span>⏳ PENDING APPROVAL</span>
+            <span className="kdsColBadge">{pendingOrders.length}</span>
+          </div>
+          <div className="kdsPendingCards">
+            {pendingOrders.map((o) => (
+              <div key={o._id} className="kdsPendingCard">
+                <div>
+                  <strong>{o.tableName}</strong>
+                  <span className="kdsPendingItems">{o.items.map((i) => `${i.name} ×${i.qty}`).join(", ") || "Order"}</span>
+                  <span className="kdsPendingTotal">₹{o.total}</span>
+                </div>
+                <div className="kdsPendingActions">
+                  <button className="kdsBtn kdsStart" onClick={() => approveOrder(o._id)}>Approve →</button>
+                  <button className="kdsBtn kdsDelete" onClick={() => declineOrder(o._id)}>Decline ✕</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="kdsColumns">
         <div className={`kdsColumn ${newFlash ? "columnFlash" : ""}`}>

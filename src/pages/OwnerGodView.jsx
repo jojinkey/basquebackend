@@ -87,6 +87,8 @@ const formatDuration = (minutes) => {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+const isOccupied = (status) => status === "occupied" || status === "seated";
+
 const buildTooltip = (table, order, service) => {
   const lines = [`Section: ${table.section}`];
   if (table.guest) lines.push(`Guest: ${table.guest}`);
@@ -233,7 +235,7 @@ export default function OwnerGodView() {
   const lastGross = timeline[timeline.length - 1]?.gross || 0;
   const prevGross = timeline[timeline.length - 2]?.gross;
 
-  const occupiedCount = tables.filter((t) => t.status === "occupied").length;
+  const occupiedCount = tables.filter((t) => isOccupied(t.status)).length;
   const totalTables = tables.length || 1;
   const occupancyPct = Math.round((occupiedCount / totalTables) * 100);
 
@@ -316,7 +318,7 @@ export default function OwnerGodView() {
       const section = table.section || "Other";
       if (!acc[section]) acc[section] = { total: 0, occupied: 0 };
       acc[section].total += 1;
-      if (table.status === "occupied") acc[section].occupied += 1;
+      if (isOccupied(table.status)) acc[section].occupied += 1;
       return acc;
     }, {});
   }, [tables]);
@@ -331,7 +333,7 @@ export default function OwnerGodView() {
   [tablesBySection]);
 
   const longSeated = tables.filter(
-    (t) => t.status === "occupied" && minutesSince(t.occupiedSince) > 90
+    (t) => isOccupied(t.status) && minutesSince(t.occupiedSince) > 90
   ).length;
 
   const terraceSummary = sectionSummary.find((s) => s.section === "Terrace");
@@ -409,8 +411,6 @@ export default function OwnerGodView() {
       return { channel, percent: Math.round((value / total) * 100), segment };
     });
   }, [auditReport]);
-
-  const donutGradient = buildConicGradient(channelBreakdown.map(({ segment }) => segment));
 
   const crowdStats = useMemo(() => {
     const vipTables = tables.filter((table) => table.isVip).length;
@@ -592,7 +592,7 @@ export default function OwnerGodView() {
               const service = services.find(
                 (s) => s.tableId === table.tableId && s.status === "new"
               );
-              const statusKey = table.status === "occupied" ? "occupied" : table.status;
+              const statusKey = isOccupied(table.status) ? "occupied" : table.status;
               return (
                 <div
                   key={table.tableId}

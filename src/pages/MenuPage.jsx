@@ -361,7 +361,7 @@ function MenuPage() {
           qty: item.qty
         })),
         total,
-        status: 'new'
+        status: 'pending_approval'
       }
 
       const result = await createOrder(orderData)

@@ -4,26 +4,75 @@
  */
 import { supabase } from '../lib/supabase'
 
+// DB order_stage  ↔  UI status vocabulary used by KitchenDisplay / FloorPlan
+const STAGE_TO_UI = { pending_approval: 'pending', placed: 'new', preparing: 'preparing', ready: 'preparing', served: 'served' }
+const UI_TO_STAGE = { pending: 'pending_approval', new: 'placed', approve: 'placed', preparing: 'preparing', ready: 'preparing', served: 'served' }
+export const stageToUi = (stage) => STAGE_TO_UI[stage] || stage
+export const uiToStage = (status) => UI_TO_STAGE[status] || status
+
 // ─── TABLES ──────────────────────────────────────────────────────────────────
 
 export const tablesApi = {
   getAll: async (params) => {
     let q = supabase
       .from('tables')
-      .select('id, capacity, status, current_session, sort_order, is_active, sections(id, name, label)')
+      .select('id, capacity, status, current_session, sort_order, is_active, sections(id, name, label), session:current_session(id, guest_name, party_size, is_vip, created_at)')
       .eq('is_active', true)
       .order('sort_order')
     if (params?.status) q = q.eq('status', params.status)
     const { data, error } = await q
     if (error) throw error
+
+    const rows = data || []
+
+    // Fetch active orders + open service requests in two batched queries
+    const sessionIds = rows.map((t) => t.current_session).filter(Boolean)
+    const tableIds = rows.map((t) => t.id)
+
+    let ordersBySession = {}
+    let svcByTable = {}
+
+    if (sessionIds.length) {
+      const { data: ords } = await supabase
+        .from('orders')
+        .select('id, session_id, stage, subtotal, created_at, order_items(quantity, unit_price, menu_items(name))')
+        .in('session_id', sessionIds)
+        .neq('stage', 'served')
+      ;(ords || []).forEach((o) => {
+        if (!ordersBySession[o.session_id]) ordersBySession[o.session_id] = []
+        ordersBySession[o.session_id].push({
+          _id: o.id, status: stageToUi(o.stage), total: o.subtotal, createdAt: o.created_at,
+          items: (o.order_items || []).map((i) => ({ name: i.menu_items?.name || 'Item', qty: i.quantity, price: i.unit_price })),
+        })
+      })
+    }
+
+    if (tableIds.length) {
+      const { data: svcs } = await supabase
+        .from('service_requests')
+        .select('id, table_id, type, status, table_name, created_at')
+        .in('table_id', tableIds)
+        .neq('status', 'completed')
+      ;(svcs || []).forEach((s) => {
+        if (!svcByTable[s.table_id]) svcByTable[s.table_id] = []
+        svcByTable[s.table_id].push({ _id: s.id, type: s.type, status: s.status, tableName: s.table_name, createdAt: s.created_at })
+      })
+    }
+
     return {
-      data: (data || []).map((t) => ({
+      data: rows.map((t) => ({
         tableId: t.id,
         tableName: `Table ${t.id}`,
         section: t.sections?.label || '',
         pax: t.capacity,
         status: t.status,
         current_session: t.current_session,
+        guest: t.session?.guest_name || null,
+        isVip: t.session?.is_vip || false,
+        seatedAt: t.session?.created_at || null,
+        occupiedSince: t.session?.created_at || null,
+        activeOrders: ordersBySession[t.current_session] || [],
+        serviceRequests: svcByTable[t.id] || [],
       })),
     }
   },
@@ -46,7 +95,7 @@ export const tablesApi = {
       ])
       sessionData = sessRes.data
       activeOrders = (ordRes.data || []).map((o) => ({
-        _id: o.id, status: o.stage, total: o.subtotal, createdAt: o.created_at,
+        _id: o.id, status: stageToUi(o.stage), total: o.subtotal, createdAt: o.created_at,
         items: (o.order_items || []).map((i) => ({ name: i.menu_items?.name || 'Unknown', qty: i.quantity, price: i.unit_price })),
       }))
       serviceRequests = (svcRes.data || []).map((s) => ({
@@ -123,9 +172,9 @@ export const ordersApi = {
   },
 
   updateStatus: async (id, status) => {
-    const updates = { stage: status }
-    if (status === 'served') updates.served_at = new Date().toISOString()
-    if (status === 'ready') updates.ready_at = new Date().toISOString()
+    const stage = uiToStage(status)
+    const updates = { stage }
+    if (stage === 'served') updates.served_at = new Date().toISOString()
     const { data, error } = await supabase.from('orders').update(updates).eq('id', id)
       .select('id, stage, subtotal, created_at, placed_at, table_sessions(table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))').single()
     if (error) throw error
@@ -145,7 +194,7 @@ function _shapeOrder(o) {
     _id: o.id,
     tableId: o.table_sessions?.table_id || '',
     tableName: `Table ${o.table_sessions?.table_id || ''}`,
-    status: o.stage,
+    status: stageToUi(o.stage),
     total: o.subtotal,
     createdAt: o.created_at,
     notes: o.notes,
@@ -333,7 +382,7 @@ export const insightsApi = {
     if (ordersRes.error) throw ordersRes.error
     const orders = ordersRes.data || []
     const tables = tablesRes.data || []
-    const revenue = orders.filter((o) => o.stage !== 'cancelled').reduce((s, o) => s + (o.subtotal || 0), 0)
+    const revenue = orders.reduce((s, o) => s + (o.subtotal || 0), 0)
     const covers = tables.filter((t) => t.status === 'seated').reduce((s, t) => s + t.capacity, 0)
     const itemMap = {}
     orders.forEach((o) => {
@@ -349,7 +398,7 @@ export const insightsApi = {
   getSectionPerf: async () => {
     const [tablesRes, ordersRes] = await Promise.all([
       supabase.from('tables').select('id, status, capacity, sections(label)').eq('is_active', true),
-      supabase.from('orders').select('subtotal, stage, table_sessions(table_id)').neq('stage', 'cancelled'),
+      supabase.from('orders').select('subtotal, stage, table_sessions(table_id)'),
     ])
     if (tablesRes.error) throw tablesRes.error
     const tables = tablesRes.data || []
@@ -386,7 +435,6 @@ export const auditApi = {
     const { data: allOrders, error } = await supabase
       .from('orders')
       .select('subtotal, stage, created_at, order_items(quantity, unit_price, menu_items(name, menu_categories(label)))')
-      .neq('stage', 'cancelled')
     if (error) throw error
     const filtered = (allOrders || []).filter((o) => _inRange(o.created_at, range, from, to))
     const summary = filtered.reduce((acc, o) => { acc.gross += o.subtotal || 0; acc.net += o.subtotal || 0; return acc }, { gross: 0, net: 0, tax: 0, discount: 0 })

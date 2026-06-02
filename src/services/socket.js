@@ -56,12 +56,14 @@ function _startRealtime() {
 }
 
 // Shape raw Supabase rows into the same format components already expect
+const _STAGE_TO_UI = { pending_approval: 'pending', placed: 'new', preparing: 'preparing', ready: 'preparing', served: 'served' }
+
 function _fmtOrder(o) {
   return {
     _id: o.id,
     tableId: o.table_id || '',
     tableName: `Table ${o.table_id || ''}`,
-    status: o.stage,
+    status: _STAGE_TO_UI[o.stage] || o.stage,
     total: o.subtotal || 0,
     createdAt: o.created_at,
     items: [],   // Realtime payloads don't include joined data; components refetch on event
