@@ -15,15 +15,29 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// 1. UPDATE: Configure CORS for Express
+const allowedOrigins = [
+  "http://localhost:5174",            // For local development
+  "https://basquedehradun.com",       // Live production domain
+  "https://www.basquedehradun.com"    // Live production domain (www)
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
 const server = http.createServer(app);
 
+// 2. UPDATE: Configure CORS for Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
 });
 
@@ -44,7 +58,7 @@ app.use("/api/service-requests", serviceRequestRoutes);
 app.use("/api/delivery-orders", deliveryOrderRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Basque realtime backend running");
+  res.send("Basque realtime backend running securely!");
 });
 
 mongoose
