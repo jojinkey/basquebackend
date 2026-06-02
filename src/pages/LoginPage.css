@@ -296,3 +296,100 @@
   color: #48B076;
   text-align: center;
 }
+
+/* ── Quick Login Grid ─────────────────────────────── */
+.quickLoginSection {
+  margin-bottom: 0.5rem;
+}
+
+.quickLoginLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: #8C7B6A;
+  text-align: center;
+  margin: 0 0 0.75rem;
+}
+
+.quickLoginGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.quickLoginBtn {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 6px;
+  padding: 0.65rem 0.4rem 0.55rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-align: center;
+}
+
+.quickLoginBtn:hover {
+  border-color: #C8852A;
+  background: rgba(200, 133, 42, 0.04);
+}
+
+.qlIcon {
+  font-size: 1.3rem;
+  line-height: 1;
+  margin-bottom: 0.15rem;
+}
+
+.qlName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2C1A0E;
+  line-height: 1.1;
+}
+
+.qlRole {
+  font-family: 'Cinzel', serif;
+  font-size: 0.42rem;
+  letter-spacing: 0.1em;
+  color: #C8852A;
+  line-height: 1.1;
+}
+
+.qlDesc {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.55rem;
+  color: #8C7B6A;
+  line-height: 1.2;
+  font-weight: 300;
+}
+
+/* ── Divider Row ───────────────────────────────────── */
+.loginDividerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.loginDividerLine {
+  flex: 1;
+  height: 1px;
+  background: #E2D9CA;
+}
+
+.loginDividerText {
+  font-family: 'Cinzel', serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  color: #8C7B6A;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .quickLoginGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

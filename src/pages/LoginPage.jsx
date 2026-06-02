@@ -6,12 +6,11 @@ import { supabase } from "../lib/supabase";
 import "./LoginPage.css";
 
 const DEMO_USERS = [
-  { role: "owner",              name: "Jalaj",   credential: "owner@2024", inputType: "password" },
-  { role: "restaurant_manager", name: "Arjun",   credential: "manager@24", inputType: "password" },
-  { role: "floor_manager",      name: "Priya",   credential: "4455",       inputType: "pin" },
-  { role: "server",             name: "Rahul",   credential: "1122",       inputType: "pin" },
-  { role: "kitchen",            name: "Kitchen", credential: "7788",       inputType: "pin" },
-  { role: "auditor",            name: "Audit",   credential: "audit@26",   inputType: "password" },
+  { role: "owner",              name: "Jalaj",   credential: "owner@2024", inputType: "password", label: "Owner", icon: "👑", desc: "Full access · God View · Settings" },
+  { role: "restaurant_manager", name: "Arjun",   credential: "manager@24", inputType: "password", label: "Restaurant Manager", icon: "📋", desc: "Floor · Kitchen · Pipeline · Insights" },
+  { role: "floor_manager",      name: "Priya",   credential: "4455",       inputType: "pin", label: "Floor Manager", icon: "🏛", desc: "Floor Plan · Waitlist · Alerts" },
+  { role: "server",             name: "Rahul",   credential: "1122",       inputType: "pin", label: "Server", icon: "🍽", desc: "Tables · Orders · Alerts" },
+  { role: "kitchen",            name: "Kitchen", credential: "7788",       inputType: "pin", label: "Kitchen Display", icon: "🍳", desc: "Order queue · Menu availability" },
 ];
 
 const ROLES = [
@@ -20,7 +19,6 @@ const ROLES = [
   { value: "floor_manager",      label: "Floor Manager",       inputType: "pin",      placeholder: "4-Digit PIN" },
   { value: "server",             label: "Server",              inputType: "pin",      placeholder: "4-Digit PIN" },
   { value: "kitchen",            label: "Kitchen Display",     inputType: "pin",      placeholder: "4-Digit PIN" },
-  { value: "auditor",            label: "Auditor",             inputType: "password", placeholder: "Password" },
 ];
 
 const PIN_DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];
@@ -47,6 +45,11 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg] = useState("");
+
+  const handleQuickLogin = (demoUser) => {
+    login({ id: `demo_${demoUser.role}`, name: demoUser.name, role: demoUser.role });
+    navigate("/dashboard");
+  };
 
   const handleResetDemo = async () => {
     if (!window.confirm("Reset all demo data to the default state?\n\nThis will clear current orders, sessions, and waitlist — and restore the demo scenario. Real reservations from the website will be kept.")) return;
@@ -123,6 +126,34 @@ export default function LoginPage() {
           <span className="ornDot" />
           <span className="ornLine" />
           <span className="ornDot" />
+        </div>
+
+        {/* ── 1-Click Demo Logins ── */}
+        <div className="quickLoginSection">
+          <p className="quickLoginLabel">QUICK ACCESS</p>
+          <div className="quickLoginGrid">
+            {DEMO_USERS.map((u) => (
+              <motion.button
+                key={u.role}
+                type="button"
+                className="quickLoginBtn"
+                onClick={() => handleQuickLogin(u)}
+                whileHover={{ y: -2, boxShadow: "0 6px 20px rgba(200,133,42,0.15)" }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <span className="qlIcon">{u.icon}</span>
+                <span className="qlName">{u.name}</span>
+                <span className="qlRole">{u.label}</span>
+                <span className="qlDesc">{u.desc}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        <div className="loginDividerRow">
+          <span className="loginDividerLine" />
+          <span className="loginDividerText">OR ENTER CREDENTIALS</span>
+          <span className="loginDividerLine" />
         </div>
 
         <form onSubmit={handleSubmit} className="loginForm">
