@@ -179,6 +179,45 @@
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
 }
 
+.importantInsights {
+  backdrop-filter: blur(8px);
+  background: linear-gradient(120deg, rgba(34, 18, 8, 0.82), rgba(48, 28, 14, 0.82));
+}
+
+.insightHighlightGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.insightHighlightCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(20, 11, 6, 0.55);
+  border: 1px solid rgba(212, 170, 80, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(247, 239, 228, 0.04);
+  font-size: 0.85rem;
+  color: rgba(250, 244, 238, 0.9);
+  line-height: 1.45;
+}
+
+.insightHighlightIcon {
+  font-size: 1.1rem;
+  color: #d4aa50;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.insightHighlightEmpty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(247, 239, 228, 0.6);
+  font-style: italic;
+}
+
 .panelHeader {
   display: flex;
   justify-content: space-between;

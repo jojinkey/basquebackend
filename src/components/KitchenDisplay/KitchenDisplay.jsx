@@ -174,10 +174,9 @@ export default function KitchenDisplay() {
     new: newOrders.length,
     preparing: preparingOrders.length,
     served: servedOrders.length,
-    revenue: orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0),
   };
 
-  const handleOrderChange = ({ type, order: updatedOrder, id }) => {
+  const handleOrderChange = useCallback(({ type, order: updatedOrder, id }) => {
     setOrders((prev) => {
       switch (type) {
         case "update":
@@ -188,7 +187,10 @@ export default function KitchenDisplay() {
           return prev;
       }
     });
-  };
+    if (type === "update") {
+      fetchOrders();
+    }
+  }, [fetchOrders]);
 
   if (loading) return <div className="emptyState"><p className="emptyStateText">Loading orders...</p></div>;
 
@@ -206,7 +208,6 @@ export default function KitchenDisplay() {
         <div className="statChip"><span className="statChipValue" style={{ color: "#4A7AB5" }}>{stats.new}</span><span className="statChipLabel">NEW</span></div>
         <div className="statChip"><span className="statChipValue" style={{ color: "#C8852A" }}>{stats.preparing}</span><span className="statChipLabel">PREPARING</span></div>
         <div className="statChip"><span className="statChipValue" style={{ color: "#48B076" }}>{stats.served}</span><span className="statChipLabel">SERVED</span></div>
-        <div className="statChip"><span className="statChipValue">₹{stats.revenue.toLocaleString()}</span><span className="statChipLabel">REVENUE</span></div>
       </div>
 
       {pendingOrders.length > 0 && can("orders_manage") && (

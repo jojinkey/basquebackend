@@ -6,11 +6,12 @@ import { supabase } from "../lib/supabase";
 import "./LoginPage.css";
 
 const DEMO_USERS = [
-  { role: "owner",              name: "Jalaj",   credential: "owner@2024", inputType: "password", label: "Owner", icon: "👑", desc: "Full access · God View · Settings" },
+  { role: "owner",              name: "Avantika", credential: "owner@2024", inputType: "password", label: "Owner", icon: "👑", desc: "Full access · God View · Settings" },
   { role: "restaurant_manager", name: "Arjun",   credential: "manager@24", inputType: "password", label: "Restaurant Manager", icon: "📋", desc: "Floor · Kitchen · Pipeline · Insights" },
   { role: "floor_manager",      name: "Priya",   credential: "4455",       inputType: "pin", label: "Floor Manager", icon: "🏛", desc: "Floor Plan · Waitlist · Alerts" },
   { role: "server",             name: "Rahul",   credential: "1122",       inputType: "pin", label: "Server", icon: "🍽", desc: "Tables · Orders · Alerts" },
   { role: "kitchen",            name: "Kitchen", credential: "7788",       inputType: "pin", label: "Kitchen Display", icon: "🍳", desc: "Order queue · Menu availability" },
+  { role: "auditor",            name: "Audit",   credential: "audit@26",   inputType: "password", label: "Auditor", icon: "📊", desc: "Financial reports · Exports" },
 ];
 
 const ROLES = [
@@ -19,6 +20,7 @@ const ROLES = [
   { value: "floor_manager",      label: "Floor Manager",       inputType: "pin",      placeholder: "4-Digit PIN" },
   { value: "server",             label: "Server",              inputType: "pin",      placeholder: "4-Digit PIN" },
   { value: "kitchen",            label: "Kitchen Display",     inputType: "pin",      placeholder: "4-Digit PIN" },
+  { value: "auditor",            label: "Auditor",             inputType: "password", placeholder: "Password" },
 ];
 
 const PIN_DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"];

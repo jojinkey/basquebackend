@@ -4,11 +4,12 @@ import User from "../models/User.js";
 const router = express.Router();
 
 const DEMO_USERS = [
-  { name: "Jalaj", role: "owner", password: "owner@2024" },
+  { name: "Avantika", role: "owner", password: "owner@2024" },
   { name: "Arjun", role: "restaurant_manager", password: "manager@24" },
   { name: "Priya", role: "floor_manager", pin: "4455" },
   { name: "Rahul", role: "server", pin: "1122" },
   { name: "Kitchen", role: "kitchen", pin: "7788" },
+  { name: "Audit", role: "auditor", password: "audit@26" },
 ];
 
 router.post("/login", async (req, res) => {

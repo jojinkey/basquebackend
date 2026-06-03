@@ -275,7 +275,7 @@ function SettingsTab() {
               <tr><th>Role</th><th>Name</th><th>Credential</th></tr>
             </thead>
             <tbody>
-              <tr><td>Owner</td><td>Jalaj</td><td>owner@2024</td></tr>
+              <tr><td>Owner</td><td>Avantika</td><td>owner@2024</td></tr>
               <tr><td>Restaurant Manager</td><td>Arjun</td><td>manager@24</td></tr>
               <tr><td>Floor Manager</td><td>Priya</td><td>4455</td></tr>
               <tr><td>Server</td><td>Rahul</td><td>1122</td></tr>

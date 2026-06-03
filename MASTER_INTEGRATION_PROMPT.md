@@ -149,7 +149,7 @@ basquebackend/
 ┌──────────────────────┬─────────────┬──────────┐
 │ Role                 │ PIN / Pass  │ Name     │
 ├──────────────────────┼─────────────┼──────────┤
-│ Owner                │ owner@2024  │ Jalaj    │
+│ Owner                │ owner@2024  │ Avantika │
 │ Restaurant Manager   │ manager@24  │ Arjun    │
 │ Floor Manager        │ 4455        │ Priya    │
 │ Server               │ 1122        │ Rahul    │

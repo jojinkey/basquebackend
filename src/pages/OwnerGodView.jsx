@@ -506,6 +506,7 @@ export default function OwnerGodView() {
   }, [insightsList]);
 
   const currentInsight = insightsList[activeInsight] || null;
+  const highlightInsights = useMemo(() => insightsList.slice(0, 4), [insightsList]);
 
   const serviceFeed = useMemo(
     () =>
@@ -557,6 +558,27 @@ export default function OwnerGodView() {
           </motion.article>
         ))}
       </section>
+
+      <motion.section className="godPanel importantInsights" layout>
+        <header className="panelHeader">
+          <div>
+            <h2>Important Insights</h2>
+            <p>High-signal movements Avantika should know</p>
+          </div>
+        </header>
+        <div className="insightHighlightGrid">
+          {highlightInsights.length ? (
+            highlightInsights.map((insight) => (
+              <div key={insight.key} className="insightHighlightCard">
+                <span className="insightHighlightIcon">{insight.icon}</span>
+                <p>{insight.text}</p>
+              </div>
+            ))
+          ) : (
+            <p className="insightHighlightEmpty">Intelligence syncing… no major movements yet.</p>
+          )}
+        </div>
+      </motion.section>
 
       <div className="godRow twoColumn">
         <motion.section className="godPanel" layout>
