@@ -6,6 +6,7 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const query = {};
+
     if (req.query.status) query.status = req.query.status;
     if (req.query.tableId) query.tableId = req.query.tableId;
 
@@ -21,20 +22,9 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const {
-      tableId,
-      tableName,
-      items,
-      total,
-      status,
-    } = req.body;
+    const { tableId, tableName, items, total } = req.body;
 
-    if (
-      !tableId ||
-      !tableName ||
-      !items ||
-      items.length === 0
-    ) {
+    if (!tableId || !tableName || !items || items.length === 0) {
       return res.status(400).json({
         message: "Invalid order data",
       });
@@ -45,17 +35,18 @@ router.post("/", async (req, res) => {
       tableName,
       items,
       total,
-      status: status || "new",
+      status: "pending_approval",
     });
 
     const io = req.app.get("io");
 
-    io.emit("order:new", order);
+    io.emit("order:pending", order);
 
     res.status(201).json(order);
   } catch (error) {
     res.status(500).json({
       message: "Failed to create order",
+      error: error.message,
     });
   }
 });
@@ -63,6 +54,22 @@ router.post("/", async (req, res) => {
 router.put("/:id/status", async (req, res) => {
   try {
     const { status } = req.body;
+
+    const allowedStatuses = [
+      "pending_approval",
+      "approved",
+      "rejected",
+      "preparing",
+      "ready",
+      "served",
+      "cancelled",
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status",
+      });
+    }
 
     const order = await Order.findByIdAndUpdate(
       req.params.id,
@@ -80,19 +87,26 @@ router.put("/:id/status", async (req, res) => {
 
     io.emit("order:updated", order);
 
+    if (status === "approved") {
+      io.emit("order:approved", order);
+    }
+
+    if (status === "rejected") {
+      io.emit("order:rejected", order);
+    }
+
     res.json(order);
   } catch (error) {
     res.status(500).json({
       message: "Failed to update order",
+      error: error.message,
     });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    const order = await Order.findByIdAndDelete(
-      req.params.id
-    );
+    const order = await Order.findByIdAndDelete(req.params.id);
 
     if (!order) {
       return res.status(404).json({
@@ -110,6 +124,7 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Failed to delete order",
+      error: error.message,
     });
   }
 });

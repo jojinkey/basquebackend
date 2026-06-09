@@ -1,53 +1,65 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ordersApi } from "../../services/api";
-import { socket } from "../../services/socket";
+import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
 import "./KitchenDisplay.css";
 
+const STARTED_KEY = "basque_started_kitchen_orders";
+
+const getOrderId = (order) => order?.id || order?._id;
+
+const getStartedIds = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STARTED_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const saveStartedIds = (ids) => {
+  localStorage.setItem(STARTED_KEY, JSON.stringify(ids));
+};
+
 function useOrderTimer(createdAt) {
   const [mins, setMins] = useState(0);
+
   useEffect(() => {
-    const update = () => setMins(Math.floor((Date.now() - new Date(createdAt)) / 60000));
+    const update = () =>
+      setMins(Math.floor((Date.now() - new Date(createdAt)) / 60000));
+
     update();
     const id = setInterval(update, 30000);
+
     return () => clearInterval(id);
   }, [createdAt]);
+
   return mins;
 }
 
 function TimerBadge({ createdAt }) {
   const mins = useOrderTimer(createdAt);
   let cls = "timerBadge";
+
   if (mins >= 20) cls += " timerUrgent";
   else if (mins >= 10) cls += " timerWarn";
+
   return <span className={cls}>{mins}m</span>;
 }
 
-function OrderCard({ order, onStatusChange, can }) {
+function OrderCard({ order, onStart, onReady, onServed, onDelete, can }) {
   const [updating, setUpdating] = useState(false);
+  const orderId = getOrderId(order);
 
-  const handleStatus = async (status) => {
+  const runAction = async (fn) => {
     setUpdating(true);
     try {
-      const res = await ordersApi.updateStatus(order._id, status);
-      if (res?.data) {
-        onStatusChange?.({ type: "update", order: res.data });
-      }
+      await fn();
     } catch (e) {
-      console.error(e);
+      console.error("Kitchen action failed:", e);
+      alert("Failed to update order");
     } finally {
       setUpdating(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm("Cancel this order?")) return;
-    try {
-      await ordersApi.deleteOrder(order._id);
-      onStatusChange?.({ type: "delete", id: order._id });
-    } catch (e) {
-      console.error(e);
     }
   };
 
@@ -62,40 +74,83 @@ function OrderCard({ order, onStatusChange, can }) {
       <div className="kdsCardHead">
         <div>
           <p className="kdsTableLabel">ORDER FROM</p>
-          <h3 className="kdsTableId">{order.tableName || order.tableId}</h3>
-          <p className="kdsTime">{new Date(order.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</p>
+
+          <h3 className="kdsTableId">
+            {order.tableName || order.tableId || "Unknown Table"}
+          </h3>
+
+          <p className="kdsTime">
+            {order.createdAt
+              ? new Date(order.createdAt).toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "Time not available"}
+          </p>
         </div>
+
         <TimerBadge createdAt={order.createdAt} />
       </div>
 
       <div className="kdsItems">
-        {order.items.map((item, i) => (
-          <div key={i} className="kdsItem">
-            <span className="kdsItemName">{item.name}</span>
-            <span className="kdsItemQty">×{item.qty}</span>
-            <span className="kdsItemPrice">₹{item.price * item.qty}</span>
-          </div>
-        ))}
+        {order.items?.length ? (
+          order.items.map((item, i) => (
+            <div key={i} className="kdsItem">
+              <span className="kdsItemName">{item.name}</span>
+              <span className="kdsItemQty">×{item.qty}</span>
+              <span className="kdsItemPrice">₹{item.price * item.qty}</span>
+            </div>
+          ))
+        ) : (
+          <p className="emptyStateText">No items found.</p>
+        )}
       </div>
 
       <div className="kdsCardFoot">
         <span className="kdsTotalLabel">₹{order.total}</span>
+
         <div className="kdsActions">
-          {order.status === "new" && can("kitchen_manage") && (
-            <button className="kdsBtn kdsStart" onClick={() => handleStatus("preparing")} disabled={updating}>
-              Start →
-            </button>
-          )}
+          {(order.status === "new" || order.status === "placed") &&
+            can("kitchen_manage") && (
+              <button
+                className="kdsBtn kdsStart"
+                onClick={() => runAction(() => onStart(orderId))}
+                disabled={updating}
+              >
+                Start →
+              </button>
+            )}
+
           {order.status === "preparing" && can("kitchen_manage") && (
-            <button className="kdsBtn kdsReady" onClick={() => handleStatus("served")} disabled={updating}>
+            <button
+              className="kdsBtn kdsReady"
+              onClick={() => runAction(() => onReady(orderId))}
+              disabled={updating}
+            >
               Ready →
             </button>
           )}
+
+          {order.status === "ready" && can("kitchen_manage") && (
+            <button
+              className="kdsBtn kdsReady"
+              onClick={() => runAction(() => onServed(orderId))}
+              disabled={updating}
+            >
+              Served →
+            </button>
+          )}
+
           {order.status === "served" && (
             <span className="kdsServedTag">✓ Served</span>
           )}
+
           {can("orders_manage") && order.status !== "served" && (
-            <button className="kdsBtn kdsDelete" onClick={handleDelete} disabled={updating}>
+            <button
+              className="kdsBtn kdsDelete"
+              onClick={() => runAction(() => onDelete(orderId))}
+              disabled={updating}
+            >
               ✕
             </button>
           )}
@@ -107,61 +162,187 @@ function OrderCard({ order, onStatusChange, can }) {
 
 export default function KitchenDisplay() {
   const { can } = useAuth();
+
   const [orders, setOrders] = useState([]);
+  const [startedIds, setStartedIds] = useState(getStartedIds);
   const [loading, setLoading] = useState(true);
   const [newFlash, setNewFlash] = useState(false);
-  const audioRef = useRef(null);
+
+  const markStarted = useCallback((id) => {
+    setStartedIds((prev) => {
+      const next = Array.from(new Set([...prev, id]));
+      saveStartedIds(next);
+      return next;
+    });
+  }, []);
+
+  const unmarkStarted = useCallback((id) => {
+    setStartedIds((prev) => {
+      const next = prev.filter((x) => x !== id);
+      saveStartedIds(next);
+      return next;
+    });
+  }, []);
+
+  const shapeKitchenOrders = useCallback(
+    (rows) => {
+      return (rows || []).map((order) => {
+        const id = getOrderId(order);
+
+        if (
+          startedIds.includes(id) &&
+          (order.status === "new" || order.status === "placed")
+        ) {
+          return { ...order, status: "preparing" };
+        }
+
+        return order;
+      });
+    },
+    [startedIds]
+  );
 
   const fetchOrders = useCallback(async () => {
     try {
       const res = await ordersApi.getAll();
-      setOrders(res.data);
+      setOrders(shapeKitchenOrders(res.data || []));
     } catch (e) {
-      console.error(e);
+      console.error("Failed to fetch kitchen orders:", e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [shapeKitchenOrders]);
 
   useEffect(() => {
     fetchOrders();
 
-    socket.on("order:new", (newOrder) => {
-      setOrders((prev) => {
-        const exists = prev.some((o) => o._id === newOrder._id);
-        if (exists) return prev;
-        return [newOrder, ...prev];
-      });
-      setNewFlash(true);
-      setTimeout(() => setNewFlash(false), 1500);
-    });
-
-    socket.on("order:updated", (updated) => {
-      setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
-    });
-
-    socket.on("order:deleted", (id) => {
-      setOrders((prev) => prev.filter((o) => o._id !== id));
-    });
+    const channel = supabase
+      .channel("kitchen-orders-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          fetchOrders();
+          setNewFlash(true);
+          setTimeout(() => setNewFlash(false), 1500);
+        }
+      )
+      .subscribe();
 
     return () => {
-      socket.off("order:new");
-      socket.off("order:updated");
-      socket.off("order:deleted");
+      supabase.removeChannel(channel);
     };
   }, [fetchOrders]);
 
+<<<<<<< Updated upstream
   const newOrders      = orders.filter((o) => o.status === "new");
-  const preparingOrders = orders.filter((o) => o.status === "preparing");
-  const servedOrders   = orders.filter((o) => o.status === "served").slice(0, 8);
+=======
+  useEffect(() => {
+    setOrders((prev) => shapeKitchenOrders(prev));
+  }, [startedIds, shapeKitchenOrders]);
 
+  const handleStart = async (id) => {
+    markStarted(id);
+
+    setOrders((prev) =>
+      prev.map((order) =>
+        getOrderId(order) === id ? { ...order, status: "preparing" } : order
+      )
+    );
+  };
+
+  const handleReady = async (id) => {
+    await ordersApi.updateStatus(id, "ready");
+    unmarkStarted(id);
+
+    setOrders((prev) =>
+      prev.map((order) =>
+        getOrderId(order) === id ? { ...order, status: "ready" } : order
+      )
+    );
+
+    await fetchOrders();
+  };
+
+  const handleServed = async (id) => {
+    await ordersApi.updateStatus(id, "served");
+    unmarkStarted(id);
+
+    setOrders((prev) =>
+      prev.map((order) =>
+        getOrderId(order) === id ? { ...order, status: "served" } : order
+      )
+    );
+
+    await fetchOrders();
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Cancel this order?")) return;
+
+    await ordersApi.deleteOrder(id);
+    unmarkStarted(id);
+
+    setOrders((prev) => prev.filter((order) => getOrderId(order) !== id));
+  };
+
+  const pendingOrders = orders.filter(
+    (o) => o.status === "pending" || o.status === "pending_approval"
+  );
+
+  const newOrders = orders.filter(
+    (o) => o.status === "new" || o.status === "placed"
+  );
+
+>>>>>>> Stashed changes
+  const preparingOrders = orders.filter((o) => o.status === "preparing");
+  const readyOrders = orders.filter((o) => o.status === "ready");
+  const servedOrders = orders.filter((o) => o.status === "served").slice(0, 8);
+
+<<<<<<< Updated upstream
+=======
+  const approveOrder = async (id) => {
+    try {
+      await ordersApi.updateStatus(id, "placed");
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          getOrderId(o) === id ? { ...o, status: "placed" } : o
+        )
+      );
+
+      await fetchOrders();
+    } catch (e) {
+      console.error("Approve failed:", e);
+    }
+  };
+
+  const declineOrder = async (id) => {
+    if (!window.confirm("Decline and remove this order?")) return;
+
+    try {
+      await ordersApi.deleteOrder(id);
+      unmarkStarted(id);
+      setOrders((prev) => prev.filter((o) => getOrderId(o) !== id));
+    } catch (e) {
+      console.error("Decline failed:", e);
+    }
+  };
+
+>>>>>>> Stashed changes
   const stats = {
     new: newOrders.length,
     preparing: preparingOrders.length,
+    ready: readyOrders.length,
     served: servedOrders.length,
     revenue: orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0),
   };
 
+<<<<<<< Updated upstream
   const handleOrderChange = ({ type, order: updatedOrder, id }) => {
     setOrders((prev) => {
       switch (type) {
@@ -176,35 +357,134 @@ export default function KitchenDisplay() {
   };
 
   if (loading) return <div className="emptyState"><p className="emptyStateText">Loading orders...</p></div>;
+=======
+  if (loading) {
+    return (
+      <div className="emptyState">
+        <p className="emptyStateText">Loading orders...</p>
+      </div>
+    );
+  }
+>>>>>>> Stashed changes
 
   return (
     <div className="kdsPage">
       <div className="dashPanelHeader">
         <div>
           <h2 className="dashPanelTitle">Kitchen Display</h2>
-          <p className="dashPanelSub">Live order queue · {orders.length} active orders</p>
+          <p className="dashPanelSub">
+            Live order queue · {orders.length} active orders
+          </p>
         </div>
-        <button className="btnSecondary" onClick={fetchOrders}>Refresh</button>
+
+        <button className="btnSecondary" onClick={fetchOrders}>
+          Refresh
+        </button>
       </div>
 
       <div className="statsBar">
+<<<<<<< Updated upstream
         <div className="statChip"><span className="statChipValue" style={{ color: "#4A7AB5" }}>{stats.new}</span><span className="statChipLabel">NEW</span></div>
         <div className="statChip"><span className="statChipValue" style={{ color: "#C8852A" }}>{stats.preparing}</span><span className="statChipLabel">PREPARING</span></div>
         <div className="statChip"><span className="statChipValue" style={{ color: "#48B076" }}>{stats.served}</span><span className="statChipLabel">SERVED</span></div>
         <div className="statChip"><span className="statChipValue">₹{stats.revenue.toLocaleString()}</span><span className="statChipLabel">REVENUE</span></div>
       </div>
 
+=======
+        <div className="statChip">
+          <span className="statChipValue">{stats.new}</span>
+          <span className="statChipLabel">NEW</span>
+        </div>
+
+        <div className="statChip">
+          <span className="statChipValue">{stats.preparing}</span>
+          <span className="statChipLabel">PREPARING</span>
+        </div>
+
+        <div className="statChip">
+          <span className="statChipValue">{stats.ready}</span>
+          <span className="statChipLabel">READY</span>
+        </div>
+
+        <div className="statChip">
+          <span className="statChipValue">{stats.served}</span>
+          <span className="statChipLabel">SERVED</span>
+        </div>
+      </div>
+
+      {pendingOrders.length > 0 && can("orders_manage") && (
+        <div className="kdsPendingBar">
+          <div className="kdsPendingHead">
+            <span>⏳ PENDING APPROVAL</span>
+            <span className="kdsColBadge">{pendingOrders.length}</span>
+          </div>
+
+          <div className="kdsPendingCards">
+            {pendingOrders.map((o) => {
+              const id = getOrderId(o);
+
+              return (
+                <div key={id} className="kdsPendingCard">
+                  <div>
+                    <strong>{o.tableName || o.tableId}</strong>
+
+                    <span className="kdsPendingItems">
+                      {o.items?.map((i) => `${i.name} ×${i.qty}`).join(", ") ||
+                        "Order"}
+                    </span>
+
+                    <span className="kdsPendingTotal">₹{o.total}</span>
+                  </div>
+
+                  <div className="kdsPendingActions">
+                    <button
+                      className="kdsBtn kdsStart"
+                      onClick={() => approveOrder(id)}
+                    >
+                      Approve →
+                    </button>
+
+                    <button
+                      className="kdsBtn kdsDelete"
+                      onClick={() => declineOrder(id)}
+                    >
+                      Decline ✕
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+>>>>>>> Stashed changes
       <div className="kdsColumns">
         <div className={`kdsColumn ${newFlash ? "columnFlash" : ""}`}>
           <div className="kdsColHeader kdsColHeaderNew">
             <span>NEW</span>
             <span className="kdsColBadge">{newOrders.length}</span>
           </div>
+
           <AnimatePresence>
-            {newOrders.length === 0
-              ? <div className="emptyState" style={{ padding: "2rem" }}><span className="emptyStateIcon">🍳</span><p className="emptyStateText">No new orders</p></div>
-              : newOrders.map((o) => <OrderCard key={o._id} order={o} can={can} onStatusChange={handleOrderChange} />)
-            }
+            {newOrders.length === 0 ? (
+              <div className="emptyState" style={{ padding: "2rem" }}>
+                <span className="emptyStateIcon">🍳</span>
+                <p className="emptyStateText">No new orders</p>
+              </div>
+            ) : (
+              newOrders.map((o) => (
+                <OrderCard
+                  key={getOrderId(o)}
+                  order={o}
+                  can={can}
+                  onStart={handleStart}
+                  onReady={handleReady}
+                  onServed={handleServed}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
           </AnimatePresence>
         </div>
 
@@ -213,11 +493,54 @@ export default function KitchenDisplay() {
             <span>PREPARING</span>
             <span className="kdsColBadge">{preparingOrders.length}</span>
           </div>
+
           <AnimatePresence>
-            {preparingOrders.length === 0
-              ? <div className="emptyState" style={{ padding: "2rem" }}><span className="emptyStateIcon">⏳</span><p className="emptyStateText">No orders preparing</p></div>
-              : preparingOrders.map((o) => <OrderCard key={o._id} order={o} can={can} onStatusChange={handleOrderChange} />)
-            }
+            {preparingOrders.length === 0 ? (
+              <div className="emptyState" style={{ padding: "2rem" }}>
+                <span className="emptyStateIcon">⏳</span>
+                <p className="emptyStateText">No orders preparing</p>
+              </div>
+            ) : (
+              preparingOrders.map((o) => (
+                <OrderCard
+                  key={getOrderId(o)}
+                  order={o}
+                  can={can}
+                  onStart={handleStart}
+                  onReady={handleReady}
+                  onServed={handleServed}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="kdsColumn">
+          <div className="kdsColHeader kdsColHeaderReady">
+            <span>READY</span>
+            <span className="kdsColBadge">{readyOrders.length}</span>
+          </div>
+
+          <AnimatePresence>
+            {readyOrders.length === 0 ? (
+              <div className="emptyState" style={{ padding: "2rem" }}>
+                <span className="emptyStateIcon">✅</span>
+                <p className="emptyStateText">No orders ready</p>
+              </div>
+            ) : (
+              readyOrders.map((o) => (
+                <OrderCard
+                  key={getOrderId(o)}
+                  order={o}
+                  can={can}
+                  onStart={handleStart}
+                  onReady={handleReady}
+                  onServed={handleServed}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
           </AnimatePresence>
         </div>
 
@@ -226,11 +549,26 @@ export default function KitchenDisplay() {
             <span>SERVED</span>
             <span className="kdsColBadge">{servedOrders.length}</span>
           </div>
+
           <AnimatePresence>
-            {servedOrders.length === 0
-              ? <div className="emptyState" style={{ padding: "2rem" }}><span className="emptyStateIcon">✅</span><p className="emptyStateText">No orders served yet</p></div>
-              : servedOrders.map((o) => <OrderCard key={o._id} order={o} can={can} onStatusChange={handleOrderChange} />)
-            }
+            {servedOrders.length === 0 ? (
+              <div className="emptyState" style={{ padding: "2rem" }}>
+                <span className="emptyStateIcon">🍽️</span>
+                <p className="emptyStateText">No orders served yet</p>
+              </div>
+            ) : (
+              servedOrders.map((o) => (
+                <OrderCard
+                  key={getOrderId(o)}
+                  order={o}
+                  can={can}
+                  onStart={handleStart}
+                  onReady={handleReady}
+                  onServed={handleServed}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
           </AnimatePresence>
         </div>
       </div>

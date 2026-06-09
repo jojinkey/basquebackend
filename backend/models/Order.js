@@ -11,17 +11,40 @@ const orderItemSchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
-    tableId: { type: String, required: true },
-    tableName: { type: String, required: true },
+    tableId: {
+      type: String,
+      required: true,
+    },
+
+    tableName: {
+      type: String,
+      required: true,
+    },
+
     items: [orderItemSchema],
-    total: { type: Number, required: true },
+
+    total: {
+      type: Number,
+      required: true,
+    },
+
     status: {
       type: String,
-      enum: ["new", "preparing", "served", "cancelled"],
-      default: "new",
+      enum: [
+        "pending_approval",
+        "approved",
+        "rejected",
+        "preparing",
+        "ready",
+        "served",
+        "cancelled",
+      ],
+      default: "pending_approval",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 export default mongoose.model("Order", orderSchema);
