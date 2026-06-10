@@ -1,26 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./ManagerDashboard.css";
-import { socket } from "../services/socket";
+import { ordersApi, serviceApi } from "../services/api";
 import { syncOfflineOrders } from "../services/orderApi";
 import { supabase } from "../lib/supabase";
-
-const ORDER_API_URL = "http://localhost:5000/api/orders";
-const SERVICE_API_URL = "http://localhost:5000/api/service-requests";
 
 function ManagerDashboard() {
   const [orders, setOrders] = useState([]);
   const [serviceRequests, setServiceRequests] = useState([]);
   const [activeTab, setActiveTab] = useState("orders");
   const [loading, setLoading] = useState(true);
-  
-  // NEW: State for the reservations notification badge
   const [newReservationCount, setNewReservationCount] = useState(0);
+
+  const rejectedOrderIdsRef = useRef(new Set());
+
+  const getOrderId = (order) => order.id || order._id;
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(ORDER_API_URL);
-      setOrders(res.data);
+      const res = await ordersApi.getAll();
+
+      setOrders(
+        (res.data || []).filter((o) => {
+          const id = o.id || o._id;
+          return o.status !== "served" && !rejectedOrderIdsRef.current.has(id);
+        })
+      );
     } catch (err) {
       console.log("Failed to fetch orders:", err);
     } finally {
@@ -30,8 +34,8 @@ function ManagerDashboard() {
 
   const fetchServiceRequests = async () => {
     try {
-      const res = await axios.get(SERVICE_API_URL);
-      setServiceRequests(res.data);
+      const res = await serviceApi.getAll();
+      setServiceRequests(res.data || []);
     } catch (err) {
       console.log("Failed to fetch service requests:", err);
     }
@@ -39,25 +43,79 @@ function ManagerDashboard() {
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(`${ORDER_API_URL}/${id}/status`, { status });
+      await ordersApi.updateStatus(id, status);
+
+      if (status === "served") {
+        setOrders((prev) => prev.filter((order) => getOrderId(order) !== id));
+      }
+
+      await fetchOrders();
     } catch (err) {
-      alert("Failed to update status");
+      console.log(err);
+      alert("Failed to update order status");
+    }
+  };
+
+  const rejectOrder = async (id) => {
+    console.log("REJECT ORDER ID:", id);
+
+    if (!id) {
+      alert("Order id missing");
+      return;
+    }
+
+    if (!window.confirm("Reject and delete this order?")) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .delete()
+        .eq("id", id)
+        .select();
+
+      console.log("SUPABASE DELETE DATA:", data);
+      console.log("SUPABASE DELETE ERROR:", error);
+
+      if (error) throw error;
+
+      rejectedOrderIdsRef.current.add(id);
+
+      setOrders((prev) =>
+        prev.filter((order) => (order.id || order._id) !== id)
+      );
+
+      alert("Order rejected successfully");
+    } catch (err) {
+      console.error("Reject order failed:", err);
+      alert(err?.message || "Failed to reject order");
     }
   };
 
   const deleteOrder = async (id) => {
+    if (!window.confirm("Delete this order?")) return;
+
     try {
-      await axios.delete(`${ORDER_API_URL}/${id}`);
+      console.log("Deleting order:", id);
+
+      await ordersApi.deleteOrder(id);
+
+      setOrders((prev) => prev.filter((order) => getOrderId(order) !== id));
+
+      await fetchOrders();
+
+      console.log("Order deleted:", id);
     } catch (err) {
+      console.error("Delete failed:", err);
       alert("Failed to delete order");
     }
   };
 
   const updateServiceStatus = async (id, status) => {
     try {
-      await axios.put(`${SERVICE_API_URL}/${id}/status`, { status });
-      fetchServiceRequests();
+      await serviceApi.updateStatus(id, status);
+      await fetchServiceRequests();
     } catch (err) {
+      console.log(err);
       alert("Failed to update service request");
     }
   };
@@ -71,64 +129,44 @@ function ManagerDashboard() {
   useEffect(() => {
     const loadData = async () => {
       await syncOfflineOrders();
-      fetchOrders();
-      fetchServiceRequests();
+      await fetchOrders();
+      await fetchServiceRequests();
     };
 
     loadData();
 
-    socket.on("order:new", (newOrder) => {
-      setOrders((prev) => {
-        const exists = prev.some((order) => order._id === newOrder._id);
-        if (exists) return prev;
-        return [newOrder, ...prev];
-      });
-    });
+    const ordersChannel = supabase
+      .channel("manager-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        () => fetchOrders()
+      )
+      .subscribe();
 
-    socket.on("order:updated", (updatedOrder) => {
-      setOrders((prev) =>
-        prev.map((order) =>
-          order._id === updatedOrder._id ? updatedOrder : order
-        )
-      );
-    });
-
-    socket.on("order:deleted", (deletedId) => {
-      setOrders((prev) => prev.filter((order) => order._id !== deletedId));
-    });
-
-    socket.on("service:new", (newRequest) => {
-      setServiceRequests((prev) => {
-        const exists = prev.some((request) => request._id === newRequest._id);
-        if (exists) return prev;
-        return [newRequest, ...prev];
-      });
-
-      setActiveTab("waitlist");
-      alert(`${getServiceRequestLabel(newRequest.type)} request from ${newRequest.tableName}`);
-    });
-
-    socket.on("service:updated", (updatedRequest) => {
-      setServiceRequests((prev) =>
-        prev.map((request) =>
-          request._id === updatedRequest._id ? updatedRequest : request
-        )
-      );
-    });
+    const serviceChannel = supabase
+      .channel("manager-service-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "service_requests" },
+        () => fetchServiceRequests()
+      )
+      .subscribe();
 
     return () => {
-      socket.off("order:new");
-      socket.off("order:updated");
-      socket.off("order:deleted");
-      socket.off("service:new");
-      socket.off("service:updated");
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(serviceChannel);
     };
   }, []);
 
   const stats = useMemo(() => {
     return {
       total: orders.length,
-      new: orders.filter((o) => o.status === "new").length,
+      pending: orders.filter(
+        (o) => o.status === "pending" || o.status === "pending_approval"
+      ).length,
+      new: orders.filter((o) => o.status === "new" || o.status === "placed")
+        .length,
       preparing: orders.filter((o) => o.status === "preparing").length,
       served: orders.filter((o) => o.status === "served").length,
       servicePending: serviceRequests.filter((r) => r.status === "new").length,
@@ -154,7 +192,7 @@ function ManagerDashboard() {
             className={activeTab === "orders" ? "active" : ""}
             onClick={() => setActiveTab("orders")}
           >
-            Kitchen Orders
+            Orders ({stats.pending})
           </button>
 
           <button
@@ -178,12 +216,14 @@ function ManagerDashboard() {
             Insights
           </button>
 
-          {/* NEW: Reservations Tab Button */}
           <button
             className={activeTab === "reservations" ? "active" : ""}
             onClick={() => setActiveTab("reservations")}
           >
-            Reservations {newReservationCount > 0 && <span className="navBadge">{newReservationCount}</span>}
+            Reservations{" "}
+            {newReservationCount > 0 && (
+              <span className="navBadge">{newReservationCount}</span>
+            )}
           </button>
         </nav>
       </aside>
@@ -193,7 +233,10 @@ function ManagerDashboard() {
           <div>
             <p className="eyebrow">Live Dashboard</p>
             <h1>Manager Dashboard</h1>
-            <p>Track QR orders, waiter calls, bill requests, and kitchen status in realtime.</p>
+            <p>
+              Track QR orders, approvals, waiter calls, bill requests, and
+              kitchen status in realtime.
+            </p>
           </div>
 
           <button
@@ -214,8 +257,8 @@ function ManagerDashboard() {
           </div>
 
           <div className="statCard">
-            <h3>{stats.new}</h3>
-            <p>New Orders</p>
+            <h3>{stats.pending}</h3>
+            <p>Pending Approval</p>
           </div>
 
           <div className="statCard">
@@ -232,7 +275,7 @@ function ManagerDashboard() {
         {activeTab === "orders" && (
           <section className="dashboardPanel">
             <div className="panelTop">
-              <h2>Kitchen Orders</h2>
+              <h2>Orders</h2>
               <span>{orders.length} live orders</span>
             </div>
 
@@ -242,66 +285,103 @@ function ManagerDashboard() {
               <p className="emptyBox">No orders yet.</p>
             ) : (
               <div className="ordersGrid">
-                {orders.map((order) => (
-                  <article className="orderCard" key={order._id}>
-                    <div className="orderHead">
-                      <div>
-                        <p className="tableLabel">ORDER FROM</p>
-                        <h2 className="tableNumber">
-                          {order.tableName || order.tableId || "Unknown Table"}
-                        </h2>
-                        <small>
-                          {order.createdAt
-                            ? new Date(order.createdAt).toLocaleString()
-                            : "Time not available"}
-                        </small>
+                {orders.map((order) => {
+                  const orderId = getOrderId(order);
+
+                  return (
+                    <article className="orderCard" key={orderId}>
+                      <div className="orderHead">
+                        <div>
+                          <p className="tableLabel">ORDER FROM</p>
+                          <h2 className="tableNumber">
+                            {order.tableName ||
+                              order.tableId ||
+                              "Unknown Table"}
+                          </h2>
+                          <small>
+                            {order.createdAt
+                              ? new Date(order.createdAt).toLocaleString()
+                              : "Time not available"}
+                          </small>
+                        </div>
+
+                        <span className={`statusPill ${order.status || "new"}`}>
+                          {order.status ? order.status.toUpperCase() : "NEW"}
+                        </span>
                       </div>
 
-                      <span className={`statusPill ${order.status || "new"}`}>
-                        {order.status ? order.status.toUpperCase() : "NEW"}
-                      </span>
-                    </div>
+                      <div className="orderItems">
+                        {order.items?.length === 0 ? (
+                          <p>No items found.</p>
+                        ) : (
+                          order.items?.map((item, index) => (
+                            <div className="orderItem" key={index}>
+                              <span>
+                                {item.name} × {item.qty}
+                              </span>
+                              <strong>₹{item.price * item.qty}</strong>
+                            </div>
+                          ))
+                        )}
+                      </div>
 
-                    <div className="orderItems">
-                      {order.items.map((item, index) => (
-                        <div className="orderItem" key={index}>
-                          <span>
-                            {item.name} × {item.qty}
-                          </span>
-                          <strong>₹{item.price * item.qty}</strong>
-                        </div>
-                      ))}
-                    </div>
+                      <div className="totalRow">
+                        <span>Total</span>
+                        <strong>₹{order.total}</strong>
+                      </div>
 
-                    <div className="totalRow">
-                      <span>Total</span>
-                      <strong>₹{order.total}</strong>
-                    </div>
+                      <div className="orderActions">
+                        {order.status === "pending" ||
+                        order.status === "pending_approval" ? (
+                          <>
+                            <button
+                              onClick={() => updateStatus(orderId, "placed")}
+                            >
+                              Approve
+                            </button>
 
-                    <div className="orderActions">
-                      <button onClick={() => updateStatus(order._id, "new")}>
-                        New
-                      </button>
+                            <button
+                              className="rejectBtn"
+                              onClick={() => {
+                                console.log("REJECT CLICK ORDER:", order);
+                                rejectOrder(order.id || order._id);
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => updateStatus(orderId, "preparing")}
+                            >
+                              Preparing
+                            </button>
 
-                      <button
-                        onClick={() => updateStatus(order._id, "preparing")}
-                      >
-                        Preparing
-                      </button>
+                            <button
+                              onClick={() => updateStatus(orderId, "ready")}
+                            >
+                              Ready
+                            </button>
 
-                      <button onClick={() => updateStatus(order._id, "served")}>
-                        Served
-                      </button>
+                            <button
+                              onClick={() => updateStatus(orderId, "served")}
+                            >
+                              Served
+                            </button>
 
-                      <button
-                        className="deleteBtn"
-                        onClick={() => deleteOrder(order._id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </article>
-                ))}
+                            <button
+                              className="deleteBtn"
+                              onClick={() => deleteOrder(orderId)}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -319,7 +399,9 @@ function ManagerDashboard() {
                 const tableNumStr = `Table ${index + 1}`;
 
                 const hasActiveOrder = orders.some(
-                  (o) => o.tableName === tableNumStr && o.status !== "served"
+                  (o) =>
+                    o.tableName === tableNumStr &&
+                    !["served"].includes(o.status)
                 );
 
                 const hasServiceRequest = serviceRequests.some(
@@ -334,13 +416,10 @@ function ManagerDashboard() {
                     key={index}
                   >
                     <strong>{tableNumStr}</strong>
-
                     <p>/menu/table-{index + 1}</p>
 
                     {hasActiveOrder && (
-                      <span className="activeOrderText">
-                        ⚠️ Active Order In Kitchen
-                      </span>
+                      <span className="activeOrderText">⚠️ Active Order</span>
                     )}
 
                     {serviceRequests
@@ -432,13 +511,13 @@ function ManagerDashboard() {
 
             <div className="insightGrid">
               <div>
-                <h3>₹{orders.reduce((s, o) => s + o.total, 0)}</h3>
+                <h3>₹{orders.reduce((s, o) => s + (o.total || 0), 0)}</h3>
                 <p>Total Revenue</p>
               </div>
 
               <div>
-                <h3>{stats.new}</h3>
-                <p>Pending Orders</p>
+                <h3>{stats.pending}</h3>
+                <p>Pending Approvals</p>
               </div>
 
               <div>
@@ -449,7 +528,6 @@ function ManagerDashboard() {
           </section>
         )}
 
-        {/* NEW: Reservations Tab Render */}
         {activeTab === "reservations" && (
           <ReservationsTab onNewCount={setNewReservationCount} />
         )}
@@ -458,63 +536,16 @@ function ManagerDashboard() {
   );
 }
 
-// ─── HELPER FUNCTIONS FOR RESERVATIONS TAB ─────────────────────────────
-const getTypeInfo = (sourceModal) => {
-  switch (sourceModal) {
-    case 'TableBookingModal':  return { label: 'Table',      icon: '🍽️' };
-    case 'CourtBookingModal':  return { label: 'Court',      icon: '🏓' };
-    case 'GolfBookingModal':   return { label: 'Golf',       icon: '⛳' };
-    case 'GolfDiningModal':    return { label: 'Golf+Dining',icon: '🍷' };
-    case 'EventEnquiryModal':  return { label: 'Event',      icon: '🎉' };
-    default:                   return { label: 'Booking',    icon: '📋' };
-  }
-};
-
-const getStageBadgeColor = (stage) => {
-  const colors = {
-    new:                '#2196f3',   // blue
-    reviewing:          '#ff9800',   // orange
-    accepted:           '#4caf50',   // green
-    declined:           '#f44336',   // red
-    waitlisted:         '#9c27b0',   // purple
-    callback_requested: '#ff5722',   // deep orange
-    completed:          '#607d8b',   // grey-blue
-    no_show:            '#9e9e9e',   // grey
-  };
-  return colors[stage] || '#9e9e9e';
-};
-
-const getDetailsSummary = (reservation) => {
-  const d = reservation.details || {};
-  switch (reservation.source_modal) {
-    case 'TableBookingModal':
-      return d.occasion ? `Occasion: ${d.occasion}` : 'No occasion specified';
-    case 'CourtBookingModal':
-      return `${d.duration_hours || 1}hr · ${d.equipment || 'No equipment'}`;
-    case 'GolfBookingModal':
-      return `${d.duration || '1 hr'} · ${d.experience || 'Experience not specified'}`;
-    case 'GolfDiningModal':
-      const pkgNames = { round: 'The Round', afternoon: 'The Afternoon', corporate: 'Corporate Day' };
-      return pkgNames[d.package] || d.package || 'Package not specified';
-    case 'EventEnquiryModal':
-      return [d.event_type, d.space, d.budget].filter(Boolean).join(' · ') || 'No details';
-    default:
-      return '—';
-  }
-};
-
-// ─── NEW: RESERVATIONS TAB COMPONENT ───────────────────────────────────
 const ReservationsTab = ({ onNewCount }) => {
   const [reservations, setReservations] = useState([]);
-  const [filter, setFilter] = useState('All');
 
   useEffect(() => {
     const fetchReservations = async () => {
       const { data, error } = await supabase
-        .from('reservations')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
+        .from("reservations")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       if (data) setReservations(data);
       if (error) console.error("Error fetching reservations:", error);
     };
@@ -522,17 +553,17 @@ const ReservationsTab = ({ onNewCount }) => {
     fetchReservations();
 
     const channel = supabase
-      .channel('reservations-changes')
+      .channel("reservations-changes")
       .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'reservations' },
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reservations" },
         (payload) => {
           setReservations((prev) => [payload.new, ...prev]);
         }
       )
       .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'reservations' },
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "reservations" },
         (payload) => {
           setReservations((prev) =>
             prev.map((r) => (r.id === payload.new.id ? payload.new : r))
@@ -545,122 +576,11 @@ const ReservationsTab = ({ onNewCount }) => {
   }, []);
 
   useEffect(() => {
-    const newCount = reservations.filter(r => r.stage === 'new').length;
+    const newCount = reservations.filter((r) => r.stage === "new").length;
     onNewCount(newCount);
   }, [reservations, onNewCount]);
 
-  const updateStage = async (id, newStage) => {
-    const { error } = await supabase
-      .from('reservations')
-      .update({ stage: newStage })
-      .eq('id', id);
-    if (error) alert('Failed to update stage');
-  };
-
-  const filteredReservations = reservations.filter((r) => {
-    if (filter === 'All') return true;
-    if (filter === 'Tables') return r.source_modal === 'TableBookingModal';
-    if (filter === 'Courts') return r.source_modal === 'CourtBookingModal';
-    if (filter === 'Golf') return r.source_modal === 'GolfBookingModal';
-    if (filter === 'Golf+Dining') return r.source_modal === 'GolfDiningModal';
-    if (filter === 'Events') return r.source_modal === 'EventEnquiryModal';
-    return true;
-  });
-
-  return (
-    <section className="dashboardPanel">
-      <div className="panelTop" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2>Reservations</h2>
-          <span className="liveIndicator">
-            <span className="liveDot"></span>
-            Live Connection
-          </span>
-        </div>
-      </div>
-
-      <div className="filterBar">
-        {['All', 'Tables', 'Courts', 'Golf', 'Golf+Dining', 'Events'].map(f => (
-          <button 
-            key={f} 
-            className={`filterBtn ${filter === f ? 'active' : ''}`}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {filteredReservations.length === 0 ? (
-        <div className="resEmptyBox">No reservations found for this filter.</div>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table className="reservationsTable">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Guests</th>
-                <th>Details</th>
-                <th>Stage</th>
-                <th>Received</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredReservations.map((res) => {
-                const typeInfo = getTypeInfo(res.source_modal);
-                return (
-                  <tr key={res.id}>
-                    <td>
-                      <div className="typeCell">
-                        <span>{typeInfo.icon}</span> {typeInfo.label}
-                      </div>
-                    </td>
-                    <td><strong>{res.name}</strong></td>
-                    <td>{res.phone}</td>
-                    <td>{res.date ? new Date(res.date).toLocaleDateString() : 'Flexible'}</td>
-                    <td>{res.time_slot || '—'}</td>
-                    <td>{res.guests || '—'}</td>
-                    <td style={{ color: 'rgba(0,0,0,0.6)' }}>{getDetailsSummary(res)}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span 
-                          className="stageBadge" 
-                          style={{ backgroundColor: getStageBadgeColor(res.stage) }}
-                        >
-                          {res.stage.toUpperCase()}
-                        </span>
-                        <select
-                          className="stageSelect"
-                          value={res.stage}
-                          onChange={(e) => updateStage(res.id, e.target.value)}
-                        >
-                          <option value="new">New</option>
-                          <option value="reviewing">Reviewing</option>
-                          <option value="accepted">Accepted</option>
-                          <option value="declined">Declined</option>
-                          <option value="waitlisted">Waitlisted</option>
-                          <option value="callback_requested">Callback Requested</option>
-                          <option value="completed">Completed</option>
-                          <option value="no_show">No Show</option>
-                        </select>
-                      </div>
-                    </td>
-                    <td style={{ fontSize: '0.8rem', color: 'rgba(0,0,0,0.5)' }}>
-                      {new Date(res.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
+  return null;
 };
 
 export default ManagerDashboard;
