@@ -405,14 +405,16 @@ function ActivityLogs() {
     Object.values(groupedByOrder).forEach((orderLogs) => {
       if (orderLogs.ORDER_CREATED && orderLogs.ORDER_APPROVED) {
         const duration =
-          new Date(orderLogs.ORDER_APPROVED) - new Date(orderLogs.ORDER_CREATED);
+          new Date(orderLogs.ORDER_APPROVED) -
+          new Date(orderLogs.ORDER_CREATED);
 
         if (duration >= 0) acceptanceDurations.push(duration);
       }
 
       if (orderLogs.KITCHEN_STARTED && orderLogs.ORDER_READY) {
         const duration =
-          new Date(orderLogs.ORDER_READY) - new Date(orderLogs.KITCHEN_STARTED);
+          new Date(orderLogs.ORDER_READY) -
+          new Date(orderLogs.KITCHEN_STARTED);
 
         if (duration >= 0) kitchenDurations.push(duration);
       }
@@ -444,30 +446,71 @@ function ActivityLogs() {
 
       if (error) throw error;
 
-      const createdLogMap = {};
+      const groupedByOrder = {};
 
       (logs || []).forEach((log) => {
-        if (log.action === "ORDER_CREATED" && log.order_id && log.created_at) {
-          createdLogMap[log.order_id] = log.created_at;
+        if (!log.order_id) return;
+
+        if (!groupedByOrder[log.order_id]) {
+          groupedByOrder[log.order_id] = {};
         }
+
+        groupedByOrder[log.order_id][log.action] = log.created_at;
       });
 
       const updatedLogs = (logs || []).map((log) => {
-        let acceptedIn = null;
+        const orderLogs = groupedByOrder[log.order_id] || {};
 
-        if (log.action === "ORDER_APPROVED" && log.order_id) {
-          const createdAt = createdLogMap[log.order_id];
+        let decisionTime = null;
+        let kitchenTime = null;
+        let servingTime = null;
 
-          if (createdAt && log.created_at) {
-            acceptedIn = formatDuration(
-              new Date(log.created_at) - new Date(createdAt)
-            );
-          }
+        if (
+          (log.action === "ORDER_APPROVED" ||
+            log.action === "ORDER_REJECTED") &&
+          orderLogs.ORDER_CREATED &&
+          log.created_at
+        ) {
+          decisionTime = formatDuration(
+            new Date(log.created_at) - new Date(orderLogs.ORDER_CREATED)
+          );
+        }
+
+        if (
+          log.action === "KITCHEN_STARTED" &&
+          orderLogs.ORDER_APPROVED &&
+          log.created_at
+        ) {
+          kitchenTime = formatDuration(
+            new Date(log.created_at) - new Date(orderLogs.ORDER_APPROVED)
+          );
+        }
+
+        if (
+          log.action === "ORDER_READY" &&
+          orderLogs.KITCHEN_STARTED &&
+          log.created_at
+        ) {
+          kitchenTime = formatDuration(
+            new Date(log.created_at) - new Date(orderLogs.KITCHEN_STARTED)
+          );
+        }
+
+        if (
+          log.action === "ORDER_SERVED" &&
+          orderLogs.ORDER_READY &&
+          log.created_at
+        ) {
+          servingTime = formatDuration(
+            new Date(log.created_at) - new Date(orderLogs.ORDER_READY)
+          );
         }
 
         return {
           ...log,
-          acceptedIn,
+          decisionTime,
+          kitchenTime,
+          servingTime,
         };
       });
 
@@ -509,7 +552,7 @@ function ActivityLogs() {
 
       <div className="activitySummaryGrid">
         <div className="activitySummaryCard">
-          <span>Average Acceptance Time</span>
+          <span>Average Decision Time</span>
           <strong>{averageAcceptanceTime}</strong>
           <p>ORDER_CREATED → ORDER_APPROVED</p>
         </div>
@@ -535,7 +578,9 @@ function ActivityLogs() {
                 <th>Table</th>
                 <th>Order ID</th>
                 <th>User</th>
-                <th>Accepted In</th>
+                <th>Decision Time</th>
+                <th>Kitchen Time</th>
+                <th>Serving Time</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -560,11 +605,9 @@ function ActivityLogs() {
 
                     <td>{log.performed_by || "-"}</td>
 
-                    <td>
-                      {log.action === "ORDER_APPROVED"
-                        ? log.acceptedIn || "-"
-                        : "-"}
-                    </td>
+                   <td>{log.decisionTime || "-"}</td>
+<td>{log.kitchenTime || "-"}</td>
+<td>{log.servingTime || "-"}</td>
 
                     <td>
                       <span className={`statusBadge ${status.className}`}>

@@ -3,8 +3,14 @@ import "./ManagerDashboard.css";
 import { ordersApi, serviceApi } from "../services/api";
 import { syncOfflineOrders } from "../services/orderApi";
 import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
 
-const logOrderAction = async ({ orderId = null, tableId = null, action, performedBy }) => {
+const logOrderAction = async ({
+  orderId = null,
+  tableId = null,
+  action,
+  performedBy,
+}) => {
   const { error } = await supabase.from("order_logs").insert({
     order_id: orderId,
     table_id: tableId,
@@ -18,6 +24,16 @@ const logOrderAction = async ({ orderId = null, tableId = null, action, performe
 };
 
 function ManagerDashboard() {
+  const { user } = useAuth();
+
+  const getPerformedBy = () => {
+    if (user?.role === "restaurant_manager") return "Restaurant Manager";
+    if (user?.role === "floor_manager") return "Floor Manager";
+    if (user?.role === "owner") return "Owner";
+    if (user?.role === "manager") return "Restaurant Manager";
+    return user?.role || "Manager";
+  };
+
   const [orders, setOrders] = useState([]);
   const [serviceRequests, setServiceRequests] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
@@ -91,7 +107,7 @@ function ManagerDashboard() {
           orderId: id,
           tableId,
           action: "ORDER_APPROVED",
-          performedBy: "MANAGER",
+          performedBy: getPerformedBy(),
         });
       }
 
@@ -123,7 +139,7 @@ function ManagerDashboard() {
         orderId: id,
         tableId,
         action: "ORDER_REJECTED",
-        performedBy: "MANAGER",
+        performedBy: getPerformedBy(),
       });
 
       await supabase
@@ -161,7 +177,7 @@ function ManagerDashboard() {
         orderId: id,
         tableId,
         action: "ORDER_DELETED",
-        performedBy: "MANAGER",
+        performedBy: getPerformedBy(),
       });
 
       await ordersApi.deleteOrder(id);
@@ -194,7 +210,7 @@ function ManagerDashboard() {
         await logOrderAction({
           tableId,
           action: "SERVICE_ACKNOWLEDGED",
-          performedBy: "MANAGER",
+          performedBy: getPerformedBy(),
         });
       }
 
@@ -209,7 +225,7 @@ function ManagerDashboard() {
         await logOrderAction({
           tableId,
           action: "SERVICE_COMPLETED",
-          performedBy: "MANAGER",
+          performedBy: getPerformedBy(),
         });
       }
 
