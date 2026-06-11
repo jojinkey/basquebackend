@@ -30,6 +30,7 @@ const NAV = [
   { id: "waitlist", label: "Waitlist & Queue", icon: "≡", perm: "waitlist_view", badge: "waitlist" },
   { id: "reservations", label: "Reservations", icon: "📋", perm: "reservations_view", badge: "reservations" },
   { id: "insights", label: "Insights", icon: "⊙", perm: "insights" },
+  { id: "activityLogs", label: "Activity Logs", icon: "🕒", perm: "audit_reports" },
   { id: "audit", label: "Audit Reports", icon: "📊", perm: "audit_reports" },
   { id: "settings", label: "Settings", icon: "⚙", perm: "settings" },
 ];
@@ -46,6 +47,7 @@ function getDefaultTab(can, isOwner) {
     "waitlist",
     "reservations",
     "insights",
+    "activityLogs",
     "audit",
     "settings",
   ];
@@ -201,6 +203,9 @@ export default function DashboardPage() {
       case "insights":
         return <Insights />;
 
+      case "activityLogs":
+        return <ActivityLogs />;
+
       case "audit":
         return <AuditReports />;
 
@@ -345,6 +350,238 @@ export default function DashboardPage() {
   );
 }
 
+function ActivityLogs() {
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [averageAcceptanceTime, setAverageAcceptanceTime] = useState("-");
+  const [averageKitchenTime, setAverageKitchenTime] = useState("-");
+
+  const formatDuration = (ms) => {
+    if (!ms || ms < 0) return "N/A";
+
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  };
+
+  const getStatusBadge = (action) => {
+    switch (action) {
+      case "ORDER_APPROVED":
+        return { className: "approved", label: "🟢 Approved" };
+      case "ORDER_REJECTED":
+        return { className: "rejected", label: "🔴 Rejected" };
+      case "ORDER_CREATED":
+        return { className: "created", label: "🟡 Created" };
+      case "ORDER_READY":
+        return { className: "ready", label: "🔵 Ready" };
+      case "ORDER_SERVED":
+        return { className: "served", label: "🟣 Served" };
+      case "KITCHEN_STARTED":
+        return { className: "preparing", label: "🟠 Preparing" };
+      default:
+        return { className: "default", label: "-" };
+    }
+  };
+
+  const calculateAverages = (logs) => {
+    const groupedByOrder = {};
+
+    (logs || []).forEach((log) => {
+      if (!log.order_id) return;
+
+      if (!groupedByOrder[log.order_id]) {
+        groupedByOrder[log.order_id] = {};
+      }
+
+      groupedByOrder[log.order_id][log.action] = log.created_at;
+    });
+
+    const acceptanceDurations = [];
+    const kitchenDurations = [];
+
+    Object.values(groupedByOrder).forEach((orderLogs) => {
+      if (orderLogs.ORDER_CREATED && orderLogs.ORDER_APPROVED) {
+        const duration =
+          new Date(orderLogs.ORDER_APPROVED) - new Date(orderLogs.ORDER_CREATED);
+
+        if (duration >= 0) acceptanceDurations.push(duration);
+      }
+
+      if (orderLogs.KITCHEN_STARTED && orderLogs.ORDER_READY) {
+        const duration =
+          new Date(orderLogs.ORDER_READY) - new Date(orderLogs.KITCHEN_STARTED);
+
+        if (duration >= 0) kitchenDurations.push(duration);
+      }
+    });
+
+    const avgAcceptance =
+      acceptanceDurations.length > 0
+        ? acceptanceDurations.reduce((sum, value) => sum + value, 0) /
+          acceptanceDurations.length
+        : null;
+
+    const avgKitchen =
+      kitchenDurations.length > 0
+        ? kitchenDurations.reduce((sum, value) => sum + value, 0) /
+          kitchenDurations.length
+        : null;
+
+    setAverageAcceptanceTime(avgAcceptance ? formatDuration(avgAcceptance) : "-");
+    setAverageKitchenTime(avgKitchen ? formatDuration(avgKitchen) : "-");
+  };
+
+  const fetchActivityLogs = async () => {
+    try {
+      const { data: logs, error } = await supabase
+        .from("order_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(300);
+
+      if (error) throw error;
+
+      const createdLogMap = {};
+
+      (logs || []).forEach((log) => {
+        if (log.action === "ORDER_CREATED" && log.order_id && log.created_at) {
+          createdLogMap[log.order_id] = log.created_at;
+        }
+      });
+
+      const updatedLogs = (logs || []).map((log) => {
+        let acceptedIn = null;
+
+        if (log.action === "ORDER_APPROVED" && log.order_id) {
+          const createdAt = createdLogMap[log.order_id];
+
+          if (createdAt && log.created_at) {
+            acceptedIn = formatDuration(
+              new Date(log.created_at) - new Date(createdAt)
+            );
+          }
+        }
+
+        return {
+          ...log,
+          acceptedIn,
+        };
+      });
+
+      calculateAverages(logs || []);
+      setActivityLogs(updatedLogs);
+    } catch (err) {
+      console.error("Failed to fetch activity logs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivityLogs();
+
+    const logsChannel = supabase
+      .channel("dashboard-activity-logs-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_logs" },
+        () => fetchActivityLogs()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(logsChannel);
+    };
+  }, []);
+
+  return (
+    <section className="dashboardPanel">
+      <div className="dashPanelHeader">
+        <h2 className="dashPanelTitle">Activity Logs</h2>
+
+        <button className="btnSecondary" onClick={fetchActivityLogs}>
+          Refresh
+        </button>
+      </div>
+
+      <div className="activitySummaryGrid">
+        <div className="activitySummaryCard">
+          <span>Average Acceptance Time</span>
+          <strong>{averageAcceptanceTime}</strong>
+          <p>ORDER_CREATED → ORDER_APPROVED</p>
+        </div>
+
+        <div className="activitySummaryCard">
+          <span>Average Kitchen Cooking Time</span>
+          <strong>{averageKitchenTime}</strong>
+          <p>KITCHEN_STARTED → ORDER_READY</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="emptyBox">Loading activity logs...</p>
+      ) : activityLogs.length === 0 ? (
+        <p className="emptyBox">No activity logs yet.</p>
+      ) : (
+        <div className="activityTableWrapper">
+          <table className="activityTable">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Table</th>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Accepted In</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {activityLogs.map((log) => {
+                const status = getStatusBadge(log.action);
+
+                return (
+                  <tr key={log.id}>
+                    <td>
+                      {log.created_at
+                        ? new Date(log.created_at).toLocaleString("en-IN")
+                        : "-"}
+                    </td>
+
+                    <td>{log.action || "-"}</td>
+
+                    <td>{log.table_id || "-"}</td>
+
+                    <td>{log.order_id ? log.order_id.substring(0, 8) : "-"}</td>
+
+                    <td>{log.performed_by || "-"}</td>
+
+                    <td>
+                      {log.action === "ORDER_APPROVED"
+                        ? log.acceptedIn || "-"
+                        : "-"}
+                    </td>
+
+                    <td>
+                      <span className={`statusBadge ${status.className}`}>
+                        {status.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SettingsTab() {
   const { user } = useAuth();
   const [busy, setBusy] = useState("");
@@ -430,12 +667,15 @@ function SettingsTab() {
 
         <div className="settingsCard">
           <h3>Current Session</h3>
+
           <p>
             <strong>Name:</strong> {user?.name}
           </p>
+
           <p>
             <strong>Role:</strong> {user?.role}
           </p>
+
           <p>
             <strong>Logged in:</strong>{" "}
             {user?.loginTime ? new Date(user.loginTime).toLocaleString() : "—"}

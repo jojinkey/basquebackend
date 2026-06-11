@@ -21,12 +21,36 @@ const saveStartedIds = (ids) => {
   localStorage.setItem(STARTED_KEY, JSON.stringify(ids));
 };
 
+const logOrderAction = async ({
+  orderId = null,
+  tableId = null,
+  action,
+  performedBy,
+}) => {
+  const { error } = await supabase.from("order_logs").insert({
+    order_id: orderId,
+    table_id: tableId,
+    action,
+    performed_by: performedBy,
+  });
+
+  if (error) {
+    console.error("Kitchen log failed:", error);
+  }
+};
+
 function useOrderTimer(createdAt) {
   const [mins, setMins] = useState(0);
 
   useEffect(() => {
-    const update = () =>
+    const update = () => {
+      if (!createdAt) {
+        setMins(0);
+        return;
+      }
+
       setMins(Math.floor((Date.now() - new Date(createdAt)) / 60000));
+    };
 
     update();
     const id = setInterval(update, 30000);
@@ -53,11 +77,12 @@ function OrderCard({ order, onStart, onReady, onServed, onDelete, can }) {
 
   const runAction = async (fn) => {
     setUpdating(true);
+
     try {
       await fn();
     } catch (e) {
       console.error("Kitchen action failed:", e);
-      alert("Failed to update order");
+      alert(e?.message || "Failed to update order");
     } finally {
       setUpdating(false);
     }
@@ -168,6 +193,14 @@ export default function KitchenDisplay() {
   const [loading, setLoading] = useState(true);
   const [newFlash, setNewFlash] = useState(false);
 
+  const getTableIdByOrderId = useCallback(
+    (id) => {
+      const order = orders.find((o) => getOrderId(o) === id);
+      return order?.tableId || order?.tableName || null;
+    },
+    [orders]
+  );
+
   const markStarted = useCallback((id) => {
     setStartedIds((prev) => {
       const next = Array.from(new Set([...prev, id]));
@@ -243,7 +276,23 @@ export default function KitchenDisplay() {
   }, [startedIds, shapeKitchenOrders]);
 
   const handleStart = async (id) => {
+    const tableId = getTableIdByOrderId(id);
+
     markStarted(id);
+
+    await supabase
+      .from("orders")
+      .update({
+        kitchen_started_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    await logOrderAction({
+      orderId: id,
+      tableId,
+      action: "KITCHEN_STARTED",
+      performedBy: "KITCHEN",
+    });
 
     setOrders((prev) =>
       prev.map((order) =>
@@ -253,7 +302,24 @@ export default function KitchenDisplay() {
   };
 
   const handleReady = async (id) => {
+    const tableId = getTableIdByOrderId(id);
+
     await ordersApi.updateStatus(id, "ready");
+
+    await supabase
+      .from("orders")
+      .update({
+        ready_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    await logOrderAction({
+      orderId: id,
+      tableId,
+      action: "ORDER_READY",
+      performedBy: "KITCHEN",
+    });
+
     unmarkStarted(id);
 
     setOrders((prev) =>
@@ -266,7 +332,24 @@ export default function KitchenDisplay() {
   };
 
   const handleServed = async (id) => {
+    const tableId = getTableIdByOrderId(id);
+
     await ordersApi.updateStatus(id, "served");
+
+    await supabase
+      .from("orders")
+      .update({
+        served_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    await logOrderAction({
+      orderId: id,
+      tableId,
+      action: "ORDER_SERVED",
+      performedBy: "KITCHEN",
+    });
+
     unmarkStarted(id);
 
     setOrders((prev) =>
@@ -280,6 +363,15 @@ export default function KitchenDisplay() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Cancel this order?")) return;
+
+    const tableId = getTableIdByOrderId(id);
+
+    await logOrderAction({
+      orderId: id,
+      tableId,
+      action: "ORDER_DELETED_FROM_KITCHEN",
+      performedBy: "KITCHEN",
+    });
 
     await ordersApi.deleteOrder(id);
     unmarkStarted(id);
@@ -319,6 +411,15 @@ export default function KitchenDisplay() {
     if (!window.confirm("Decline and remove this order?")) return;
 
     try {
+      const tableId = getTableIdByOrderId(id);
+
+      await logOrderAction({
+        orderId: id,
+        tableId,
+        action: "ORDER_DECLINED_FROM_KITCHEN",
+        performedBy: "KITCHEN",
+      });
+
       await ordersApi.deleteOrder(id);
       unmarkStarted(id);
       setOrders((prev) => prev.filter((o) => getOrderId(o) !== id));

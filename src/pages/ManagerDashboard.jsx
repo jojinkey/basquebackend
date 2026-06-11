@@ -4,16 +4,31 @@ import { ordersApi, serviceApi } from "../services/api";
 import { syncOfflineOrders } from "../services/orderApi";
 import { supabase } from "../lib/supabase";
 
+const logOrderAction = async ({ orderId = null, tableId = null, action, performedBy }) => {
+  const { error } = await supabase.from("order_logs").insert({
+    order_id: orderId,
+    table_id: tableId,
+    action,
+    performed_by: performedBy,
+  });
+
+  if (error) {
+    console.error("Order log failed:", error);
+  }
+};
+
 function ManagerDashboard() {
   const [orders, setOrders] = useState([]);
   const [serviceRequests, setServiceRequests] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
   const [activeTab, setActiveTab] = useState("orders");
   const [loading, setLoading] = useState(true);
   const [newReservationCount, setNewReservationCount] = useState(0);
 
   const rejectedOrderIdsRef = useRef(new Set());
 
-  const getOrderId = (order) => order.id || order._id;
+  const getOrderId = (order) => order?.id || order?._id;
+  const getRequestId = (request) => request?.id || request?._id;
 
   const fetchOrders = async () => {
     try {
@@ -21,7 +36,7 @@ function ManagerDashboard() {
 
       setOrders(
         (res.data || []).filter((o) => {
-          const id = o.id || o._id;
+          const id = getOrderId(o);
           return o.status !== "served" && !rejectedOrderIdsRef.current.has(id);
         })
       );
@@ -41,15 +56,51 @@ function ManagerDashboard() {
     }
   };
 
+  const fetchActivityLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("order_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      setActivityLogs(data || []);
+    } catch (err) {
+      console.error("Failed to fetch activity logs:", err);
+    }
+  };
+
   const updateStatus = async (id, status) => {
     try {
+      const order = orders.find((o) => getOrderId(o) === id);
+      const tableId = order?.tableId || order?.tableName || null;
+
       await ordersApi.updateStatus(id, status);
+
+      if (status === "placed") {
+        await supabase
+          .from("orders")
+          .update({
+            approved_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+
+        await logOrderAction({
+          orderId: id,
+          tableId,
+          action: "ORDER_APPROVED",
+          performedBy: "MANAGER",
+        });
+      }
 
       if (status === "served") {
         setOrders((prev) => prev.filter((order) => getOrderId(order) !== id));
       }
 
       await fetchOrders();
+      await fetchActivityLogs();
     } catch (err) {
       console.log(err);
       alert("Failed to update order status");
@@ -57,8 +108,6 @@ function ManagerDashboard() {
   };
 
   const rejectOrder = async (id) => {
-    console.log("REJECT ORDER ID:", id);
-
     if (!id) {
       alert("Order id missing");
       return;
@@ -67,24 +116,34 @@ function ManagerDashboard() {
     if (!window.confirm("Reject and delete this order?")) return;
 
     try {
-      const { data, error } = await supabase
-        .from("orders")
-        .delete()
-        .eq("id", id)
-        .select();
+      const order = orders.find((o) => getOrderId(o) === id);
+      const tableId = order?.tableId || order?.tableName || null;
 
-      console.log("SUPABASE DELETE DATA:", data);
-      console.log("SUPABASE DELETE ERROR:", error);
+      await logOrderAction({
+        orderId: id,
+        tableId,
+        action: "ORDER_REJECTED",
+        performedBy: "MANAGER",
+      });
+
+      await supabase
+        .from("orders")
+        .update({
+          rejected_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      const { error } = await supabase.from("orders").delete().eq("id", id);
 
       if (error) throw error;
 
       rejectedOrderIdsRef.current.add(id);
 
-      setOrders((prev) =>
-        prev.filter((order) => (order.id || order._id) !== id)
-      );
+      setOrders((prev) => prev.filter((order) => getOrderId(order) !== id));
 
       alert("Order rejected successfully");
+      await fetchOrders();
+      await fetchActivityLogs();
     } catch (err) {
       console.error("Reject order failed:", err);
       alert(err?.message || "Failed to reject order");
@@ -95,15 +154,22 @@ function ManagerDashboard() {
     if (!window.confirm("Delete this order?")) return;
 
     try {
-      console.log("Deleting order:", id);
+      const order = orders.find((o) => getOrderId(o) === id);
+      const tableId = order?.tableId || order?.tableName || null;
+
+      await logOrderAction({
+        orderId: id,
+        tableId,
+        action: "ORDER_DELETED",
+        performedBy: "MANAGER",
+      });
 
       await ordersApi.deleteOrder(id);
 
       setOrders((prev) => prev.filter((order) => getOrderId(order) !== id));
 
       await fetchOrders();
-
-      console.log("Order deleted:", id);
+      await fetchActivityLogs();
     } catch (err) {
       console.error("Delete failed:", err);
       alert("Failed to delete order");
@@ -112,8 +178,43 @@ function ManagerDashboard() {
 
   const updateServiceStatus = async (id, status) => {
     try {
+      const request = serviceRequests.find((r) => getRequestId(r) === id);
+      const tableId = request?.tableId || request?.tableName || null;
+
       await serviceApi.updateStatus(id, status);
+
+      if (status === "acknowledged") {
+        await supabase
+          .from("service_requests")
+          .update({
+            acknowledged_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+
+        await logOrderAction({
+          tableId,
+          action: "SERVICE_ACKNOWLEDGED",
+          performedBy: "MANAGER",
+        });
+      }
+
+      if (status === "completed") {
+        await supabase
+          .from("service_requests")
+          .update({
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+
+        await logOrderAction({
+          tableId,
+          action: "SERVICE_COMPLETED",
+          performedBy: "MANAGER",
+        });
+      }
+
       await fetchServiceRequests();
+      await fetchActivityLogs();
     } catch (err) {
       console.log(err);
       alert("Failed to update service request");
@@ -131,6 +232,7 @@ function ManagerDashboard() {
       await syncOfflineOrders();
       await fetchOrders();
       await fetchServiceRequests();
+      await fetchActivityLogs();
     };
 
     loadData();
@@ -153,9 +255,19 @@ function ManagerDashboard() {
       )
       .subscribe();
 
+    const logsChannel = supabase
+      .channel("manager-logs-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "order_logs" },
+        () => fetchActivityLogs()
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(serviceChannel);
+      supabase.removeChannel(logsChannel);
     };
   }, []);
 
@@ -217,6 +329,13 @@ function ManagerDashboard() {
           </button>
 
           <button
+            className={activeTab === "activityLogs" ? "active" : ""}
+            onClick={() => setActiveTab("activityLogs")}
+          >
+            Activity Logs
+          </button>
+
+          <button
             className={activeTab === "reservations" ? "active" : ""}
             onClick={() => setActiveTab("reservations")}
           >
@@ -244,6 +363,7 @@ function ManagerDashboard() {
             onClick={() => {
               fetchOrders();
               fetchServiceRequests();
+              fetchActivityLogs();
             }}
           >
             Refresh
@@ -342,10 +462,7 @@ function ManagerDashboard() {
 
                             <button
                               className="rejectBtn"
-                              onClick={() => {
-                                console.log("REJECT CLICK ORDER:", order);
-                                rejectOrder(order.id || order._id);
-                              }}
+                              onClick={() => rejectOrder(orderId)}
                             >
                               Reject
                             </button>
@@ -427,7 +544,10 @@ function ManagerDashboard() {
                         (r) => r.tableName === tableNumStr && r.status === "new"
                       )
                       .map((request) => (
-                        <span className="activeOrderText" key={request._id}>
+                        <span
+                          className="activeOrderText"
+                          key={getRequestId(request)}
+                        >
                           {request.type === "bill_request"
                             ? "🧾 Bill Requested"
                             : "🔔 Waiter Called"}
@@ -451,52 +571,56 @@ function ManagerDashboard() {
               <p className="emptyBox">No service requests yet.</p>
             ) : (
               <div className="ordersGrid">
-                {serviceRequests.map((request) => (
-                  <article className="orderCard" key={request._id}>
-                    <div className="orderHead">
-                      <div>
-                        <p className="tableLabel">SERVICE REQUEST</p>
-                        <h2 className="tableNumber">
-                          {request.tableName || request.tableId}
-                        </h2>
-                        <small>
-                          {request.createdAt
-                            ? new Date(request.createdAt).toLocaleString()
-                            : "Time not available"}
-                        </small>
+                {serviceRequests.map((request) => {
+                  const requestId = getRequestId(request);
+
+                  return (
+                    <article className="orderCard" key={requestId}>
+                      <div className="orderHead">
+                        <div>
+                          <p className="tableLabel">SERVICE REQUEST</p>
+                          <h2 className="tableNumber">
+                            {request.tableName || request.tableId}
+                          </h2>
+                          <small>
+                            {request.createdAt
+                              ? new Date(request.createdAt).toLocaleString()
+                              : "Time not available"}
+                          </small>
+                        </div>
+
+                        <span className={`statusPill ${request.status}`}>
+                          {request.status.toUpperCase()}
+                        </span>
                       </div>
 
-                      <span className={`statusPill ${request.status}`}>
-                        {request.status.toUpperCase()}
-                      </span>
-                    </div>
-
-                    <div className="orderItems">
-                      <div className="orderItem">
-                        <span>Request Type</span>
-                        <strong>{getServiceRequestLabel(request.type)}</strong>
+                      <div className="orderItems">
+                        <div className="orderItem">
+                          <span>Request Type</span>
+                          <strong>{getServiceRequestLabel(request.type)}</strong>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="orderActions">
-                      <button
-                        onClick={() =>
-                          updateServiceStatus(request._id, "acknowledged")
-                        }
-                      >
-                        Acknowledge
-                      </button>
+                      <div className="orderActions">
+                        <button
+                          onClick={() =>
+                            updateServiceStatus(requestId, "acknowledged")
+                          }
+                        >
+                          Acknowledge
+                        </button>
 
-                      <button
-                        onClick={() =>
-                          updateServiceStatus(request._id, "completed")
-                        }
-                      >
-                        Completed
-                      </button>
-                    </div>
-                  </article>
-                ))}
+                        <button
+                          onClick={() =>
+                            updateServiceStatus(requestId, "completed")
+                          }
+                        >
+                          Completed
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -525,6 +649,53 @@ function ManagerDashboard() {
                 <p>Pending Service Requests</p>
               </div>
             </div>
+          </section>
+        )}
+
+        {activeTab === "activityLogs" && (
+          <section className="dashboardPanel">
+            <div className="panelTop">
+              <h2>Activity Logs</h2>
+              <span>{activityLogs.length} recent actions</span>
+            </div>
+
+            {activityLogs.length === 0 ? (
+              <p className="emptyBox">No activity logs yet.</p>
+            ) : (
+              <div className="ordersGrid">
+                {activityLogs.map((log) => (
+                  <article className="orderCard" key={log.id}>
+                    <div className="orderHead">
+                      <div>
+                        <p className="tableLabel">ACTION</p>
+                        <h2 className="tableNumber">{log.action}</h2>
+                        <small>
+                          {log.created_at
+                            ? new Date(log.created_at).toLocaleString("en-IN")
+                            : "Time not available"}
+                        </small>
+                      </div>
+
+                      <span className="statusPill new">
+                        {log.performed_by}
+                      </span>
+                    </div>
+
+                    <div className="orderItems">
+                      <div className="orderItem">
+                        <span>Table</span>
+                        <strong>{log.table_id || "N/A"}</strong>
+                      </div>
+
+                      <div className="orderItem">
+                        <span>Order ID</span>
+                        <strong>{log.order_id || "N/A"}</strong>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
