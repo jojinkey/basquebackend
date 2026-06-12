@@ -293,3 +293,30 @@
   gap: 0.5rem;
   flex-shrink: 0;
 }
+@media (max-width: 768px) {
+  .kitchenPage,
+  .kitchenDisplay {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .kitchenStats,
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kitchenColumns,
+  .kanbanBoard {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .kitchenColumn {
+    width: 100%;
+  }
+
+  .orderCard {
+    width: 100%;
+  }
+}

@@ -418,3 +418,63 @@
   opacity: 0.5;
   font-size: 0.95rem;
 }
+@media (max-width: 768px) {
+  .managerPage {
+    display: block;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .managerSidebar {
+    width: 100%;
+    min-height: auto;
+    position: relative;
+    padding: 20px;
+  }
+
+  .managerNav {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 10px;
+  }
+
+  .managerNav button {
+    min-width: 160px;
+    flex-shrink: 0;
+  }
+
+  .managerContent {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .managerHeader {
+    display: block;
+  }
+
+  .managerHeader h1 {
+    font-size: 36px;
+    line-height: 1.1;
+  }
+
+  .statsGrid,
+  .ordersGrid,
+  .insightGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderCard {
+    width: 100%;
+  }
+
+  .orderActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .orderActions button {
+    flex: 1 1 45%;
+  }
+}

@@ -66,11 +66,14 @@ export default function DashboardPage() {
   const isOwner = user?.role === "owner";
 
   const [activeTab, setActiveTab] = useState(() => getDefaultTab(can, isOwner));
+  const [mobileOverlayTab, setMobileOverlayTab] = useState(null);
+
   const [badges, setBadges] = useState({
     alerts: 0,
     waitlist: 0,
     reservations: 0,
   });
+
   const [recentActivity, setRecentActivity] = useState([]);
   const [notifBar, setNotifBar] = useState(null);
 
@@ -174,8 +177,8 @@ export default function DashboardPage() {
 
   const showOverrideBtn = isOwner && !overrideMode && WRITE_TABS.includes(activeTab);
 
-  const tabContent = () => {
-    switch (activeTab) {
+  const renderTabContent = (tabId) => {
+    switch (tabId) {
       case "god":
         return <OwnerGodView />;
 
@@ -217,6 +220,8 @@ export default function DashboardPage() {
     }
   };
 
+  const tabContent = () => renderTabContent(activeTab);
+
   return (
     <div className="dashboardOS">
       <div className="grainOverlayDash" />
@@ -243,6 +248,33 @@ export default function DashboardPage() {
 
         <div className="sidebarDivider" />
 
+        <select
+          className="mobileDashboardSelect"
+          value={mobileOverlayTab || activeTab}
+          onChange={(e) => {
+            const selected = e.target.value;
+
+            if (selected === "floor") {
+              setActiveTab("floor");
+              setMobileOverlayTab(null);
+            } else {
+              setMobileOverlayTab(selected);
+            }
+          }}
+        >
+          {NAV.map((item) => {
+            if (!can(item.perm)) return null;
+
+            const badgeCount = item.badge ? badges[item.badge] : 0;
+
+            return (
+              <option key={item.id} value={item.id}>
+                {badgeCount > 0 ? `${item.label} (${badgeCount})` : item.label}
+              </option>
+            );
+          })}
+        </select>
+
         <nav className="sidebarNav">
           {NAV.map((item) => {
             if (!can(item.perm)) return null;
@@ -253,7 +285,10 @@ export default function DashboardPage() {
               <button
                 key={item.id}
                 className={`sidebarNavItem ${activeTab === item.id ? "active" : ""}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setMobileOverlayTab(null);
+                }}
               >
                 <span className="navIcon">{item.icon}</span>
                 <span className="navLabel">{item.label}</span>
@@ -346,6 +381,34 @@ export default function DashboardPage() {
           <ErrorBoundary resetKey={activeTab}>{tabContent()}</ErrorBoundary>
         </motion.div>
       </main>
+
+      {mobileOverlayTab && (
+        <div className="mobileDashboardOverlay">
+          <div className="mobileOverlayHeader">
+            <div>
+              <p className="mobileOverlayEyebrow">BASQUE MANAGER OS</p>
+              <h2>
+                {NAV.find((item) => item.id === mobileOverlayTab)?.label ||
+                  "Section"}
+              </h2>
+            </div>
+
+            <button
+              className="mobileOverlayClose"
+              onClick={() => setMobileOverlayTab(null)}
+              aria-label="Close overlay"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="mobileOverlayBody">
+            <ErrorBoundary resetKey={mobileOverlayTab}>
+              {renderTabContent(mobileOverlayTab)}
+            </ErrorBoundary>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -405,16 +468,14 @@ function ActivityLogs() {
     Object.values(groupedByOrder).forEach((orderLogs) => {
       if (orderLogs.ORDER_CREATED && orderLogs.ORDER_APPROVED) {
         const duration =
-          new Date(orderLogs.ORDER_APPROVED) -
-          new Date(orderLogs.ORDER_CREATED);
+          new Date(orderLogs.ORDER_APPROVED) - new Date(orderLogs.ORDER_CREATED);
 
         if (duration >= 0) acceptanceDurations.push(duration);
       }
 
       if (orderLogs.KITCHEN_STARTED && orderLogs.ORDER_READY) {
         const duration =
-          new Date(orderLogs.ORDER_READY) -
-          new Date(orderLogs.KITCHEN_STARTED);
+          new Date(orderLogs.ORDER_READY) - new Date(orderLogs.KITCHEN_STARTED);
 
         if (duration >= 0) kitchenDurations.push(duration);
       }
@@ -446,71 +507,30 @@ function ActivityLogs() {
 
       if (error) throw error;
 
-      const groupedByOrder = {};
+      const createdLogMap = {};
 
       (logs || []).forEach((log) => {
-        if (!log.order_id) return;
-
-        if (!groupedByOrder[log.order_id]) {
-          groupedByOrder[log.order_id] = {};
+        if (log.action === "ORDER_CREATED" && log.order_id && log.created_at) {
+          createdLogMap[log.order_id] = log.created_at;
         }
-
-        groupedByOrder[log.order_id][log.action] = log.created_at;
       });
 
       const updatedLogs = (logs || []).map((log) => {
-        const orderLogs = groupedByOrder[log.order_id] || {};
+        let acceptedIn = null;
 
-        let decisionTime = null;
-        let kitchenTime = null;
-        let servingTime = null;
+        if (log.action === "ORDER_APPROVED" && log.order_id) {
+          const createdAt = createdLogMap[log.order_id];
 
-        if (
-          (log.action === "ORDER_APPROVED" ||
-            log.action === "ORDER_REJECTED") &&
-          orderLogs.ORDER_CREATED &&
-          log.created_at
-        ) {
-          decisionTime = formatDuration(
-            new Date(log.created_at) - new Date(orderLogs.ORDER_CREATED)
-          );
-        }
-
-        if (
-          log.action === "KITCHEN_STARTED" &&
-          orderLogs.ORDER_APPROVED &&
-          log.created_at
-        ) {
-          kitchenTime = formatDuration(
-            new Date(log.created_at) - new Date(orderLogs.ORDER_APPROVED)
-          );
-        }
-
-        if (
-          log.action === "ORDER_READY" &&
-          orderLogs.KITCHEN_STARTED &&
-          log.created_at
-        ) {
-          kitchenTime = formatDuration(
-            new Date(log.created_at) - new Date(orderLogs.KITCHEN_STARTED)
-          );
-        }
-
-        if (
-          log.action === "ORDER_SERVED" &&
-          orderLogs.ORDER_READY &&
-          log.created_at
-        ) {
-          servingTime = formatDuration(
-            new Date(log.created_at) - new Date(orderLogs.ORDER_READY)
-          );
+          if (createdAt && log.created_at) {
+            acceptedIn = formatDuration(
+              new Date(log.created_at) - new Date(createdAt)
+            );
+          }
         }
 
         return {
           ...log,
-          decisionTime,
-          kitchenTime,
-          servingTime,
+          acceptedIn,
         };
       });
 
@@ -552,7 +572,7 @@ function ActivityLogs() {
 
       <div className="activitySummaryGrid">
         <div className="activitySummaryCard">
-          <span>Average Decision Time</span>
+          <span>Average Acceptance Time</span>
           <strong>{averageAcceptanceTime}</strong>
           <p>ORDER_CREATED → ORDER_APPROVED</p>
         </div>
@@ -578,9 +598,7 @@ function ActivityLogs() {
                 <th>Table</th>
                 <th>Order ID</th>
                 <th>User</th>
-                <th>Decision Time</th>
-                <th>Kitchen Time</th>
-                <th>Serving Time</th>
+                <th>Accepted In</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -605,9 +623,11 @@ function ActivityLogs() {
 
                     <td>{log.performed_by || "-"}</td>
 
-                   <td>{log.decisionTime || "-"}</td>
-<td>{log.kitchenTime || "-"}</td>
-<td>{log.servingTime || "-"}</td>
+                    <td>
+                      {log.action === "ORDER_APPROVED"
+                        ? log.acceptedIn || "-"
+                        : "-"}
+                    </td>
 
                     <td>
                       <span className={`statusBadge ${status.className}`}>

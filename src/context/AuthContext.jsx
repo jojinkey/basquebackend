@@ -21,7 +21,7 @@ const PERMISSIONS = {
   ],
   floor_manager: [
     "floor_view", "floor_manage", "waitlist_view", "waitlist_manage",
-    "reservations_view", "service_alerts", "table_orders",
+    "reservations_view", "service_alerts", "kitchen_view", "table_orders",
   ],
   server: [
     "floor_view", "floor_manage", "orders_view", "service_alerts", "table_orders",

@@ -291,7 +291,10 @@
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
-.overrideBtn:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(192,64,64,0.32); }
+.overrideBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(192,64,64,0.32);
+}
 
 .overrideActive {
   position: sticky;
@@ -321,7 +324,7 @@
   min-height: 0;
 }
 
-/* === SHARED PANEL STYLES (used by sub-components) === */
+/* === SHARED PANEL STYLES === */
 .dashPanelHeader {
   display: flex;
   align-items: center;
@@ -379,9 +382,9 @@
 }
 
 /* === STATUS PILLS === */
-.statusPillNew     { background: rgba(74, 122, 181, 0.15); color: #4A7AB5; }
+.statusPillNew { background: rgba(74, 122, 181, 0.15); color: #4A7AB5; }
 .statusPillPreparing { background: rgba(232, 168, 74, 0.15); color: #C8852A; }
-.statusPillServed  { background: rgba(72, 176, 118, 0.15); color: #48B076; }
+.statusPillServed { background: rgba(72, 176, 118, 0.15); color: #48B076; }
 .statusPillDeclined { background: rgba(192, 64, 64, 0.12); color: #C04040; }
 
 .statusPill {
@@ -408,7 +411,10 @@
   cursor: pointer;
   transition: background 0.2s;
 }
-.btnPrimary:hover { background: #E8A84A; }
+
+.btnPrimary:hover {
+  background: #E8A84A;
+}
 
 .btnSecondary {
   background: transparent;
@@ -422,7 +428,11 @@
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
-.btnSecondary:hover { border-color: #C8852A; color: #C8852A; }
+
+.btnSecondary:hover {
+  border-color: #C8852A;
+  color: #C8852A;
+}
 
 .btnDanger {
   background: transparent;
@@ -436,7 +446,10 @@
   cursor: pointer;
   transition: background 0.2s;
 }
-.btnDanger:hover { background: rgba(192, 64, 64, 0.08); }
+
+.btnDanger:hover {
+  background: rgba(192, 64, 64, 0.08);
+}
 
 /* === CARD BASE === */
 .dashCard {
@@ -445,6 +458,7 @@
   border-radius: 3px;
   transition: box-shadow 0.2s, transform 0.2s;
 }
+
 .dashCard:hover {
   box-shadow: 0 4px 24px rgba(44, 26, 14, 0.1);
   transform: translateY(-2px);
@@ -619,7 +633,7 @@
   color: #8C7B6A;
 }
 
-/* === SECTION FILTER TABS === */
+/* === FILTER TABS === */
 .filterTabs {
   display: flex;
   gap: 0.5rem;
@@ -640,7 +654,11 @@
   transition: all 0.15s;
 }
 
-.filterTab:hover { border-color: #C8852A; color: #C8852A; }
+.filterTab:hover {
+  border-color: #C8852A;
+  color: #C8852A;
+}
+
 .filterTab.activeTab {
   background: #C8852A;
   border-color: #C8852A;
@@ -666,17 +684,15 @@
   background: transparent;
 }
 
-.chip:hover { border-color: #C8852A; color: #C8852A; }
+.chip:hover {
+  border-color: #C8852A;
+  color: #C8852A;
+}
+
 .chip.selected {
   background: #C8852A;
   border-color: #C8852A;
   color: #FDFAF5;
-}
-
-/* === VIP BADGE === */
-.vipBadge {
-  color: #C8852A;
-  font-size: 0.8rem;
 }
 
 /* === FORM ELEMENTS === */
@@ -740,7 +756,12 @@
   color: #1A1008;
   transition: background 0.15s;
 }
-.stepperBtn:hover { background: #C8852A; color: #fff; border-color: #C8852A; }
+
+.stepperBtn:hover {
+  background: #C8852A;
+  color: #fff;
+  border-color: #C8852A;
+}
 
 .stepperValue {
   font-family: 'Cormorant Garamond', serif;
@@ -769,7 +790,9 @@
   flex-shrink: 0;
 }
 
-.toggleTrack.on { background: #C8852A; }
+.toggleTrack.on {
+  background: #C8852A;
+}
 
 .toggleThumb {
   position: absolute;
@@ -783,7 +806,9 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-.toggleTrack.on .toggleThumb { left: 18px; }
+.toggleTrack.on .toggleThumb {
+  left: 18px;
+}
 
 /* === CAPACITY WARNING BANNER === */
 .capacityWarning {
@@ -802,10 +827,10 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
+
 /* =====================================================
    ACTIVITY LOGS TABLE
 ===================================================== */
-
 .activityTableWrapper {
   background: #ffffff;
   border-radius: 20px;
@@ -852,16 +877,6 @@
   background: #faf8f4;
 }
 
-.activityTable td:nth-child(2) {
-  font-weight: 700;
-}
-
-/* Action Colors */
-
-.activityTable td:has(+ td) {
-  position: relative;
-}
-
 .activityTable tbody tr td:nth-child(2) {
   font-weight: 600;
 }
@@ -870,35 +885,6 @@
   color: #48b076;
   font-weight: 700;
 }
-
-/* Action Tags */
-
-.action-approved {
-  color: #48b076;
-  font-weight: 700;
-}
-
-.action-created {
-  color: #4a7ab5;
-  font-weight: 700;
-}
-
-.action-ready {
-  color: #c8852a;
-  font-weight: 700;
-}
-
-.action-served {
-  color: #7a5cff;
-  font-weight: 700;
-}
-
-.action-rejected {
-  color: #c04040;
-  font-weight: 700;
-}
-
-/* Empty State */
 
 .emptyBox {
   background: #fff;
@@ -910,23 +896,7 @@
   font-family: "Jost", sans-serif;
 }
 
-/* Mobile */
-
-@media (max-width: 768px) {
-  .activityTableWrapper {
-    padding: 12px;
-  }
-
-  .activityTable th,
-  .activityTable td {
-    padding: 10px;
-    font-size: 12px;
-  }
-}
-/* ==========================================
-   ACTIVITY STATUS BADGES
-========================================== */
-
+/* === ACTIVITY STATUS BADGES === */
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -961,6 +931,12 @@
   background: rgba(122, 92, 255, 0.12);
   color: #7a5cff;
 }
+
+.statusBadge.preparing {
+  background: rgba(232, 168, 74, 0.15);
+  color: #c8852a;
+}
+
 .activitySummaryGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(220px, 1fr));
@@ -997,8 +973,242 @@
   color: #8c7b6a;
 }
 
-@media (max-width: 768px) {
-  .activitySummaryGrid {
-    grid-template-columns: 1fr;
+/* =====================================================
+   MOBILE OVERLAY SYSTEM
+   Only applies on real touch/mobile devices
+===================================================== */
+
+.mobileDashboardSelect {
+  display: none;
+}
+
+.mobileDashboardOverlay {
+  display: none;
+}
+
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  .dashboardOS {
+    display: block;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .dashSidebar {
+    position: relative !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 18px 14px !important;
+    overflow: visible !important;
+  }
+
+  .sidebarBrand {
+    padding: 0 0 12px !important;
+  }
+
+  .sidebarBrandName {
+    font-size: 22px !important;
+  }
+
+  .sidebarBrandSub {
+    font-size: 11px !important;
+  }
+
+  .sidebarNav,
+  .recentActivity,
+  .sidebarFooter {
+    display: none !important;
+  }
+
+  .sidebarDivider {
+    margin: 10px 0 !important;
+  }
+
+  .mobileDashboardSelect {
+    display: block !important;
+    width: 100% !important;
+    padding: 14px 16px !important;
+    margin-top: 10px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(207, 157, 82, 0.5) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #f8e8c8 !important;
+    font-size: 15px !important;
+    font-family: 'Jost', sans-serif !important;
+    outline: none !important;
+  }
+
+  .mobileDashboardSelect option {
+    color: #1a1008 !important;
+    background: #fffaf2 !important;
+  }
+
+  .dashMain {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashContent {
+    width: 100% !important;
+    padding: 18px 14px !important;
+    overflow-x: hidden !important;
+  }
+
+  .dashPanelHeader {
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .statsBar,
+  .activitySummaryGrid,
+  .settingsGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .activityTableWrapper {
+    padding: 12px !important;
+    overflow-x: auto !important;
+  }
+
+  .activityTable {
+    min-width: 900px !important;
+  }
+
+  .activityTable th,
+  .activityTable td {
+    padding: 10px !important;
+    font-size: 12px !important;
+  }
+
+  .mobileDashboardOverlay {
+    display: flex !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 9999 !important;
+    background: #fbf6ee !important;
+    color: #1a1008 !important;
+    overflow: hidden !important;
+  }
+
+  .mobileOverlayHeader {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 18px 16px !important;
+    background: #1a1008 !important;
+    color: #fff7e8 !important;
+    border-bottom: 1px solid rgba(207, 157, 82, 0.35) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobileOverlayEyebrow {
+    font-size: 10px !important;
+    letter-spacing: 1.5px !important;
+    color: #cf9d52 !important;
+    margin: 0 0 4px !important;
+    font-family: 'Cinzel', serif !important;
+  }
+
+  .mobileOverlayHeader h2 {
+    margin: 0 !important;
+    font-size: 22px !important;
+    line-height: 1.1 !important;
+    color: #fff7e8 !important;
+  }
+
+  .mobileOverlayClose {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(207, 157, 82, 0.5) !important;
+    background: transparent !important;
+    color: #fff7e8 !important;
+    font-size: 30px !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .mobileOverlayBody {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 16px !important;
+  }
+
+  .mobileOverlayBody .dashboardPanel,
+  .mobileOverlayBody .dashCard,
+  .mobileOverlayBody .settingsCard {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .mobileOverlayBody .ordersGrid,
+  .mobileOverlayBody .statsGrid,
+  .mobileOverlayBody .activitySummaryGrid,
+  .mobileOverlayBody .settingsGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobileOverlayBody .activityTableWrapper {
+    overflow-x: auto !important;
+  }
+
+  .mobileOverlayBody .activityTable {
+    min-width: 900px !important;
+  }
+
+  .overrideWarning,
+  .overrideActive {
+    margin: 12px 14px 0 !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  .sidebarFooter {
+    display: flex !important;
+    margin-top: 18px !important;
+    padding: 12px 0 0 !important;
+  }
+
+  .sidebarFooterBtn {
+    display: none !important;
+  }
+
+  .sidebarUser {
+    display: block !important;
+  }
+
+  .logoutBtn {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+    padding: 12px 16px !important;
+    border: 1px solid rgba(192, 64, 64, 0.45) !important;
+    border-radius: 14px !important;
+    color: #ffb1a8 !important;
+    text-align: center !important;
+  }
+}
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  .notifBar {
+    left: 50% !important;
+    right: auto !important;
+    top: 18px !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 32px) !important;
+    max-width: 420px !important;
+    border-radius: 14px !important;
+    padding: 12px 16px !important;
+    text-align: center !important;
+    z-index: 10000 !important;
   }
 }
