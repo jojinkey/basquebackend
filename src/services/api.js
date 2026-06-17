@@ -100,14 +100,10 @@ export const tablesApi = {
         .filter((s) => !isDemoId(s.id))
         .forEach((s) => {
           if (!svcByTable[s.table_id]) svcByTable[s.table_id] = [];
-          svcByTable[s.table_id].push({
-            _id: s.id,
-            id: s.id,
-            type: s.type,
-            status: s.status,
-            tableName: s.table_name,
-            createdAt: s.created_at,
-          });
+          const shaped = _shapeService(s);
+          if (shaped.type !== "bussing_request") {
+            svcByTable[s.table_id].push(shaped);
+          }
         });
     }
 
@@ -192,14 +188,8 @@ export const tablesApi = {
 
     serviceRequests = (svcRes.data || [])
       .filter((s) => !isDemoId(s.id))
-      .map((s) => ({
-        _id: s.id,
-        id: s.id,
-        type: s.type,
-        status: s.status,
-        tableName: s.table_name,
-        createdAt: s.created_at,
-      }));
+      .map(_shapeService)
+      .filter((s) => s.type !== "bussing_request");
 
     const hasRealOrders = activeOrders.length > 0;
     const isDemoSession = isDemoId(table.current_session) && !hasRealOrders;
@@ -450,7 +440,7 @@ function _shapeOrder(o) {
 // ─── SERVICE REQUESTS ────────────────────────────────────────────────────────
 
 export const serviceApi = {
-  getAll: async () => {
+  getAll: async ({ includeBussing = false } = {}) => {
     const { data, error } = await supabase
       .from("service_requests")
       .select("id, table_id, table_name, type, status, created_at, updated_at")
@@ -461,19 +451,12 @@ export const serviceApi = {
     return {
       data: (data || [])
         .filter((s) => !isDemoId(s.id))
-        .map((s) => ({
-          _id: s.id,
-          id: s.id,
-          tableId: s.table_id,
-          tableName: s.table_name || `Table ${s.table_id}`,
-          type: s.type,
-          status: s.status,
-          createdAt: s.created_at,
-        })),
+        .map(_shapeService)
+        .filter((s) => includeBussing || s.type !== "bussing_request"),
     };
   },
 
-  updateStatus: async (id, status) => {
+  updateStatus: async (id, status, performer) => {
     const { data, error } = await supabase
       .from("service_requests")
       .update({
@@ -486,26 +469,38 @@ export const serviceApi = {
 
     if (error) throw error;
 
-    return {
-      data: {
-        _id: data.id,
-        id: data.id,
-        tableId: data.table_id,
-        tableName: data.table_name,
-        type: data.type,
-        status: data.status,
-        createdAt: data.created_at,
-      },
-    };
+    await _logServiceAction(_shapeService(data), status, performer);
+
+    return { data: _shapeService(data) };
   },
 
-  create: async (tableId, tableName, type) => {
+  create: async (tableId, tableName, type, performer) => {
+    const isBussing = type === "bussing_request";
+    const storedType = isBussing ? "call_waiter" : type;
+    const storedTableName = isBussing
+      ? `${tableName || `Table ${tableId}`} | Bussing Request`
+      : tableName;
+
+    if (isBussing) {
+      const { data: existing, error: existingError } = await supabase
+        .from("service_requests")
+        .select("id, table_id, table_name, type, status, created_at, updated_at")
+        .eq("table_id", tableId)
+        .eq("type", storedType)
+        .neq("status", "completed")
+        .ilike("table_name", "%| Bussing Request")
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+      if (existing) return { data: _shapeService(existing) };
+    }
+
     const { data, error } = await supabase
       .from("service_requests")
       .insert({
         table_id: tableId,
-        table_name: tableName,
-        type,
+        table_name: storedTableName,
+        type: storedType,
         status: "new",
       })
       .select()
@@ -513,11 +508,31 @@ export const serviceApi = {
 
     if (error) throw error;
 
-    return { data };
+    await _logServiceAction(_shapeService(data), "new", performer);
+
+    return { data: _shapeService(data) };
   },
 };
 
 // ─── WAITLIST ─────────────────────────────────────────────────────────────────
+
+function _shapeService(s) {
+  const rawTableName = s.tableName || s.table_name || "";
+  const isBussing = rawTableName.includes("| Bussing Request") || s.type === "bussing_request";
+  const cleanTableName = rawTableName.replace(/\s*\|\s*Bussing Request\s*$/, "");
+  const tableId = s.table_id || s.tableId;
+
+  return {
+    _id: s.id || s._id,
+    id: s.id || s._id,
+    tableId,
+    tableName: cleanTableName || `Table ${tableId}`,
+    type: isBussing ? "bussing_request" : s.type,
+    status: s.status,
+    createdAt: s.created_at || s.createdAt,
+    updatedAt: s.updated_at || s.updatedAt,
+  };
+}
 
 export const waitlistApi = {
   getAll: async () => {
@@ -972,6 +987,33 @@ async function _auditLog(action, entity, entityId, performer, details) {
       details: { ...details, performer },
     });
   } catch (_) {}
+}
+
+async function _logServiceAction(request, status, performer) {
+  if (!request) return;
+
+  const typePrefix = request.type === "bussing_request"
+    ? "BUSSING"
+    : "SERVICE";
+
+  const action = status === "new"
+    ? `${typePrefix}_REQUESTED`
+    : status === "acknowledged"
+    ? `${typePrefix}_ACKNOWLEDGED`
+    : status === "completed"
+    ? `${typePrefix}_ON_MY_WAY`
+    : `${typePrefix}_${status?.toUpperCase() || "UPDATED"}`;
+
+  try {
+    await supabase.from("order_logs").insert({
+      order_id: null,
+      table_id: request.table_id || request.tableId,
+      action,
+      performed_by: performer?.name || performer?.role || performer || null,
+    });
+  } catch (error) {
+    console.error("Service activity log failed:", error);
+  }
 }
 
 function _inRange(dateStr, range, from, to) {

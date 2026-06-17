@@ -360,19 +360,7 @@ function ManagerDashboard() {
 
   const updateServiceStatus = async (id, status) => {
     try {
-      const request = serviceRequests.find((r) => getRequestId(r) === id);
-      const tableId = request?.tableId || request?.tableName || null;
-
-      await serviceApi.updateStatus(id, status);
-
-      if (status === "acknowledged") {
-        await supabase.from("service_requests").update({ acknowledged_at: new Date().toISOString() }).eq("id", id);
-        await logOrderAction({ tableId, action: "SERVICE_ACKNOWLEDGED", performedBy: getPerformedBy() });
-      }
-      if (status === "completed") {
-        await supabase.from("service_requests").update({ completed_at: new Date().toISOString() }).eq("id", id);
-        await logOrderAction({ tableId, action: "SERVICE_COMPLETED", performedBy: getPerformedBy() });
-      }
+      await serviceApi.updateStatus(id, status, getPerformedBy());
 
       await fetchServiceRequests();
     } catch (err) {
@@ -384,6 +372,7 @@ function ManagerDashboard() {
   const getServiceRequestLabel = (type) => {
     if (type === "call_waiter") return "Call Waiter";
     if (type === "bill_request") return "Bill Request";
+    if (type === "bussing_request") return "Bussing Request";
     return type || "Service Request";
   };
 

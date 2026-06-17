@@ -2,9 +2,29 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { serviceApi } from "../../services/api";
 import { socket } from "../../services/socket";
+import { useAuth } from "../../context/AuthContext";
 import "./ServiceAlerts.css";
 
-const STATUS_ORDER = { new: 0, acknowledged: 1, completed: 2 };
+const REQUEST_META = {
+  bill_request: {
+    icon: "Bill",
+    label: "BILL REQUEST",
+    title: "Bill Request",
+    description: "Please prepare the bill for this table.",
+  },
+  call_waiter: {
+    icon: "Alert",
+    label: "WAITER CALL",
+    title: "Waiter Call",
+    description: "A guest needs server assistance.",
+  },
+  bussing_request: {
+    icon: "Clean",
+    label: "BUSSING REQUEST",
+    title: "Bussing Request",
+    description: "Please clear, clean, and reset the table for the next guests.",
+  },
+};
 
 function elapsed(createdAt) {
   const secs = Math.floor((Date.now() - new Date(createdAt)) / 1000);
@@ -13,7 +33,7 @@ function elapsed(createdAt) {
   return `${Math.floor(secs / 3600)}h`;
 }
 
-function AlertCard({ request, onUpdate }) {
+function AlertCard({ request, onUpdate, user }) {
   const [timer, setTimer] = useState(elapsed(request.createdAt));
   const [updating, setUpdating] = useState(false);
 
@@ -25,13 +45,21 @@ function AlertCard({ request, onUpdate }) {
   const update = async (status) => {
     setUpdating(true);
     try {
-      await serviceApi.updateStatus(request._id, status);
+      await serviceApi.updateStatus(request._id, status, { name: user?.name, role: user?.role });
       onUpdate();
-    } catch (e) { console.error(e); }
-    finally { setUpdating(false); }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const isBill = request.type === "bill_request";
+  const meta = REQUEST_META[request.type] || {
+    icon: "Alert",
+    label: "SERVICE REQUEST",
+    title: "Service Request",
+    description: "A table needs service assistance.",
+  };
 
   return (
     <motion.div
@@ -41,18 +69,21 @@ function AlertCard({ request, onUpdate }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
     >
-      <div className="alertCardIcon">{isBill ? "🧾" : "🔔"}</div>
+      <div className="alertCardIcon">{meta.icon}</div>
       <div className="alertCardBody">
         <div className="alertCardHead">
-          <span className="alertCardType">{isBill ? "BILL REQUEST" : "WAITER CALL"}</span>
+          <span className="alertCardType">{meta.label}</span>
           <span className={`statusPill statusPill${request.status === "new" ? "New" : request.status === "acknowledged" ? "Preparing" : "Served"}`}>
             {request.status.toUpperCase()}
           </span>
         </div>
         <h3 className="alertCardTable">{request.tableName || request.tableId}</h3>
+        <p className="alertCardMessage">
+          <strong>{meta.title}</strong> - {meta.description}
+        </p>
         <p className="alertCardTime">
           {new Date(request.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-          &nbsp;·&nbsp;Waiting: <strong>{timer}</strong>
+          &nbsp;-&nbsp;Waiting: <strong>{timer}</strong>
         </p>
       </div>
       <div className="alertCardActions">
@@ -63,11 +94,11 @@ function AlertCard({ request, onUpdate }) {
         )}
         {(request.status === "new" || request.status === "acknowledged") && (
           <button className="btnPrimary alertBtn" onClick={() => update("completed")} disabled={updating}>
-            {request.status === "acknowledged" ? "On My Way ✓" : "Complete"}
+            On My Way
           </button>
         )}
         {request.status === "completed" && (
-          <span className="alertDone">✓ Done</span>
+          <span className="alertDone">On My Way</span>
         )}
       </div>
     </motion.div>
@@ -75,23 +106,27 @@ function AlertCard({ request, onUpdate }) {
 }
 
 export default function ServiceAlerts({ onAck }) {
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState("pending");
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = useCallback(async () => {
     try {
-      const res = await serviceApi.getAll();
+      const res = await serviceApi.getAll({ includeBussing: user?.role === "server" });
       const sorted = [...res.data].sort((a, b) => {
-        const typeOrder = { bill_request: 0, call_waiter: 1 };
-        const tDiff = (typeOrder[a.type] ?? 2) - (typeOrder[b.type] ?? 2);
+        const typeOrder = { bussing_request: 0, bill_request: 1, call_waiter: 2 };
+        const tDiff = (typeOrder[a.type] ?? 3) - (typeOrder[b.type] ?? 3);
         if (tDiff !== 0) return tDiff;
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
       setRequests(sorted);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  }, []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.role]);
 
   useEffect(() => {
     fetchRequests();
@@ -115,9 +150,9 @@ export default function ServiceAlerts({ onAck }) {
     };
   }, [fetchRequests, onAck]);
 
-  const pending   = requests.filter((r) => r.status === "new");
+  const pending = requests.filter((r) => r.status === "new");
   const inProgress = requests.filter((r) => r.status === "acknowledged");
-  const completed  = requests.filter((r) => r.status === "completed");
+  const completed = requests.filter((r) => r.status === "completed");
 
   const visible = filter === "pending"
     ? [...pending, ...inProgress]
@@ -128,6 +163,7 @@ export default function ServiceAlerts({ onAck }) {
   const stats = {
     waiterCalls: pending.filter((r) => r.type === "call_waiter").length,
     billRequests: pending.filter((r) => r.type === "bill_request").length,
+    bussingRequests: pending.filter((r) => r.type === "bussing_request").length,
     acknowledged: inProgress.length,
     completed: completed.length,
   };
@@ -137,12 +173,16 @@ export default function ServiceAlerts({ onAck }) {
       <div className="dashPanelHeader">
         <div>
           <h2 className="dashPanelTitle">Service Alerts</h2>
-          <p className="dashPanelSub">Waiter calls & bill requests in real-time</p>
+          <p className="dashPanelSub">Bussing, waiter calls & bill requests in real-time</p>
         </div>
         <button className="btnSecondary" onClick={fetchRequests}>Refresh</button>
       </div>
 
       <div className="statsBar">
+        <div className="statChip">
+          <span className="statChipValue" style={{ color: "#C04040" }}>{stats.bussingRequests}</span>
+          <span className="statChipLabel">BUSSING REQUESTS</span>
+        </div>
         <div className="statChip">
           <span className="statChipValue" style={{ color: "#C04040" }}>{stats.billRequests}</span>
           <span className="statChipLabel">BILL REQUESTS</span>
@@ -172,14 +212,14 @@ export default function ServiceAlerts({ onAck }) {
         <div className="emptyState"><p className="emptyStateText">Loading alerts...</p></div>
       ) : visible.length === 0 ? (
         <div className="emptyState">
-          <span className="emptyStateIcon">🔔</span>
+          <span className="emptyStateIcon">Alert</span>
           <p className="emptyStateText">No service requests</p>
         </div>
       ) : (
         <div className="alertsGrid">
           <AnimatePresence>
             {visible.map((req) => (
-              <AlertCard key={req._id} request={req} onUpdate={fetchRequests} />
+              <AlertCard key={req._id} request={req} onUpdate={fetchRequests} user={user} />
             ))}
           </AnimatePresence>
         </div>

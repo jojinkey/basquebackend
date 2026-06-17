@@ -71,11 +71,15 @@ function _fmtOrder(o) {
 }
 
 function _fmtService(s) {
+  const rawTableName = s.table_name || `Table ${s.table_id}`
+  const isBussing = rawTableName.includes('| Bussing Request')
+  const tableName = rawTableName.replace(/\s*\|\s*Bussing Request\s*$/, '')
+
   return {
     _id: s.id,
     tableId: s.table_id,
-    tableName: s.table_name || `Table ${s.table_id}`,
-    type: s.type,
+    tableName: tableName || `Table ${s.table_id}`,
+    type: isBussing ? 'bussing_request' : s.type,
     status: s.status,
     createdAt: s.created_at,
   }

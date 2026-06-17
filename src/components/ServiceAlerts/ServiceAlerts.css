@@ -31,6 +31,10 @@
   border-left: 3px solid #C8852A;
 }
 
+.alertCard.type-bussing_request {
+  border-left: 3px solid #6B7A55;
+}
+
 .alertCard.status-completed {
   opacity: 0.6;
 }
@@ -73,6 +77,14 @@
   font-size: 0.78rem;
   color: #8C7B6A;
   margin-top: 3px;
+}
+
+.alertCardMessage {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  color: #4F4033;
+  line-height: 1.45;
+  margin-top: 0.25rem;
 }
 
 .alertCardActions {

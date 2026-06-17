@@ -20,6 +20,13 @@ import ErrorBoundary from "../components/ErrorBoundary";
 
 import "./DashboardPage.css";
 
+const getServiceRequestLabel = (type) => {
+  if (type === "bill_request") return "Bill Request";
+  if (type === "call_waiter") return "Waiter Call";
+  if (type === "bussing_request") return "Bussing Request";
+  return "Service Request";
+};
+
 const NAV = [
   { id: "god", label: "God View", icon: "👁", perm: "god_view" },
   { id: "floor", label: "Floor Plan", icon: "⊞", perm: "floor_view" },
@@ -81,6 +88,8 @@ export default function DashboardPage() {
     loadBadges();
 
     socket.on("service:new", (req) => {
+      if (req.type === "bussing_request" && user?.role !== "server") return;
+
       setBadges((prev) => ({ ...prev, alerts: prev.alerts + 1 }));
       addActivity(
         `Table ${req.tableId} — ${
@@ -117,7 +126,7 @@ export default function DashboardPage() {
     });
 
     socket.on("table:statusChanged", (table) => {
-      addActivity(`Table ${table.tableId} → ${table.status.replace("_", " ")}`);
+      addActivity(`Table ${table.tableId || table.id} -> ${table.status.replace("_", " ")}`);
     });
 
     socket.on("order:new", (order) => {
@@ -137,7 +146,7 @@ export default function DashboardPage() {
   const loadBadges = async () => {
     try {
       const [alertsRes, waitlistRes, resRes] = await Promise.all([
-        serviceApi.getAll(),
+        serviceApi.getAll({ includeBussing: user?.role === "server" }),
         waitlistApi.getAll(),
         reservationsApi.getStats(),
       ]);
@@ -423,6 +432,9 @@ const STATUS_FILTER_OPTIONS = [
   { value: "ORDER_DELETED_FROM_KITCHEN", label: "Deleted" },
   { value: "SERVICE_ACKNOWLEDGED", label: "Bill Acknowledged" },
   { value: "SERVICE_COMPLETED", label: "Bill Completed" },
+  { value: "BUSSING_REQUESTED", label: "Bussing Requested" },
+  { value: "BUSSING_ACKNOWLEDGED", label: "Bussing Acknowledged" },
+  { value: "BUSSING_ON_MY_WAY", label: "Bussing On My Way" },
 ];
 
 function ActivityLogs() {
@@ -511,6 +523,22 @@ function ActivityLogs() {
     setAverageKitchenTime(avgKitchen !== null ? formatDuration(avgKitchen) ?? "-" : "-");
   };
 
+  const getServiceAcceptedIn = (log, allLogs) => {
+    if (!log.table_id || log.action !== "BUSSING_ACKNOWLEDGED") return null;
+
+    const requested = [...allLogs]
+      .filter((item) =>
+        item.table_id === log.table_id &&
+        item.action === "BUSSING_REQUESTED" &&
+        item.created_at &&
+        new Date(item.created_at) <= new Date(log.created_at)
+      )
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+    if (!requested) return null;
+    return formatDuration(new Date(log.created_at) - new Date(requested.created_at));
+  };
+
   const fetchActivityLogs = async () => {
     try {
       const { data: logs, error } = await supabase
@@ -573,6 +601,8 @@ function ActivityLogs() {
             // If diff is 0 or very small, this IS the first log — show <1s or skip
             acceptedIn = diff > 500 ? formatDuration(diff) : null;
           }
+        } else {
+          acceptedIn = getServiceAcceptedIn(log, logs || []);
         }
 
         return { ...log, acceptedIn };

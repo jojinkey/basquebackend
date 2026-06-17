@@ -101,6 +101,26 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
 
   const orderTotal = table.activeOrders?.reduce((s, o) => s + o.total, 0) || 0;
   const nextStatuses = STATUS_FLOW[table.status] || [];
+  const hasOpenBussingRequest = table.serviceRequests?.some(
+    (r) => r.status !== "completed" && r.type === "bussing_request"
+  );
+
+  const handleBussingRequest = async () => {
+    setSaving(true);
+    try {
+      await serviceApi.create(
+        table.tableId,
+        table.tableName || `Table ${table.tableId}`,
+        "bussing_request",
+        { name: user?.name, role: user?.role }
+      );
+      onStatusChange();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleStatusChange = async (status) => {
     setSaving(true);
@@ -111,6 +131,16 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
         isVip: status === "seated" ? isVip : undefined,
         performer: { name: user?.name, role: user?.role },
       });
+
+      if (status === "needs_bussing") {
+        await serviceApi.create(
+          table.tableId,
+          table.tableName || `Table ${table.tableId}`,
+          "bussing_request",
+          { name: user?.name, role: user?.role }
+        );
+      }
+
       onStatusChange();
     } catch (e) {
       console.error(e);
@@ -205,6 +235,16 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
         <div className="detailSection">
           <p className="detailSectionTitle">QUICK ACTIONS</p>
           <div className="detailActions">
+            {table.status === "needs_bussing" && !hasOpenBussingRequest && (
+              <button
+                className="btnDanger"
+                onClick={handleBussingRequest}
+                disabled={saving}
+                style={{ fontSize: "0.7rem" }}
+              >
+                Request Bussing
+              </button>
+            )}
             {nextStatuses.map((status) => (
               <button
                 key={status}
