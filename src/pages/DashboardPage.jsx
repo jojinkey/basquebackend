@@ -16,6 +16,7 @@ import TableOrdering from "../components/TableOrdering/TableOrdering";
 import AuditReports from "../components/AuditReports/AuditReports";
 import OwnerGodView from "./OwnerGodView";
 import ManagerDashboard from "./ManagerDashboard";
+import EventsManager from "../components/EventsManager/EventsManager";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 import "./DashboardPage.css";
@@ -29,6 +30,7 @@ const NAV = [
   { id: "alerts", label: "Service Alerts", icon: "🔔", perm: "service_alerts", badge: "alerts" },
   { id: "waitlist", label: "Waitlist & Queue", icon: "≡", perm: "waitlist_view", badge: "waitlist" },
   { id: "reservations", label: "Reservations", icon: "📋", perm: "reservations_view", badge: "reservations" },
+  { id: "events", label: "Events CMS", icon: "🎪", perm: "events_manage" },
   { id: "insights", label: "Insights", icon: "⊙", perm: "insights" },
   { id: "activityLogs", label: "Activity Logs", icon: "🕒", perm: "audit_reports" },
   { id: "audit", label: "Audit Reports", icon: "📊", perm: "audit_reports" },
@@ -208,6 +210,9 @@ export default function DashboardPage() {
 
       case "activityLogs":
         return <ActivityLogs />;
+
+      case "events":
+        return <EventsManager />;
 
       case "audit":
         return <AuditReports />;
