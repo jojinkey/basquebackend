@@ -132,6 +132,8 @@ export default function ServiceAlerts({ onAck }) {
     fetchRequests();
 
     socket.on("service:new", (req) => {
+      if (req.type === "bussing_request" && user?.role !== "server") return;
+
       setRequests((prev) => {
         const exists = prev.some((r) => r._id === req._id);
         if (exists) return prev;
@@ -140,6 +142,8 @@ export default function ServiceAlerts({ onAck }) {
     });
 
     socket.on("service:updated", (updated) => {
+      if (updated.type === "bussing_request" && user?.role !== "server") return;
+
       setRequests((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
       if (updated.status === "completed" && onAck) onAck();
     });

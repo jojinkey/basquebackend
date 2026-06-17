@@ -456,6 +456,26 @@ function ActivityLogs() {
     return "<1s";
   };
 
+  const formatPerformedBy = (value) => {
+    const normalized = String(value || "").trim().toLowerCase().replace(/\s+/g, "_");
+    const labels = {
+      rahul: "Server",
+      priya: "Floor Manager",
+      arjun: "Restaurant Manager",
+      avantika: "Owner",
+      kitchen: "Kitchen",
+      audit: "Auditor",
+      server: "Server",
+      floor_manager: "Floor Manager",
+      restaurant_manager: "Restaurant Manager",
+      manager: "Restaurant Manager",
+      owner: "Owner",
+      auditor: "Auditor",
+    };
+
+    return labels[normalized] || value || "-";
+  };
+
   const getStatusBadge = (action) => {
     switch (action) {
       case "ORDER_APPROVED":
@@ -523,8 +543,12 @@ function ActivityLogs() {
     setAverageKitchenTime(avgKitchen !== null ? formatDuration(avgKitchen) ?? "-" : "-");
   };
 
-  const getServiceAcceptedIn = (log, allLogs) => {
-    if (!log.table_id || log.action !== "BUSSING_ACKNOWLEDGED") return null;
+  const getServiceRequestedAt = (log, allLogs) => {
+    if (!log.table_id) return null;
+    if (log.action === "BUSSING_REQUESTED") return log.created_at || null;
+
+    const timedActions = ["BUSSING_ACKNOWLEDGED", "BUSSING_ON_MY_WAY"];
+    if (!timedActions.includes(log.action)) return null;
 
     const requested = [...allLogs]
       .filter((item) =>
@@ -535,8 +559,15 @@ function ActivityLogs() {
       )
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
-    if (!requested) return null;
-    return formatDuration(new Date(log.created_at) - new Date(requested.created_at));
+    return requested?.created_at || null;
+  };
+
+  const getServiceAcceptedIn = (log, allLogs) => {
+    const requestedAt = getServiceRequestedAt(log, allLogs);
+    if (!requestedAt) return null;
+    if (log.action === "BUSSING_REQUESTED") return "<1s";
+
+    return formatDuration(new Date(log.created_at) - new Date(requestedAt));
   };
 
   const fetchActivityLogs = async () => {
@@ -593,6 +624,7 @@ function ActivityLogs() {
 
       const updatedLogs = (logs || []).map((log) => {
         let acceptedIn = null;
+        let requestedAt = null;
 
         if (log.order_id) {
           const createdAt = createdLogMap[log.order_id];
@@ -602,10 +634,11 @@ function ActivityLogs() {
             acceptedIn = diff > 500 ? formatDuration(diff) : null;
           }
         } else {
+          requestedAt = getServiceRequestedAt(log, logs || []);
           acceptedIn = getServiceAcceptedIn(log, logs || []);
         }
 
-        return { ...log, acceptedIn };
+        return { ...log, acceptedIn, requestedAt };
       });
 
       calculateAverages(logs || [], createdLogMap);
@@ -689,6 +722,7 @@ function ActivityLogs() {
                 <th>Table</th>
                 <th>Order ID</th>
                 <th>User</th>
+                <th>Requested At</th>
                 <th>Accepted In</th>
                 <th>Status</th>
               </tr>
@@ -712,7 +746,13 @@ function ActivityLogs() {
 
                     <td>{log.order_id ? log.order_id.substring(0, 8) : "-"}</td>
 
-                    <td>{log.performed_by || "-"}</td>
+                    <td>{formatPerformedBy(log.performed_by)}</td>
+
+                    <td>
+                      {log.requestedAt
+                        ? new Date(log.requestedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+                        : "-"}
+                    </td>
 
                     <td>
                       {log.acceptedIn ? (

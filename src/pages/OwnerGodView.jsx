@@ -211,6 +211,8 @@ export default function OwnerGodView() {
       );
     };
     const handleServiceNew = (payload) => {
+      if (payload.type === "bussing_request") return;
+
       setServices((prev) => [payload, ...prev]);
     };
 

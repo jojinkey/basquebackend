@@ -1009,11 +1009,31 @@ async function _logServiceAction(request, status, performer) {
       order_id: null,
       table_id: request.table_id || request.tableId,
       action,
-      performed_by: performer?.name || performer?.role || performer || null,
+      performed_by: _formatPerformerRole(performer),
     });
   } catch (error) {
     console.error("Service activity log failed:", error);
   }
+}
+
+function _formatPerformerRole(performer) {
+  const value = typeof performer === "string"
+    ? performer
+    : performer?.role || performer?.name || "";
+
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, "_");
+  const labels = {
+    owner: "Owner",
+    restaurant_manager: "Restaurant Manager",
+    manager: "Restaurant Manager",
+    floor_manager: "Floor Manager",
+    server: "Server",
+    kitchen: "Kitchen",
+    kitchen_display: "Kitchen",
+    auditor: "Auditor",
+  };
+
+  return labels[normalized] || value || null;
 }
 
 function _inRange(dateStr, range, from, to) {
