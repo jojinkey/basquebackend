@@ -158,6 +158,12 @@ const TABLES_SEED = [
   { tableId: "T18", section: "Bar", pax: 4 },
 ];
 
+const startServer = () => {
+  server.listen(process.env.PORT || 5000, () => {
+    console.log(`Server running on port ${process.env.PORT || 5000}`);
+  });
+};
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(async () => {
@@ -168,11 +174,10 @@ mongoose
       await Table.insertMany(TABLES_SEED);
       console.log("18 tables seeded");
     }
-
-    server.listen(process.env.PORT || 5000, () => {
-      console.log(`Server running on port ${process.env.PORT || 5000}`);
-    });
+    startServer();
   })
   .catch((err) => {
     console.log("MongoDB error:", err.message);
+    console.log("Starting server without MongoDB for testing...");
+    startServer();
   });

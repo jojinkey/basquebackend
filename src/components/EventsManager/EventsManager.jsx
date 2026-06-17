@@ -20,6 +20,15 @@ const emptyEvent = () => ({
     { id: "couples", label: "Couples", price: 1199 },
   ],
   vip_packages: [],
+  custom_styles: {
+    title_font: "'Cinzel Decorative', serif",
+    title_size: "3.5rem",
+    text_color: "#f8ebcb",
+    tagline_color: "rgba(248, 235, 203, 0.65)",
+    accent_color: "#c8852a",
+    overlay_color: "#0a0603",
+    overlay_opacity: 0.82
+  }
 });
 
 // ─── STATUS BADGE ────────────────────────────────────────────────────────────
@@ -133,6 +142,16 @@ export default function EventsManager() {
   // ─── FORM FIELD HELPERS ─────────────────────────────────────────────────────
   const setField = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
+  const setStyleField = (key, val) => {
+    setForm((prev) => ({
+      ...prev,
+      custom_styles: {
+        ...(prev.custom_styles || {}),
+        [key]: val,
+      },
+    }));
+  };
+
   const updateTicketType = (index, key, val) => {
     setForm((prev) => {
       const arr = [...prev.ticket_types];
@@ -192,6 +211,15 @@ export default function EventsManager() {
   // ─── OPEN EDIT FORM ─────────────────────────────────────────────────────────
   const handleEdit = (event) => {
     setEditingEvent(event);
+    const defaults = {
+      title_font: "'Cinzel Decorative', serif",
+      title_size: "3.5rem",
+      text_color: "#f8ebcb",
+      tagline_color: "rgba(248, 235, 203, 0.65)",
+      accent_color: "#c8852a",
+      overlay_color: "#0a0603",
+      overlay_opacity: 0.82
+    };
     setForm({
       title: event.title || "",
       tagline: event.tagline || "",
@@ -204,6 +232,7 @@ export default function EventsManager() {
       is_published: event.is_published || false,
       ticket_types: event.ticket_types || [],
       vip_packages: event.vip_packages || [],
+      custom_styles: { ...defaults, ...(event.custom_styles || {}) },
     });
     setError("");
     setSuccess("");
@@ -416,6 +445,88 @@ export default function EventsManager() {
                 <span className="evtImagePreviewLabel">Preview</span>
               </div>
             )}
+          </div>
+
+          {/* Theme & Styling */}
+          <div className="evtSection">
+            <p className="evtSectionLabel">THEME & STYLING</p>
+            <div className="evtGrid2">
+              <div className="evtFormGroup">
+                <label className="evtLabel">Title Font Family</label>
+                <select 
+                  className="evtSelect" 
+                  value={form.custom_styles?.title_font || "'Cinzel Decorative', serif"}
+                  onChange={(e) => setStyleField("title_font", e.target.value)}
+                >
+                  <option value="'Cinzel Decorative', serif">Cinzel Decorative (Elegant Serif)</option>
+                  <option value="'Cinzel', serif">Cinzel (Classic Serif)</option>
+                  <option value="'Playfair Display', serif">Playfair Display (Bespoke Editorial)</option>
+                  <option value="'Cormorant Garamond', serif">Cormorant Garamond (Fine Dining)</option>
+                  <option value="'Montserrat', sans-serif">Montserrat (Modern Clean)</option>
+                  <option value="'Outfit', sans-serif">Outfit (Premium Rounded)</option>
+                  <option value="'Jost', sans-serif">Jost (Minimalist Tech)</option>
+                </select>
+              </div>
+              <div className="evtFormGroup">
+                <label className="evtLabel">Title Font Size</label>
+                <select 
+                  className="evtSelect" 
+                  value={form.custom_styles?.title_size || "3.5rem"}
+                  onChange={(e) => setStyleField("title_size", e.target.value)}
+                >
+                  <option value="2.5rem">Medium (2.5rem)</option>
+                  <option value="3.5rem">Large (3.5rem)</option>
+                  <option value="4.5rem">Extra Large (4.5rem)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="evtGrid2" style={{ marginTop: '1.25rem' }}>
+              <div className="evtFormGroup">
+                <label className="evtLabel">Title & Text Color</label>
+                <div className="evtColorPickerWrap">
+                  <input type="color" className="evtColorInput" value={form.custom_styles?.text_color || "#f8ebcb"} onChange={(e) => setStyleField("text_color", e.target.value)} />
+                  <input type="text" className="evtInput" style={{ flex: 1, padding: '0.4rem 0.65rem' }} value={form.custom_styles?.text_color || "#f8ebcb"} onChange={(e) => setStyleField("text_color", e.target.value)} />
+                </div>
+              </div>
+              <div className="evtFormGroup">
+                <label className="evtLabel">Tagline Text Color</label>
+                <div className="evtColorPickerWrap">
+                  <input type="color" className="evtColorInput" value={form.custom_styles?.tagline_color || "rgba(248, 235, 203, 0.65)"} onChange={(e) => setStyleField("tagline_color", e.target.value)} />
+                  <input type="text" className="evtInput" style={{ flex: 1, padding: '0.4rem 0.65rem' }} value={form.custom_styles?.tagline_color || "rgba(248, 235, 203, 0.65)"} onChange={(e) => setStyleField("tagline_color", e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="evtGrid2" style={{ marginTop: '1.25rem' }}>
+              <div className="evtFormGroup">
+                <label className="evtLabel">Accent / Gold Color</label>
+                <div className="evtColorPickerWrap">
+                  <input type="color" className="evtColorInput" value={form.custom_styles?.accent_color || "#c8852a"} onChange={(e) => setStyleField("accent_color", e.target.value)} />
+                  <input type="text" className="evtInput" style={{ flex: 1, padding: '0.4rem 0.65rem' }} value={form.custom_styles?.accent_color || "#c8852a"} onChange={(e) => setStyleField("accent_color", e.target.value)} />
+                </div>
+              </div>
+              <div className="evtFormGroup">
+                <label className="evtLabel">Overlay Color</label>
+                <div className="evtColorPickerWrap">
+                  <input type="color" className="evtColorInput" value={form.custom_styles?.overlay_color || "#0a0603"} onChange={(e) => setStyleField("overlay_color", e.target.value)} />
+                  <input type="text" className="evtInput" style={{ flex: 1, padding: '0.4rem 0.65rem' }} value={form.custom_styles?.overlay_color || "#0a0603"} onChange={(e) => setStyleField("overlay_color", e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="evtFormGroup" style={{ marginTop: '1.25rem' }}>
+              <label className="evtLabel">Overlay Opacity: {Math.round((form.custom_styles?.overlay_opacity || 0.82) * 100)}%</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="1" 
+                step="0.01" 
+                className="evtSlider" 
+                value={form.custom_styles?.overlay_opacity || 0.82} 
+                onChange={(e) => setStyleField("overlay_opacity", Number(e.target.value))} 
+              />
+            </div>
           </div>
 
           {/* Payment */}
