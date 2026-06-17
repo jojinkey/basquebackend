@@ -57,24 +57,28 @@ export const tablesApi = {
     const { data: ords, error: ordersError } = await supabase
       .from("orders")
       .select(
-        "id, session_id, stage, subtotal, created_at, table_sessions(table_id), order_items(quantity, unit_price, menu_items(name))"
+        "id, session_id, stage, subtotal, created_at, kitchen_started_at, table_sessions(table_id), order_items(quantity, unit_price, menu_items(name))"
       )
       .neq("stage", "served");
 
     if (ordersError) throw ordersError;
 
     (ords || [])
-      .filter((o) => !isDemoId(o.id))
+      .filter((o) => !isDemoId(o.id) && o.stage !== "pending_approval")
       .forEach((o) => {
         const tableId = o.table_sessions?.table_id;
         if (!tableId) return;
+
+        // Only map the order as active if it matches the table's current active session
+        const table = rows.find((t) => t.id === tableId);
+        if (!table || o.session_id !== table.current_session) return;
 
         if (!ordersByTable[tableId]) ordersByTable[tableId] = [];
 
         ordersByTable[tableId].push({
           _id: o.id,
           id: o.id,
-          status: stageToUi(o.stage),
+          status: (o.kitchen_started_at && o.stage === "placed") ? "preparing" : stageToUi(o.stage),
           total: o.subtotal,
           createdAt: o.created_at,
           items: (o.order_items || []).map((i) => ({
@@ -117,7 +121,9 @@ export const tablesApi = {
           tableName: `Table ${t.id}`,
           section: t.sections?.label || "",
           pax: t.capacity,
-          status: hasRealOrders ? "seated" : isDemoSession ? "available" : t.status,
+          status: (t.status === "needs_bussing" || t.status === "reserved")
+            ? t.status
+            : (hasRealOrders ? "seated" : isDemoSession ? "available" : t.status),
           current_session: isDemoSession ? null : t.current_session,
           guest: isDemoSession ? null : t.session?.guest_name || null,
           isVip: isDemoSession ? false : t.session?.is_vip || false,
@@ -155,7 +161,7 @@ export const tablesApi = {
       supabase
         .from("orders")
         .select(
-          "id, session_id, stage, subtotal, created_at, table_sessions(table_id), order_items(id, quantity, unit_price, menu_items(name))"
+          "id, session_id, stage, subtotal, created_at, kitchen_started_at, table_sessions(table_id), order_items(id, quantity, unit_price, menu_items(name))"
         )
         .eq("table_sessions.table_id", tableId)
         .neq("stage", "served"),
@@ -170,11 +176,11 @@ export const tablesApi = {
     sessionData = sessRes.data;
 
     activeOrders = (ordRes.data || [])
-      .filter((o) => !isDemoId(o.id))
+      .filter((o) => !isDemoId(o.id) && o.session_id === table.current_session && o.stage !== "pending_approval")
       .map((o) => ({
         _id: o.id,
         id: o.id,
-        status: stageToUi(o.stage),
+        status: (o.kitchen_started_at && o.stage === "placed") ? "preparing" : stageToUi(o.stage),
         total: o.subtotal,
         createdAt: o.created_at,
         items: (o.order_items || []).map((i) => ({
@@ -204,7 +210,9 @@ export const tablesApi = {
         tableName: `Table ${table.id}`,
         section: table.sections?.label || "",
         pax: table.capacity,
-        status: hasRealOrders ? "seated" : isDemoSession ? "available" : table.status,
+        status: (table.status === "needs_bussing" || table.status === "reserved")
+          ? table.status
+          : (hasRealOrders ? "seated" : isDemoSession ? "available" : table.status),
         guest: isDemoSession ? null : sessionData?.guest_name || null,
         isVip: isDemoSession ? false : sessionData?.is_vip || false,
         seatedAt: isDemoSession ? null : sessionData?.created_at || null,
@@ -233,6 +241,13 @@ export const tablesApi = {
     const { status, guest, isVip, performer } = body;
 
     if (status === "seated") {
+      // Close any existing open sessions for this table to prevent orphans
+      await supabase
+        .from("table_sessions")
+        .update({ is_active: false, left_at: new Date().toISOString() })
+        .eq("table_id", tableId)
+        .is("left_at", null);
+
       const { data: session, error: sessErr } = await supabase
         .from("table_sessions")
         .insert({
@@ -264,7 +279,7 @@ export const tablesApi = {
       return { data };
     }
 
-    if (status === "available") {
+    if (status === "available" || status === "needs_bussing") {
       const { data: tbl } = await supabase
         .from("tables")
         .select("current_session")
@@ -276,14 +291,14 @@ export const tablesApi = {
           .from("table_sessions")
           .update({
             is_active: false,
-            closed_at: new Date().toISOString(),
+            left_at: new Date().toISOString(),
           })
           .eq("id", tbl.current_session);
       }
 
       const { data, error } = await supabase
         .from("tables")
-        .update({ status: "available", current_session: null })
+        .update({ status, current_session: null })
         .eq("id", tableId)
         .select()
         .single();
@@ -291,7 +306,7 @@ export const tablesApi = {
       if (error) throw error;
 
       _auditLog("table_status_change", "table", tableId, performer, {
-        to: "available",
+        to: status,
       });
 
       return { data };
@@ -321,7 +336,7 @@ export const ordersApi = {
     let q = supabase
       .from("orders")
       .select(
-        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, table_sessions(table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))"
+        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, kitchen_started_at, table_sessions(table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))"
       )
       .order("created_at", { ascending: false });
 
@@ -355,11 +370,40 @@ export const ordersApi = {
       .update(updates)
       .eq("id", id)
       .select(
-        "id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, table_sessions(table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))"
+        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, kitchen_started_at, table_sessions(id, table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))"
       )
       .single();
 
     if (error) throw error;
+
+    // If order is approved (changed to 'placed'), activate the table session and mark table seated
+    if (stage === "placed" && data?.table_sessions) {
+      const sessionId = data.table_sessions.id;
+      const tableId = data.table_sessions.table_id;
+
+      if (sessionId && tableId) {
+        // Fetch the session to check if it's already closed
+        const { data: session } = await supabase
+          .from("table_sessions")
+          .select("left_at")
+          .eq("id", sessionId)
+          .maybeSingle();
+
+        if (session && !session.left_at) {
+          // 1. Activate session
+          await supabase
+            .from("table_sessions")
+            .update({ is_active: true })
+            .eq("id", sessionId);
+
+          // 2. Set table occupied
+          await supabase
+            .from("tables")
+            .update({ status: "seated", current_session: sessionId })
+            .eq("id", tableId);
+        }
+      }
+    }
 
     return { data: _shapeOrder(data) };
   },
@@ -384,13 +428,14 @@ export const ordersApi = {
 };
 
 function _shapeOrder(o) {
+  const isPreparing = o.kitchen_started_at && !o.ready_at && !o.served_at && o.stage === "placed";
   return {
     _id: o.id,
     id: o.id,
     sessionId: o.session_id,
     tableId: o.table_sessions?.table_id || "",
     tableName: `Table ${o.table_sessions?.table_id || ""}`,
-    status: stageToUi(o.stage),
+    status: isPreparing ? "preparing" : stageToUi(o.stage),
     total: o.subtotal,
     createdAt: o.created_at,
     notes: o.notes,

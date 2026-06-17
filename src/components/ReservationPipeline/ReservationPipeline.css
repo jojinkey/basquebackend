@@ -1,154 +1,387 @@
-.pipelinePage {
-  max-width: 1200px;
+/* ── Reservation Pipeline Page ────────────────────────────── */
+.resPipelinePage {
+  width: 100%;
+  max-width: 100%;
 }
 
-.pipelineBoard {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  align-items: start;
+/* ── Split Layout Container ────────────────────────────────── */
+.resSplitLayout {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  height: calc(100vh - 190px);
+  min-height: 480px;
+  align-items: stretch;
+  overflow: hidden;
 }
 
-@media (max-width: 1000px) {
-  .pipelineBoard {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .pipelineBoard {
-    grid-template-columns: 1fr;
-  }
-}
-
-.pipelineCol {
-  background: rgba(253, 250, 245, 0.6);
-  border: 1px solid #E2D9CA;
-  border-radius: 3px;
-  min-height: 200px;
+/* ── Master Pane (Left Column) ──────────────────────────────── */
+.resMasterPane {
+  width: 380px;
+  min-width: 340px;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.pipelineColHeader {
+.resStageTabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.resStageTab {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 2px solid transparent;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #E2D9CA;
+  border-radius: 0px; /* Sharp corners */
+  background: transparent;
   font-family: 'Cinzel', serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
   color: #8C7B6A;
-  background: rgba(253, 250, 245, 0.95);
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.col-new       { border-bottom-color: #4A7AB5; color: #4A7AB5; }
-.col-contacted { border-bottom-color: #C8852A; color: #C8852A; }
-.col-confirmed { border-bottom-color: #48B076; color: #48B076; }
-.col-declined  { border-bottom-color: #C04040; color: #C04040; }
+.resStageTab:hover {
+  border-color: #C8852A;
+  color: #C8852A;
+}
 
-.pipelineColBadge {
-  background: currentColor;
-  color: #FDFAF5;
-  font-size: 0.6rem;
-  font-family: 'Jost', sans-serif;
+.resStageTabActive {
+  background: #FEFCF8;
+  border-color: #C8852A;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
 }
 
-.pipelineColBody {
+.resStageTabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 0px; /* Sharp */
+  background: #E2D9CA;
+  color: #1A1008;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.resStageTabActive .resStageTabBadge {
+  background: #C8852A;
+  color: #FDFAF5;
+}
+
+/* ── Row List Container ─────────────────────────────────────── */
+.resRowList {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.75rem;
-  flex: 1;
+  gap: 0.5rem;
+  min-height: 0;
 }
 
-/* Reservation Card */
-.resCard {
+/* Custom Scrollbar for Master List */
+.resRowList::-webkit-scrollbar {
+  width: 4px;
+}
+.resRowList::-webkit-scrollbar-track {
+  background: rgba(226, 217, 202, 0.2);
+}
+.resRowList::-webkit-scrollbar-thumb {
+  background: #E2D9CA;
+}
+
+/* ── Master Card ────────────────────────────────────────────── */
+.resMasterCard {
+  width: 100%;
   background: #FDFAF5;
   border: 1px solid #E2D9CA;
   border-left: 4px solid #C8852A;
-  border-radius: 2px;
-  padding: 0.875rem;
+  padding: 0.8rem 1rem;
+  text-align: left;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.resCardTop {
+.resMasterCard:hover {
+  border-color: #C8852A;
+  background: #FEFCF8;
+  transform: translateX(2px);
+}
+
+.resMasterActive {
+  border-color: #C8852A !important;
+  background: #FEFCF8 !important;
+  box-shadow: 0 4px 15px rgba(200, 133, 42, 0.08);
+}
+
+.resCardHeader {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
-.resServiceLabel {
-  font-family: 'Cinzel', serif;
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
-  font-weight: 600;
-}
-
-.resTimeAgo {
-  font-family: 'Jost', sans-serif;
-  font-size: 0.68rem;
-  color: #8C7B6A;
-}
-
-.resGuestName {
+.resCardName {
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.1rem;
   font-weight: 600;
   color: #1A1008;
 }
 
+.resCardAgo {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
+  color: #BDB0A4;
+  white-space: nowrap;
+}
+
 .resCardMeta {
   display: flex;
+  gap: 0.75rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.74rem;
+  color: #8C7B6A;
+}
+
+.resCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.15rem;
+}
+
+.resCardTag {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  border: 1.5px solid;
+  border-radius: 0px;
+}
+
+.resCardTimeSlot {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: #C8852A;
+  font-weight: 500;
+}
+
+/* ── Detail Pane (Right Column) ─────────────────────────────── */
+.resDetailPane {
+  flex: 1;
+  background: #FEFCF8;
+  border: 1px solid rgba(226, 217, 202, 0.7);
+  box-shadow: 0 4px 15px rgba(44, 26, 14, 0.04);
+  padding: 1.5rem;
+  overflow-y: auto;
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+
+.resDetailEmpty {
+  display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #8C7B6A;
+  text-align: center;
+  opacity: 0.65;
+  padding: 2rem;
 }
 
-.resMeta {
+.resDetailEmptyIcon {
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.resDetailEmptyText {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+/* ── Detail Content ─────────────────────────────────────────── */
+.resDetailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.resDetailHeader {
+  border-left: 3px solid #C8852A;
+  padding-left: 1rem;
+}
+
+.resDetailService {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.resDetailName {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  color: #1A1008;
+  margin: 0.25rem 0;
+}
+
+.resDetailTimeAgo {
   font-family: 'Jost', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   color: #8C7B6A;
 }
 
-.resNote {
-  font-family: 'Jost', sans-serif;
-  font-size: 0.75rem;
-  color: #8C7B6A;
-  font-style: italic;
+/* Grid Fields */
+.resDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-.resExpandBtn {
+.resDetailField {
+  background: #FDFAF5;
+  border: 1px solid rgba(226, 217, 202, 0.6);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.resDetailField.span2 {
+  grid-column: span 2;
+}
+
+.resDetailLabel {
   font-family: 'Cinzel', serif;
   font-size: 0.58rem;
-  letter-spacing: 0.08em;
-  color: #C8852A;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px 0;
-  text-align: left;
-  margin-top: 4px;
+  letter-spacing: 0.12em;
+  color: #8C7B6A;
+  font-weight: 700;
 }
 
-.resActions {
-  overflow: hidden;
+.resDetailValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1A1008;
+}
+
+/* Notes Section */
+.resDetailNotesSection {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.25rem;
 }
 
-.resActionBtns {
+.resDetailNotesInputWrapper {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
 }
+
+.resDetailNotesTextarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 120px;
+  background: #FEFCF8;
+  border: 1px solid #E2D9CA;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #1A1008;
+  padding: 0.6rem;
+  resize: vertical;
+}
+
+.resDetailNotesTextarea:focus {
+  outline: none;
+  border-color: #C8852A;
+}
+
+.resSaveNoteBtn {
+  font-size: 0.65rem !important;
+  padding: 0.4rem 1rem !important;
+}
+
+/* Actions Section */
+.resDetailActions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.resDetailActionGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.resActionBtn {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.7rem !important;
+}
+
+.resDetailContactGroup {
+  display: flex;
+  gap: 0.5rem;
+  border-top: 1px dashed #E2D9CA;
+  padding-top: 1rem;
+}
+
+.resContactBtn {
+  flex: 1;
+  padding: 0.55rem 1rem !important;
+  font-size: 0.65rem !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  text-decoration: none;
+}
+
+.resWaBtn {
+  color: #48B076 !important;
+  border-color: rgba(72,176,118,0.3) !important;
+}
+.resWaBtn:hover {
+  background: rgba(72,176,118,0.05) !important;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .resSplitLayout {
+    flex-direction: column;
+    height: auto;
+  }
+  .resMasterPane {
+    width: 100%;
+  }
+  .resRowList {
+    max-height: 350px;
+  }
+}
+

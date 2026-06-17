@@ -15,7 +15,7 @@ const PERMISSIONS = {
   ],
   restaurant_manager: [
     "floor_view", "floor_manage", "orders_view", "orders_manage",
-    "kitchen_view", "kitchen_manage", "waitlist_view", "waitlist_manage",
+    "kitchen_view", "waitlist_view", "waitlist_manage",
     "reservations_view", "reservations_manage", "service_alerts",
     "insights", "menu_availability", "audit_export", "table_orders", "audit_reports",
   ],

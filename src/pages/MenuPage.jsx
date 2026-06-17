@@ -276,7 +276,15 @@ const DEFAULT_IMAGE =
   'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop'
 
 function MenuPage() {
-  const { tableId } = useParams()
+  const { tableId: rawTableId } = useParams()
+  const tableId = useMemo(() => {
+    const activeId = rawTableId || localStorage.getItem('basque_current_table_id') || 'digital-menu';
+    if (typeof activeId === 'string') {
+      const match = activeId.match(/^([tT])(\d+)$/)
+      if (match) return 'T' + match[2]
+    }
+    return activeId
+  }, [rawTableId])
 
   const [cart, setCart] = useState([])
   const [activeCategory, setActiveCategory] = useState(
@@ -288,12 +296,13 @@ function MenuPage() {
   const [isRequestingBill, setIsRequestingBill] = useState(false)
 
   useEffect(() => {
-    if (tableId) {
+    if (tableId && tableId !== 'digital-menu') {
       const formattedTable = tableId
         .replaceAll('-', ' ')
         .replace(/\b\w/g, char => char.toUpperCase())
 
       localStorage.setItem('basque_current_table', formattedTable)
+      localStorage.setItem('basque_current_table_id', tableId)
       setActiveTable(formattedTable)
     } else {
       const persistedTable = localStorage.getItem('basque_current_table')

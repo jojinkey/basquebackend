@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "../../lib/supabase"; // Make sure this path matches your project structure
+import { toast } from "react-hot-toast";
+import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
 import "./ReservationPipeline.css";
 
-// Updated stages to match your Supabase PostgreSQL ENUM exactly
 const STAGES = ["new", "reviewing", "accepted", "declined"];
 
 const STAGE_LABELS = {
   new: "New Leads",
-  reviewing: "Reviewing / Contacted",
-  accepted: "Accepted / Confirmed",
+  reviewing: "Reviewing",
+  accepted: "Confirmed",
   declined: "Declined",
 };
 
@@ -21,7 +21,6 @@ const SERVICE_COLORS = {
   golf_dining: "#7A5AB5",
 };
 
-// Helper to translate Supabase modal sources to your Kanban labels
 const getServiceType = (sourceModal) => {
   switch (sourceModal) {
     case 'TableBookingModal': return 'table';
@@ -48,135 +47,225 @@ function timeAgo(date) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function ReservationCard({ reservation, onStageChange, canManage }) {
-  const [expanded, setExpanded] = useState(false);
-  const [note, setNote] = useState(reservation.manager_notes || "");
-  const { user } = useAuth();
+function ReservationCard({ reservation, isActive, onClick }) {
+  const serviceKey = getServiceType(reservation.source_modal);
+  const color = SERVICE_COLORS[serviceKey] || "#8C7B6A";
+
+  return (
+    <button
+      className={`resMasterCard ${isActive ? "resMasterActive" : ""}`}
+      style={{ borderLeftColor: color }}
+      onClick={onClick}
+    >
+      <div className="resCardHeader">
+        <span className="resCardName">{reservation.name}</span>
+        <span className="resCardAgo">{timeAgo(reservation.created_at)}</span>
+      </div>
+      <div className="resCardMeta">
+        <span>📅 {reservation.date || "No Date"}</span>
+        <span>👥 {reservation.guests || 1} pax</span>
+      </div>
+      <div className="resCardFooter">
+        <span className="resCardTag" style={{ color, borderColor: `${color}33` }}>
+          {SERVICE_LABELS[serviceKey]}
+        </span>
+        {reservation.time_slot && (
+          <span className="resCardTimeSlot">🕐 {reservation.time_slot}</span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function ReservationDetail({ reservation, canManage, onStageChange }) {
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    setNote(reservation?.manager_notes || "");
+  }, [reservation]);
+
+  if (!reservation) {
+    return (
+      <div className="resDetailEmpty">
+        <div className="resDetailEmptyIcon">📖</div>
+        <p className="resDetailEmptyText">Select a reservation to view details</p>
+      </div>
+    );
+  }
+
+  const sendWhatsAppNotification = (stage) => {
+    const guestName = reservation.name || "Guest";
+    const phone = (reservation.phone || "").replace(/\D/g, "");
+    if (!phone) {
+      toast.error("No phone number found for this reservation.");
+      return;
+    }
+
+    const date = reservation.date || "";
+    const time = reservation.time_slot || "";
+    const guests = reservation.guests || 1;
+    const serviceKey = getServiceType(reservation.source_modal);
+    const serviceName = SERVICE_LABELS[serviceKey] || "Reservation";
+
+    let message = "";
+    if (stage === "accepted") {
+      message = `Hi *${guestName}*,\n\nYour *${serviceName}* reservation at *Basque Dehradun* has been *CONFIRMED*! ✅\n\n📅 *Date*: ${date}\n🕐 *Time*: ${time ? time : "Not Specified"}\n👥 *Guests*: ${guests} pax\n\nWe look forward to hosting you!\n\nWarm regards,\n*Basque Dehradun*`;
+    } else if (stage === "declined") {
+      message = `Hi *${guestName}*,\n\nThank you for reaching out to *Basque Dehradun*.\n\nWe regret to inform you that we are *unable to accommodate* your *${serviceName}* reservation request for ${date}${time ? ` at ${time}` : ""} due to being fully booked. ✕\n\nWarm regards,\n*Basque Dehradun*`;
+    }
+
+    const finalPhone = phone.startsWith("91") ? phone : `91${phone}`;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const waUrl = isMobile
+      ? `whatsapp://send?phone=${finalPhone}&text=${encodeURIComponent(message)}`
+      : `https://web.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(message)}`;
+
+    window.open(waUrl, "_blank");
+  };
 
   const handleStage = async (stage) => {
     try {
       const { error } = await supabase
         .from('reservations')
-        .update({ 
-          stage: stage,
-          manager_notes: note 
-        })
-        .eq('id', reservation.id); // Supabase uses 'id', not '_id'
-        
+        .update({ stage, manager_notes: note })
+        .eq('id', reservation.id);
+
       if (error) throw error;
-      onStageChange(); // trigger UI refresh or rely on Realtime
-    } catch (e) { 
-      console.error("Error updating stage:", e); 
+      toast.success(`Moved to ${STAGE_LABELS[stage] || stage}`);
+
+      if (stage === "accepted" || stage === "declined") {
+        sendWhatsAppNotification(stage);
+      }
+
+      onStageChange();
+    } catch (e) {
+      console.error("Error updating stage:", e);
+      toast.error("Failed to update reservation stage.");
+    }
+  };
+
+  const handleSaveNote = async () => {
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .update({ manager_notes: note })
+        .eq('id', reservation.id);
+      if (error) throw error;
+      toast.success("Manager notes saved");
+      onStageChange();
+    } catch (e) {
+      console.error("Save note failed:", e);
+      toast.error("Failed to save note");
     }
   };
 
   const serviceKey = getServiceType(reservation.source_modal);
   const color = SERVICE_COLORS[serviceKey] || "#8C7B6A";
-
-  // Parse Supabase JSONB details
   const details = reservation.details || {};
 
   return (
-    <motion.div
-      className="resCard"
-      style={{ borderLeftColor: color }}
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-    >
-      <div className="resCardTop">
-        <span className="resServiceLabel" style={{ color }}>{SERVICE_LABELS[serviceKey]}</span>
-        <span className="resTimeAgo">{timeAgo(reservation.created_at)}</span>
+    <div className="resDetailContent">
+      <div className="resDetailHeader" style={{ borderLeftColor: color }}>
+        <span className="resDetailService" style={{ color }}>{SERVICE_LABELS[serviceKey]}</span>
+        <h2 className="resDetailName">{reservation.name}</h2>
+        <span className="resDetailTimeAgo">Received {timeAgo(reservation.created_at)}</span>
       </div>
 
-      <h3 className="resGuestName">{reservation.name}</h3>
-
-      <div className="resCardMeta">
-        {reservation.phone && <p className="resMeta">📞 {reservation.phone}</p>}
-        {reservation.date && <p className="resMeta">📅 {reservation.date}{reservation.time_slot ? `, ${reservation.time_slot}` : ""}</p>}
-        {reservation.guests && <p className="resMeta">👥 {reservation.guests} guests</p>}
-      </div>
-
-      {details.occasion && (
-        <p className="resNote">{details.occasion}</p>
-      )}
-
-      <button className="resExpandBtn" onClick={() => setExpanded((p) => !p)}>
-        {expanded ? "Hide actions ▲" : "Show actions ▼"}
-      </button>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            className="resActions"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-          >
-            <input
-              className="formInput"
-              placeholder="Add a manager note (optional)..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              style={{ fontSize: "0.78rem", marginBottom: "0.5rem" }}
-            />
-            <div className="resActionBtns">
-              {reservation.stage === "new" && canManage && (
-                <button className="btnSecondary" style={{ fontSize: "0.62rem" }}
-                  onClick={() => handleStage("reviewing")}>Mark Contacted</button>
-              )}
-              {reservation.stage === "reviewing" && canManage && (
-                <>
-                  <button className="btnPrimary" style={{ fontSize: "0.62rem" }}
-                    onClick={() => handleStage("accepted")}>Confirm ✓</button>
-                  <button className="btnDanger" style={{ fontSize: "0.62rem" }}
-                    onClick={() => handleStage("declined")}>Decline ✕</button>
-                </>
-              )}
-              {reservation.stage === "accepted" && (
-                <button className="btnPrimary" style={{ fontSize: "0.62rem", background: "#48B076" }}
-                  onClick={() => handleStage("completed")}>Check In ✓</button>
-              )}
-              {reservation.phone && (
-                <a
-                  href={`tel:${reservation.phone}`}
-                  className="btnSecondary"
-                  style={{ fontSize: "0.62rem", padding: "0.4rem 0.75rem", display: "inline-block", textAlign: "center" }}
-                >
-                  📞 Call
-                </a>
-              )}
-              {reservation.phone && (
-                <a
-                  href={`https://wa.me/${reservation.phone.replace(/\D/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btnSecondary"
-                  style={{ fontSize: "0.62rem", padding: "0.4rem 0.75rem", display: "inline-block", textAlign: "center", color: "#48B076", borderColor: "rgba(72,176,118,0.3)" }}
-                >
-                  WhatsApp
-                </a>
-              )}
-            </div>
-          </motion.div>
+      <div className="resDetailGrid">
+        <div className="resDetailField">
+          <label className="resDetailLabel">DATE</label>
+          <span className="resDetailValue">{reservation.date || "Not Specified"}</span>
+        </div>
+        <div className="resDetailField">
+          <label className="resDetailLabel">TIME SLOT</label>
+          <span className="resDetailValue">{reservation.time_slot || "Not Specified"}</span>
+        </div>
+        <div className="resDetailField">
+          <label className="resDetailLabel">GUESTS</label>
+          <span className="resDetailValue">{reservation.guests ? `${reservation.guests} pax` : "1 pax"}</span>
+        </div>
+        <div className="resDetailField">
+          <label className="resDetailLabel">PHONE</label>
+          <span className="resDetailValue">{reservation.phone || "No Phone"}</span>
+        </div>
+        {details.occasion && (
+          <div className="resDetailField span2">
+            <label className="resDetailLabel">OCCASION</label>
+            <span className="resDetailValue">🎉 {details.occasion}</span>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
-      {reservation.manager_notes && (
-        <p className="resNote" style={{ marginTop: "0.4rem", borderTop: "1px solid #F0EAE0", paddingTop: "0.4rem" }}>
-          Note: {reservation.manager_notes}
-        </p>
-      )}
-    </motion.div>
+      <div className="resDetailNotesSection">
+        <label className="resDetailLabel">MANAGER NOTES</label>
+        <div className="resDetailNotesInputWrapper">
+          <textarea
+            className="resDetailNotesTextarea"
+            placeholder="Add reservation notes (table preference, guest allergies, special details)..."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <button className="btnSecondary resSaveNoteBtn" onClick={handleSaveNote}>
+            Save Note
+          </button>
+        </div>
+      </div>
+
+      <div className="resDetailActions">
+        <div className="resDetailActionGroup">
+          {(reservation.stage === "new" || reservation.stage === "reviewing") && canManage && (
+            <>
+              <button className="btnPrimary resActionBtn" onClick={() => handleStage("accepted")}>
+                ✓ Confirm Reservation
+              </button>
+              <button className="btnDanger resActionBtn" onClick={() => handleStage("declined")}>
+                ✕ Decline Booking
+              </button>
+              {reservation.stage === "new" && (
+                <button className="btnSecondary resActionBtn" onClick={() => handleStage("reviewing")}>
+                  Mark Contacted
+                </button>
+              )}
+            </>
+          )}
+          {reservation.stage === "accepted" && (
+            <button
+              className="btnPrimary resActionBtn"
+              style={{ background: "#48B076" }}
+              onClick={() => handleStage("completed")}
+            >
+              ✓ Check In Guest
+            </button>
+          )}
+        </div>
+
+        {reservation.phone && (
+          <div className="resDetailContactGroup">
+            <a href={`tel:${reservation.phone}`} className="btnSecondary resContactBtn">
+              📞 Call Guest
+            </a>
+            <a
+              href={`https://wa.me/${reservation.phone.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btnSecondary resContactBtn resWaBtn"
+            >
+              💬 WhatsApp Notify
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
-export default function ReservationPipeline() {
+export default function ReservationPipeline({ onNewCount }) {
   const { can } = useAuth();
   const [reservations, setReservations] = useState([]);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [activeStage, setActiveStage] = useState("new");
+  const [selectedId, setSelectedId] = useState(null);
   const canManage = can("reservations_manage");
 
   const fetchAll = useCallback(async () => {
@@ -190,65 +279,69 @@ export default function ReservationPipeline() {
       if (error) throw error;
 
       setReservations(data || []);
-      
-      // Calculate stats locally from Supabase data
       setStats({
-        newLeads: data?.filter(r => r.stage === 'new').length || 0,
-        contacted: data?.filter(r => r.stage === 'reviewing').length || 0,
-        confirmed: data?.filter(r => r.stage === 'accepted').length || 0,
+        new: data?.filter(r => r.stage === 'new').length || 0,
+        reviewing: data?.filter(r => r.stage === 'reviewing').length || 0,
+        accepted: data?.filter(r => r.stage === 'accepted').length || 0,
         declined: data?.filter(r => r.stage === 'declined').length || 0,
       });
-
-    } catch (e) { 
-      console.error("Error fetching reservations:", e); 
-    } finally { 
-      setLoading(false); 
+    } catch (e) {
+      console.error("Error fetching reservations:", e);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchAll();
 
-    // Supabase Realtime Subscription
     const channel = supabase
       .channel('reservations-pipeline')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'reservations' },
-        (payload) => {
-          setReservations((prev) => [payload.new, ...prev]);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'reservations' },
-        (payload) => {
-          setReservations((prev) => 
-            prev.map((r) => (r.id === payload.new.id ? payload.new : r))
-          );
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reservations' }, (payload) => {
+        setReservations((prev) => [payload.new, ...prev]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reservations' }, (payload) => {
+        setReservations((prev) =>
+          prev.map((r) => (r.id === payload.new.id ? payload.new : r))
+        );
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [fetchAll]);
 
-  // Recalculate stats whenever reservations state changes (keeps top chips live)
   useEffect(() => {
+    const newCount = reservations.filter(r => r.stage === 'new').length;
     setStats({
-      newLeads: reservations.filter(r => r.stage === 'new').length,
-      contacted: reservations.filter(r => r.stage === 'reviewing').length,
-      confirmed: reservations.filter(r => r.stage === 'accepted').length,
+      new: newCount,
+      reviewing: reservations.filter(r => r.stage === 'reviewing').length,
+      accepted: reservations.filter(r => r.stage === 'accepted').length,
       declined: reservations.filter(r => r.stage === 'declined').length,
     });
-  }, [reservations]);
+    if (onNewCount) onNewCount(newCount);
+  }, [reservations, onNewCount]);
 
   const byStage = (stage) => reservations.filter((r) => r.stage === stage);
 
+  const stageReservations = byStage(activeStage);
+
+  // Auto-select first item when stage or reservations change
+  useEffect(() => {
+    if (stageReservations.length > 0) {
+      const found = stageReservations.some(r => r.id === selectedId);
+      if (!found) {
+        setSelectedId(stageReservations[0].id);
+      }
+    } else {
+      setSelectedId(null);
+    }
+  }, [activeStage, reservations, selectedId, stageReservations]);
+
+  const stageColors = { new: "#4A7AB5", reviewing: "#C8852A", accepted: "#48B076", declined: "#C04040" };
+
   return (
-    <div className="pipelinePage">
+    <div className="resPipelinePage">
+      {/* Header */}
       <div className="dashPanelHeader">
         <div>
           <h2 className="dashPanelTitle">Reservation Pipeline</h2>
@@ -257,60 +350,69 @@ export default function ReservationPipeline() {
         <button className="btnSecondary" onClick={fetchAll}>Refresh</button>
       </div>
 
-      <div className="statsBar">
-        <div className="statChip">
-          <span className="statChipValue" style={{ color: "#4A7AB5" }}>{stats.newLeads}</span>
-          <span className="statChipLabel">NEW LEADS</span>
+      <div className="resSplitLayout">
+        {/* Left Master List */}
+        <div className="resMasterPane">
+          {/* Stage Pill Tabs */}
+          <div className="resStageTabs">
+            {STAGES.map((stage) => (
+              <button
+                key={stage}
+                className={`resStageTab ${activeStage === stage ? "resStageTabActive" : ""}`}
+                style={activeStage === stage ? { borderColor: stageColors[stage], color: stageColors[stage] } : {}}
+                onClick={() => setActiveStage(stage)}
+              >
+                {STAGE_LABELS[stage]}
+                <span
+                  className="resStageTabBadge"
+                  style={activeStage === stage ? { background: stageColors[stage] } : {}}
+                >
+                  {stats[stage] || 0}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="emptyState"><p className="emptyStateText">Loading pipeline...</p></div>
+          ) : (
+            <div className="resRowList">
+              <AnimatePresence mode="popLayout">
+                {stageReservations.length === 0 ? (
+                  <div className="emptyState" style={{ padding: "3rem 1rem" }}>
+                    <p className="emptyStateText">No {STAGE_LABELS[activeStage]} leads</p>
+                  </div>
+                ) : (
+                  stageReservations.map((r) => (
+                    <motion.div
+                      key={r.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <ReservationCard
+                        reservation={r}
+                        isActive={selectedId === r.id}
+                        onClick={() => setSelectedId(r.id)}
+                      />
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
-        <div className="statChip">
-          <span className="statChipValue" style={{ color: "#C8852A" }}>{stats.contacted}</span>
-          <span className="statChipLabel">CONTACTED</span>
-        </div>
-        <div className="statChip">
-          <span className="statChipValue" style={{ color: "#48B076" }}>{stats.confirmed}</span>
-          <span className="statChipLabel">CONFIRMED</span>
-        </div>
-        <div className="statChip">
-          <span className="statChipValue" style={{ color: "#C04040" }}>{stats.declined}</span>
-          <span className="statChipLabel">DECLINED</span>
+
+        {/* Right Detail Pane */}
+        <div className="resDetailPane">
+          <ReservationDetail
+            reservation={stageReservations.find(r => r.id === selectedId)}
+            canManage={canManage}
+            onStageChange={fetchAll}
+          />
         </div>
       </div>
-
-      {loading ? (
-        <div className="emptyState"><p className="emptyStateText">Loading pipeline...</p></div>
-      ) : (
-        <div className="pipelineBoard">
-          {STAGES.map((stage) => {
-            const cards = byStage(stage);
-            return (
-              <div key={stage} className={`pipelineCol pipelineCol-${stage}`}>
-                <div className={`pipelineColHeader col-${stage}`}>
-                  <span>{STAGE_LABELS[stage]}</span>
-                  <span className="pipelineColBadge">{cards.length}</span>
-                </div>
-                <div className="pipelineColBody">
-                  <AnimatePresence>
-                    {cards.length === 0 ? (
-                      <div className="emptyState" style={{ padding: "2rem 1rem" }}>
-                        <p className="emptyStateText" style={{ fontSize: "0.8rem" }}>No leads</p>
-                      </div>
-                    ) : (
-                      cards.map((r) => (
-                        <ReservationCard
-                          key={r.id}
-                          reservation={r}
-                          canManage={canManage}
-                          onStageChange={fetchAll}
-                        />
-                      ))
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

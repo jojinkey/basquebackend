@@ -110,6 +110,8 @@ export default function LoginPage() {
   return (
     <div className="loginBg">
       <div className="grainOverlay" />
+      <div className="bgGlow bgGlow1" />
+      <div className="bgGlow bgGlow2" />
 
       <motion.div
         className="loginCard"
@@ -117,6 +119,12 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
+        {/* Luxury corner ornaments */}
+        <div className="cardCorner corner-tl" />
+        <div className="cardCorner corner-tr" />
+        <div className="cardCorner corner-bl" />
+        <div className="cardCorner corner-br" />
+
         <div className="loginBrand">
           <p className="loginBrandName">B A S Q U E</p>
           <p className="loginBrandSub">MANAGER  OS</p>
@@ -140,10 +148,12 @@ export default function LoginPage() {
                 type="button"
                 className="quickLoginBtn"
                 onClick={() => handleQuickLogin(u)}
-                whileHover={{ y: -2, boxShadow: "0 6px 20px rgba(200,133,42,0.15)" }}
+                whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <span className="qlIcon">{u.icon}</span>
+                <div className="qlIconContainer">
+                  <span className="qlIcon">{u.icon}</span>
+                </div>
                 <span className="qlName">{u.name}</span>
                 <span className="qlRole">{u.label}</span>
                 <span className="qlDesc">{u.desc}</span>

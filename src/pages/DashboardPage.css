@@ -98,14 +98,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 2px;
+  padding: 0.65rem 0.8rem;
+  border-radius: 4px;
   color: rgba(245, 240, 232, 0.65);
   font-family: 'Cinzel', serif;
   font-size: 0.65rem;
   letter-spacing: 0.08em;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
   position: relative;
   border: none;
@@ -116,12 +116,32 @@
 .sidebarNavItem:hover {
   background: rgba(200, 133, 42, 0.12);
   color: #E8A84A;
+  transform: translateX(4px);
 }
 
 .sidebarNavItem.active {
-  background: rgba(200, 133, 42, 0.2);
+  background: rgba(200, 133, 42, 0.18);
   color: #C8852A;
-  border-left: 2px solid #C8852A;
+  padding-left: 1.1rem;
+}
+
+.sidebarNavItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3px;
+  background: #C8852A;
+  border-radius: 2px;
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebarNavItem.active::before {
+  opacity: 1;
+  transform: scaleY(1);
 }
 
 .navIcon {
@@ -191,6 +211,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: sticky;
+  bottom: 0;
+  background: #2C1A0E;
+  z-index: 2;
+  border-top: 1px solid rgba(200, 133, 42, 0.15);
 }
 
 .sidebarFooterBtn {
@@ -384,6 +409,7 @@
 /* === STATUS PILLS === */
 .statusPillNew { background: rgba(74, 122, 181, 0.15); color: #4A7AB5; }
 .statusPillPreparing { background: rgba(232, 168, 74, 0.15); color: #C8852A; }
+.statusPillPending { background: rgba(200, 133, 42, 0.15); color: #C8852A; }
 .statusPillServed { background: rgba(72, 176, 118, 0.15); color: #48B076; }
 .statusPillDeclined { background: rgba(192, 64, 64, 0.12); color: #C04040; }
 
@@ -400,55 +426,105 @@
 
 /* === BUTTONS === */
 .btnPrimary {
-  background: #C8852A;
+  background: linear-gradient(135deg, #C8852A 0%, #AA771C 100%);
   color: #FDFAF5;
   font-family: 'Cinzel', serif;
   font-size: 0.65rem;
   letter-spacing: 0.1em;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.25rem;
   border: none;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(200, 133, 42, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.btnPrimary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  opacity: 0;
+  transition: 0s;
+  pointer-events: none;
+}
+
+.btnPrimary:hover::after {
+  left: 125%;
+  opacity: 1;
+  transition: 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btnPrimary:hover {
-  background: #E8A84A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(200, 133, 42, 0.28);
+}
+
+.btnPrimary:active {
+  transform: translateY(0);
 }
 
 .btnSecondary {
-  background: transparent;
+  background: #FEFCF8;
   color: #8C7B6A;
   font-family: 'Cinzel', serif;
   font-size: 0.65rem;
   letter-spacing: 0.08em;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.25rem;
   border: 1px solid #E2D9CA;
-  border-radius: 2px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(44, 26, 14, 0.02);
 }
 
 .btnSecondary:hover {
   border-color: #C8852A;
   color: #C8852A;
+  background: rgba(200, 133, 42, 0.03);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(200, 133, 42, 0.08);
+}
+
+.btnSecondary:active {
+  transform: translateY(0);
 }
 
 .btnDanger {
-  background: transparent;
+  background: #FEFCF8;
   color: #C04040;
   font-family: 'Cinzel', serif;
   font-size: 0.65rem;
   letter-spacing: 0.08em;
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(192, 64, 64, 0.3);
-  border-radius: 2px;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid rgba(192, 64, 64, 0.25);
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(192, 64, 64, 0.02);
 }
 
 .btnDanger:hover {
-  background: rgba(192, 64, 64, 0.08);
+  background: linear-gradient(135deg, #C04040 0%, #A03030 100%);
+  color: #FEFCF8;
+  border-color: #C04040;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(192, 64, 64, 0.18);
+}
+
+.btnDanger:active {
+  transform: translateY(0);
 }
 
 /* === CARD BASE === */

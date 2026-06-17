@@ -1,30 +1,37 @@
+/* ── Kitchen Display Page ──────────────────────────────────── */
 .kdsPage {
-  max-width: 1200px;
+  width: 100%;
+}
+
+/* ── Split Layout Container ────────────────────────────────── */
+.kdsSplitLayout {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  height: calc(100vh - 200px);
+  min-height: 480px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* ── 4 Columns Layout (Master Grid) ─────────────────────────── */
+.kdsColumnsWrapper {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  min-height: 0;
 }
 
 .kdsColumns {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .kdsColumns {
-    grid-template-columns: 1fr;
-  }
-}
-
-.kdsColumn {
-  background: rgba(253, 250, 245, 0.6);
-  border: 1px solid #E2D9CA;
-  border-radius: 3px;
-  min-height: 300px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0 0.75rem 0.75rem;
-  transition: box-shadow 0.3s;
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+  gap: 0.65rem;
+  align-items: stretch;
+  min-width: 900px;
+  height: 100%;
+  min-height: 0;
 }
 
 .columnFlash {
@@ -34,289 +41,446 @@
 
 @keyframes colFlash {
   0%, 100% { box-shadow: 0 0 0 2px transparent; }
-  30%, 70% { box-shadow: 0 0 0 2px #4A7AB5; }
+  30%, 70%  { box-shadow: 0 0 0 2px #4A7AB5; }
+}
+
+/* ── Column ─────────────────────────────────────────────────── */
+.kdsColumn {
+  background: rgba(253, 250, 245, 0.4);
+  border: 1px solid #E2D9CA;
+  border-radius: 0px; /* Sharp corners */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .kdsColHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0.25rem;
+  padding: 0.5rem 0.75rem;
   border-bottom: 2px solid transparent;
   font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.15em;
   color: #8C7B6A;
-  position: sticky;
-  top: 0;
-  background: rgba(253, 250, 245, 0.95);
+  background: rgba(253, 250, 245, 0.97);
   z-index: 1;
+  flex-shrink: 0;
 }
 
-.kdsColHeaderNew    { border-bottom-color: #4A7AB5; color: #4A7AB5; }
+.kdsColHeaderNew       { border-bottom-color: #4A7AB5; color: #4A7AB5; }
 .kdsColHeaderPreparing { border-bottom-color: #C8852A; color: #C8852A; }
-.kdsColHeaderServed { border-bottom-color: #48B076; color: #48B076; }
+.kdsColHeaderReady     { border-bottom-color: #48B076; color: #48B076; }
+.kdsColHeaderServed    { border-bottom-color: #8C7B6A; color: #8C7B6A; }
 
 .kdsColBadge {
   background: currentColor;
   color: #FDFAF5;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-family: 'Jost', sans-serif;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 0px;
 }
 
-/* KDS Card */
-.kdsCard {
-  background: #FDFAF5;
-  border: 1px solid #E2D9CA;
-  border-radius: 3px;
-  padding: 0.875rem;
+.kdsColBody {
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  min-height: 0;
 }
 
-.kdsCard.status-new      { border-left: 3px solid #4A7AB5; }
-.kdsCard.status-preparing { border-left: 3px solid #C8852A; }
-.kdsCard.status-served   { border-left: 3px solid #48B076; opacity: 0.75; }
+/* Custom Scrollbars for KDS Columns */
+.kdsColBody::-webkit-scrollbar {
+  width: 3px;
+}
+.kdsColBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kdsColBody::-webkit-scrollbar-thumb {
+  background: #E2D9CA;
+}
+
+/* ── KDS Master Card ────────────────────────────────────────── */
+.kdsMasterCard {
+  width: 100%;
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-left: 4px solid #8C7B6A;
+  padding: 0.65rem 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kdsMasterCard:hover {
+  border-color: #C8852A;
+  background: #FEFCF8;
+  transform: translateX(1px);
+}
+
+.kdsCardActive {
+  border-color: #C8852A !important;
+  background: #FEFCF8 !important;
+  box-shadow: 0 4px 12px rgba(200, 133, 42, 0.08);
+}
+
+.kdsMasterCard.status-new      { border-left-color: #4A7AB5; }
+.kdsMasterCard.status-placed   { border-left-color: #4A7AB5; }
+.kdsMasterCard.status-preparing { border-left-color: #C8852A; }
+.kdsMasterCard.status-ready    { border-left-color: #48B076; }
+.kdsMasterCard.status-served   { border-left-color: #8C7B6A; opacity: 0.7; }
 
 .kdsCardHead {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 
-.kdsTableLabel {
-  font-family: 'Cinzel', serif;
-  font-size: 0.55rem;
-  letter-spacing: 0.12em;
-  color: #8C7B6A;
-}
-
-.kdsTableId {
+.kdsCardTable {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #1A1008;
-  line-height: 1.1;
 }
 
-.kdsTime {
+.kdsCardBodySummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-family: 'Jost', sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: #8C7B6A;
-  margin-top: 1px;
 }
 
-/* Timer badge */
-.timerBadge {
-  font-family: 'Jost', sans-serif;
-  font-size: 0.75rem;
+.kdsCardTotal {
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 2px;
-  background: rgba(72, 176, 118, 0.12);
-  color: #48B076;
-  flex-shrink: 0;
+  color: #1A1008;
 }
 
-.timerBadge.timerWarn {
-  background: rgba(232, 168, 74, 0.15);
+/* ── Timer Badge ────────────────────────────────────────────── */
+.kdsCardTimer {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 0px;
+  background: rgba(72, 176, 118, 0.1);
+  color: #48B076;
+}
+
+.kdsCardTimer.timerWarn {
+  background: rgba(200, 133, 42, 0.12);
   color: #C8852A;
 }
 
-.timerBadge.timerUrgent {
-  background: rgba(192, 64, 64, 0.12);
+.kdsCardTimer.timerUrgent {
+  background: rgba(192, 64, 64, 0.1);
   color: #C04040;
   animation: urgentPulse 2s infinite;
 }
 
 @keyframes urgentPulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  50%       { opacity: 0.5; }
 }
 
-/* Items */
-.kdsItems {
-  border-top: 1px solid #F0EAE0;
-  border-bottom: 1px solid #F0EAE0;
-  padding: 0.4rem 0;
+/* ── Detail Pane (Right Column) ─────────────────────────────── */
+.kdsDetailPane {
+  width: 360px;
+  min-width: 320px;
+  background: #FEFCF8;
+  border: 1px solid rgba(226, 217, 202, 0.7);
+  box-shadow: 0 4px 15px rgba(44, 26, 14, 0.04);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.kdsItem {
+.kdsDetailEmpty {
   display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-  font-family: 'Jost', sans-serif;
-  font-size: 0.82rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #8C7B6A;
+  text-align: center;
+  opacity: 0.65;
 }
 
-.kdsItemName {
-  flex: 1;
+.kdsDetailEmptyIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.kdsDetailEmptyText {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+/* ── Detail Content ─────────────────────────────────────────── */
+.kdsDetailContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 1.25rem;
+}
+
+.kdsDetailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px dashed #E2D9CA;
+  padding-bottom: 0.75rem;
+}
+
+.kdsDetailStatusBadge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border: 1px solid;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+.kdsDetailStatusBadge.status-new      { color: #4A7AB5; border-color: rgba(74,122,181,0.3); }
+.kdsDetailStatusBadge.status-placed   { color: #4A7AB5; border-color: rgba(74,122,181,0.3); }
+.kdsDetailStatusBadge.status-preparing { color: #C8852A; border-color: rgba(200,133,42,0.3); }
+.kdsDetailStatusBadge.status-ready    { color: #48B076; border-color: rgba(72,176,118,0.3); }
+.kdsDetailStatusBadge.status-served   { color: #8C7B6A; border-color: rgba(140,123,106,0.3); }
+
+.kdsDetailTitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  font-weight: 500;
   color: #1A1008;
+  margin: 0;
 }
 
-.kdsItemQty {
+.kdsDetailTime {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.74rem;
   color: #8C7B6A;
-  font-size: 0.75rem;
+  margin-top: 0.25rem;
 }
 
-.kdsItemPrice {
+/* Items list scroll area */
+.kdsDetailItemsScroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.kdsDetailItemsHeader {
+  display: grid;
+  grid-template-columns: 1fr 40px 60px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
   color: #8C7B6A;
-  font-size: 0.75rem;
-  min-width: 48px;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(226, 217, 202, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+.kdsDetailItemsHeader span:nth-child(2),
+.kdsDetailItemsHeader span:nth-child(3) {
   text-align: right;
 }
 
-.kdsCardFoot {
+.kdsDetailItemsList {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.kdsTotalLabel {
+.kdsDetailItemRow {
+  display: grid;
+  grid-template-columns: 1fr 40px 60px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.8rem;
+  color: #1A1008;
+}
+
+.kdsDetailItemQty {
+  color: #8C7B6A;
+  text-align: right;
+}
+
+.kdsDetailItemPrice {
+  color: #8C7B6A;
+  text-align: right;
+}
+
+.kdsDetailTotalRow {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #E2D9CA;
+  margin-top: auto;
+  padding-top: 0.75rem;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #1A1008;
 }
 
-.kdsActions {
+/* Actions */
+.kdsDetailActions {
   display: flex;
-  gap: 0.4rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
 }
 
-.kdsBtn {
-  font-family: 'Cinzel', serif;
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  padding: 0.4rem 0.75rem;
-  border-radius: 2px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s;
+.kdsDetailActionGroup {
+  display: flex;
+  width: 100%;
 }
 
-.kdsBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.kdsStart {
-  background: #4A7AB5;
-  color: #FDFAF5;
-  border-color: #4A7AB5;
+.kdsLargeActionBtn {
+  width: 100%;
+  padding: 0.85rem 1rem !important;
+  font-size: 0.74rem !important;
 }
-.kdsStart:hover:not(:disabled) { background: #3D6A9E; }
 
-.kdsReady {
-  background: #C8852A;
-  color: #FDFAF5;
-  border-color: #C8852A;
+.kdsReadyBtn {
+  background: #C8852A !important;
 }
-.kdsReady:hover:not(:disabled) { background: #E8A84A; }
-
-.kdsDelete {
-  background: transparent;
-  color: #C04040;
-  border-color: rgba(192, 64, 64, 0.3);
-  padding: 0.4rem 0.6rem;
+.kdsReadyBtn:hover {
+  background: #E8A84A !important;
 }
-.kdsDelete:hover:not(:disabled) { background: rgba(192, 64, 64, 0.08); }
 
-.kdsServedTag {
-  font-family: 'Cinzel', serif;
-  font-size: 0.6rem;
+.kdsServedBtn {
+  background: #48B076 !important;
+}
+.kdsServedBtn:hover {
+  background: #59C287 !important;
+}
+
+.kdsCancelBtn {
+  width: 100%;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.65rem !important;
+}
+
+.kdsServedBanner {
+  width: 100%;
+  text-align: center;
+  background: rgba(72, 176, 118, 0.06);
+  border: 1px solid rgba(72, 176, 118, 0.25);
   color: #48B076;
-  letter-spacing: 0.1em;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 0.65rem;
 }
 
-/* ── Pending Approval Bar ─────────────────────────────── */
+/* ── Pending Approval Bar ──────────────────────────────────── */
 .kdsPendingBar {
-  background: rgba(200, 133, 42, 0.08);
-  border: 1px solid rgba(200, 133, 42, 0.3);
-  border-radius: 8px;
-  padding: 0.9rem 1.1rem;
-  margin-bottom: 1.25rem;
+  background: rgba(200, 133, 42, 0.05);
+  border: 1px dashed rgba(200, 133, 42, 0.3);
+  border-radius: 0px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
 }
+
 .kdsPendingHead {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   letter-spacing: 0.12em;
   color: #C8852A;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
 }
-.kdsPendingCards {
+
+.kdsPendingStrips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.3rem;
 }
-.kdsPendingCard {
+
+.kdsPendingStrip {
   background: #FDFAF5;
   border: 1px solid #E2D9CA;
-  border-radius: 6px;
-  padding: 0.75rem 0.9rem;
+  border-radius: 0px;
+  padding: 0.4rem 0.65rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-width: 320px;
-  flex: 1 1 320px;
 }
-.kdsPendingCard strong {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.05rem;
-  color: #2C1A0E;
-  display: block;
-}
-.kdsPendingItems {
-  display: block;
-  font-size: 0.74rem;
-  color: #8C7B6A;
-  margin: 2px 0;
-  max-width: 220px;
-}
-.kdsPendingTotal {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #C8852A;
-}
-.kdsPendingActions {
+
+.kdsPendingInfo {
   display: flex;
-  gap: 0.5rem;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.kdsPendingTable {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  color: #1A1008;
   flex-shrink: 0;
 }
-@media (max-width: 768px) {
-  .kitchenPage,
-  .kitchenDisplay {
+
+.kdsPendingItems {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: #8C7B6A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kdsPendingTotal {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #C8852A;
+  flex-shrink: 0;
+}
+
+.kdsPendingActions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .kdsSplitLayout {
+    flex-direction: column;
+    height: auto;
+  }
+  .kdsColumnsWrapper {
+    flex: none;
     width: 100%;
-    overflow-x: hidden;
   }
-
-  .kitchenStats,
-  .statsGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .kitchenColumns,
-  .kanbanBoard {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .kitchenColumn {
+  .kdsDetailPane {
     width: 100%;
-  }
-
-  .orderCard {
-    width: 100%;
+    margin-top: 1rem;
   }
 }
+

@@ -413,21 +413,35 @@ export default function DashboardPage() {
   );
 }
 
+const STATUS_FILTER_OPTIONS = [
+  { value: "ALL", label: "All" },
+  { value: "ORDER_APPROVED", label: "Approved" },
+  { value: "ORDER_REJECTED", label: "Rejected" },
+  { value: "KITCHEN_STARTED", label: "Preparing" },
+  { value: "ORDER_READY", label: "Ready" },
+  { value: "ORDER_SERVED", label: "Served" },
+  { value: "ORDER_DELETED_FROM_KITCHEN", label: "Deleted" },
+  { value: "SERVICE_ACKNOWLEDGED", label: "Bill Acknowledged" },
+  { value: "SERVICE_COMPLETED", label: "Bill Completed" },
+];
+
 function ActivityLogs() {
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [averageAcceptanceTime, setAverageAcceptanceTime] = useState("-");
   const [averageKitchenTime, setAverageKitchenTime] = useState("-");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const formatDuration = (ms) => {
-    if (!ms || ms < 0) return "N/A";
+    if (ms === null || ms === undefined || ms < 0) return null;
 
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
     if (minutes > 0) return `${minutes}m ${seconds}s`;
-    return `${seconds}s`;
+    if (seconds > 0) return `${seconds}s`;
+    return "<1s";
   };
 
   const getStatusBadge = (action) => {
@@ -444,57 +458,57 @@ function ActivityLogs() {
         return { className: "served", label: "🟣 Served" };
       case "KITCHEN_STARTED":
         return { className: "preparing", label: "🟠 Preparing" };
+      case "ORDER_DELETED_FROM_KITCHEN":
+        return { className: "rejected", label: "🗑 Deleted" };
+      case "ORDER_DECLINED_FROM_KITCHEN":
+        return { className: "rejected", label: "🔴 Declined" };
+      case "SERVICE_ACKNOWLEDGED":
+        return { className: "created", label: "🧾 Bill Acknowledged" };
+      case "SERVICE_COMPLETED":
+        return { className: "approved", label: "✅ Bill Completed" };
       default:
-        return { className: "default", label: "-" };
+        return { className: "default", label: action || "-" };
     }
   };
 
-  const calculateAverages = (logs) => {
-    const groupedByOrder = {};
+  const calculateAverages = (logs, createdLogMap) => {
+    const approvalDurations = [];
+    const kitchenDurations = [];
 
-    (logs || []).forEach((log) => {
-      if (!log.order_id) return;
-
-      if (!groupedByOrder[log.order_id]) {
-        groupedByOrder[log.order_id] = {};
+    const approvedLogs = logs.filter((l) => l.action === "ORDER_APPROVED" && l.order_id && l.created_at);
+    approvedLogs.forEach((log) => {
+      const createdAt = createdLogMap[log.order_id];
+      if (createdAt) {
+        const diff = new Date(log.created_at) - new Date(createdAt);
+        if (diff >= 0) approvalDurations.push(diff);
       }
+    });
 
+    // Group KITCHEN_STARTED → ORDER_READY pairs
+    const groupedByOrder = {};
+    logs.forEach((log) => {
+      if (!log.order_id) return;
+      if (!groupedByOrder[log.order_id]) groupedByOrder[log.order_id] = {};
       groupedByOrder[log.order_id][log.action] = log.created_at;
     });
 
-    const acceptanceDurations = [];
-    const kitchenDurations = [];
-
     Object.values(groupedByOrder).forEach((orderLogs) => {
-      if (orderLogs.ORDER_CREATED && orderLogs.ORDER_APPROVED) {
-        const duration =
-          new Date(orderLogs.ORDER_APPROVED) - new Date(orderLogs.ORDER_CREATED);
-
-        if (duration >= 0) acceptanceDurations.push(duration);
-      }
-
       if (orderLogs.KITCHEN_STARTED && orderLogs.ORDER_READY) {
-        const duration =
-          new Date(orderLogs.ORDER_READY) - new Date(orderLogs.KITCHEN_STARTED);
-
-        if (duration >= 0) kitchenDurations.push(duration);
+        const diff = new Date(orderLogs.ORDER_READY) - new Date(orderLogs.KITCHEN_STARTED);
+        if (diff >= 0) kitchenDurations.push(diff);
       }
     });
 
-    const avgAcceptance =
-      acceptanceDurations.length > 0
-        ? acceptanceDurations.reduce((sum, value) => sum + value, 0) /
-          acceptanceDurations.length
-        : null;
+    const avgAcceptance = approvalDurations.length > 0
+      ? approvalDurations.reduce((s, v) => s + v, 0) / approvalDurations.length
+      : null;
 
-    const avgKitchen =
-      kitchenDurations.length > 0
-        ? kitchenDurations.reduce((sum, value) => sum + value, 0) /
-          kitchenDurations.length
-        : null;
+    const avgKitchen = kitchenDurations.length > 0
+      ? kitchenDurations.reduce((s, v) => s + v, 0) / kitchenDurations.length
+      : null;
 
-    setAverageAcceptanceTime(avgAcceptance ? formatDuration(avgAcceptance) : "-");
-    setAverageKitchenTime(avgKitchen ? formatDuration(avgKitchen) : "-");
+    setAverageAcceptanceTime(avgAcceptance !== null ? formatDuration(avgAcceptance) ?? "-" : "-");
+    setAverageKitchenTime(avgKitchen !== null ? formatDuration(avgKitchen) ?? "-" : "-");
   };
 
   const fetchActivityLogs = async () => {
@@ -507,34 +521,64 @@ function ActivityLogs() {
 
       if (error) throw error;
 
+      // Collect all unique order IDs (service logs have no order_id)
+      const orderIds = [...new Set((logs || []).map((l) => l.order_id).filter(Boolean))];
+
+      // Build baseline map: earliest log timestamp per order_id
+      // This avoids depending on the orders table (which may have RLS or deleted rows)
       const createdLogMap = {};
 
-      (logs || []).forEach((log) => {
-        if (log.action === "ORDER_CREATED" && log.order_id && log.created_at) {
-          createdLogMap[log.order_id] = log.created_at;
-        }
-      });
+      if (orderIds.length > 0) {
+        // Fetch ALL logs for these order IDs (not just the latest 300)
+        // so we always get the earliest entry as the baseline
+        const { data: allLogsForOrders } = await supabase
+          .from("order_logs")
+          .select("order_id, created_at")
+          .in("order_id", orderIds)
+          .order("created_at", { ascending: true });
+
+        (allLogsForOrders || []).forEach((log) => {
+          if (log.order_id && log.created_at) {
+            // Keep only the earliest (first) timestamp per order
+            if (!createdLogMap[log.order_id]) {
+              createdLogMap[log.order_id] = log.created_at;
+            }
+          }
+        });
+
+        // Also try the orders table as a fallback for more accurate created_at
+        const { data: ordersData } = await supabase
+          .from("orders")
+          .select("id, created_at")
+          .in("id", orderIds);
+
+        (ordersData || []).forEach((order) => {
+          if (order.id && order.created_at) {
+            // Use orders table time if it's earlier than first log
+            const existing = createdLogMap[order.id];
+            if (!existing || new Date(order.created_at) < new Date(existing)) {
+              createdLogMap[order.id] = order.created_at;
+            }
+          }
+        });
+      }
 
       const updatedLogs = (logs || []).map((log) => {
         let acceptedIn = null;
 
-        if (log.action === "ORDER_APPROVED" && log.order_id) {
+        if (log.order_id) {
           const createdAt = createdLogMap[log.order_id];
-
           if (createdAt && log.created_at) {
-            acceptedIn = formatDuration(
-              new Date(log.created_at) - new Date(createdAt)
-            );
+            const diff = new Date(log.created_at) - new Date(createdAt);
+            // If diff is 0 or very small, this IS the first log — show <1s or skip
+            acceptedIn = diff > 500 ? formatDuration(diff) : null;
           }
         }
 
-        return {
-          ...log,
-          acceptedIn,
-        };
+        return { ...log, acceptedIn };
       });
 
-      calculateAverages(logs || []);
+      calculateAverages(logs || [], createdLogMap);
       setActivityLogs(updatedLogs);
     } catch (err) {
       console.error("Failed to fetch activity logs:", err);
@@ -560,6 +604,11 @@ function ActivityLogs() {
     };
   }, []);
 
+  const filteredLogs =
+    statusFilter === "ALL"
+      ? activityLogs
+      : activityLogs.filter((log) => log.action === statusFilter);
+
   return (
     <section className="dashboardPanel">
       <div className="dashPanelHeader">
@@ -584,10 +633,22 @@ function ActivityLogs() {
         </div>
       </div>
 
+      <div className="filterTabs">
+        {STATUS_FILTER_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            className={`filterTab ${statusFilter === opt.value ? "activeTab" : ""}`}
+            onClick={() => setStatusFilter(opt.value)}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <p className="emptyBox">Loading activity logs...</p>
-      ) : activityLogs.length === 0 ? (
-        <p className="emptyBox">No activity logs yet.</p>
+      ) : filteredLogs.length === 0 ? (
+        <p className="emptyBox">No activity logs for this filter.</p>
       ) : (
         <div className="activityTableWrapper">
           <table className="activityTable">
@@ -604,7 +665,7 @@ function ActivityLogs() {
             </thead>
 
             <tbody>
-              {activityLogs.map((log) => {
+              {filteredLogs.map((log) => {
                 const status = getStatusBadge(log.action);
 
                 return (
@@ -624,9 +685,13 @@ function ActivityLogs() {
                     <td>{log.performed_by || "-"}</td>
 
                     <td>
-                      {log.action === "ORDER_APPROVED"
-                        ? log.acceptedIn || "-"
-                        : "-"}
+                      {log.acceptedIn ? (
+                        <span style={{ color: "#48b076", fontWeight: 700 }}>
+                          {log.acceptedIn}
+                        </span>
+                      ) : (
+                        <span style={{ color: "#C8C0B8" }}>—</span>
+                      )}
                     </td>
 
                     <td>

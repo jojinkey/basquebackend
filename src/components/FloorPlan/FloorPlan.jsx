@@ -94,6 +94,11 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
   const [isVip, setIsVip] = useState(table.isVip || false);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    setGuestName(table.guest || "");
+    setIsVip(table.isVip || false);
+  }, [table]);
+
   const orderTotal = table.activeOrders?.reduce((s, o) => s + o.total, 0) || 0;
   const nextStatuses = STATUS_FLOW[table.status] || [];
 
@@ -107,7 +112,6 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
         performer: { name: user?.name, role: user?.role },
       });
       onStatusChange();
-      onClose();
     } catch (e) {
       console.error(e);
     } finally {
@@ -227,7 +231,10 @@ export default function FloorPlan() {
   const { user } = useAuth();
   const [tables, setTables] = useState([]);
   const [section, setSection] = useState("All");
-  const [selectedTable, setSelectedTable] = useState(null);
+  const [occupancyFilter, setOccupancyFilter] = useState("all");
+  const [selectedTableId, setSelectedTableId] = useState(null);
+
+  const selectedTableObj = tables.find((t) => t.tableId === selectedTableId);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -270,7 +277,16 @@ export default function FloorPlan() {
     };
   }, [fetchTables, fetchStats]);
 
-  const filtered = section === "All" ? tables : tables.filter((t) => t.section === section);
+  const filtered = tables.filter((t) => {
+    const matchesSection = section === "All" || t.section === section;
+    let matchesOccupancy = true;
+    if (occupancyFilter === "occupied") {
+      matchesOccupancy = t.status === "seated" || t.status === "needs_bussing";
+    } else if (occupancyFilter === "vacant") {
+      matchesOccupancy = t.status === "available" || t.status === "reserved";
+    }
+    return matchesSection && matchesOccupancy;
+  });
 
   const sectionSummary = ["Indoor", "Terrace", "Garden", "Bar"].map((s) => {
     const sec = tables.filter((t) => t.section === s);
@@ -322,16 +338,40 @@ export default function FloorPlan() {
         ))}
       </div>
 
-      <div className="filterTabs">
-        {SECTIONS.map((s) => (
+      <div className="filterRow" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
+        <div className="filterTabs" style={{ marginBottom: 0 }}>
+          {SECTIONS.map((s) => (
+            <button
+              key={s}
+              className={`filterTab ${section === s ? "activeTab" : ""}`}
+              onClick={() => setSection(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        <div className="filterTabs" style={{ marginBottom: 0, display: "flex", alignItems: "center" }}>
+          <span style={{ fontSize: "0.65rem", fontFamily: "'Cinzel', serif", letterSpacing: "0.1em", color: "#8C7B6A", marginRight: "0.75rem" }}>OCCUPANCY:</span>
           <button
-            key={s}
-            className={`filterTab ${section === s ? "activeTab" : ""}`}
-            onClick={() => setSection(s)}
+            className={`filterTab ${occupancyFilter === "all" ? "activeTab" : ""}`}
+            onClick={() => setOccupancyFilter("all")}
           >
-            {s}
+            All
           </button>
-        ))}
+          <button
+            className={`filterTab ${occupancyFilter === "occupied" ? "activeTab" : ""}`}
+            onClick={() => setOccupancyFilter("occupied")}
+          >
+            Occupied
+          </button>
+          <button
+            className={`filterTab ${occupancyFilter === "vacant" ? "activeTab" : ""}`}
+            onClick={() => setOccupancyFilter("vacant")}
+          >
+            Vacant
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -342,20 +382,20 @@ export default function FloorPlan() {
             <TableCard
               key={table.tableId}
               table={table}
-              isSelected={selectedTable?.tableId === table.tableId}
-              onClick={setSelectedTable}
+              isSelected={selectedTableId === table.tableId}
+              onClick={(t) => setSelectedTableId(t.tableId)}
             />
           ))}
         </div>
       )}
 
       <AnimatePresence>
-        {selectedTable && (
+        {selectedTableObj && (
           <TableDetailPanel
-            table={selectedTable}
+            table={selectedTableObj}
             user={user}
-            onClose={() => setSelectedTable(null)}
-            onStatusChange={() => { fetchTables(); fetchStats(); setSelectedTable(null); }}
+            onClose={() => setSelectedTableId(null)}
+            onStatusChange={() => { fetchTables(); fetchStats(); }}
           />
         )}
       </AnimatePresence>
