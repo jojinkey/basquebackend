@@ -188,19 +188,6 @@ export default function DashboardPage() {
 
     socket.on("table:statusChanged", (table) => {
       addActivity(`Table ${table.tableId} → ${table.status.replace("_", " ")}`);
-
-      if (table.status === "needs_bussing") {
-        if (user?.role !== "owner" && user?.role !== "owner_full") {
-          setActiveAlert({
-            type: "bussing",
-            title: "Bussing Request",
-            message: `Table ${table.tableId} needs cleaning and bussing`,
-            targetTab: "floor",
-            icon: "🧹"
-          });
-          playChime();
-        }
-      }
     });
 
     socket.on("order:new", (order) => {
