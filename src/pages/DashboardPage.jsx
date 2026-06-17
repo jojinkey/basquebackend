@@ -108,6 +108,20 @@ export default function DashboardPage() {
       setTimeout(() => setNotifBar(null), 5000);
     });
 
+    socket.on("service:updated", (req) => {
+      if (req.type !== "bussing_request" || req.status !== "completed") return;
+      if (!["floor_manager", "restaurant_manager"].includes(user?.role)) return;
+
+      const tableName = req.tableName || `Table ${req.tableId}`;
+      const message = `${tableName} - waiter is coming`;
+
+      addActivity(message);
+      setNotifBar(message);
+      loadBadges();
+
+      setTimeout(() => setNotifBar(null), 5000);
+    });
+
     socket.on("waitlist:added", (entry) => {
       setBadges((prev) => ({ ...prev, waitlist: prev.waitlist + 1 }));
       addActivity(`Walk-in: ${entry.guestName} (${entry.partySize} pax) added to queue`);
@@ -135,6 +149,7 @@ export default function DashboardPage() {
 
     return () => {
       socket.off("service:new");
+      socket.off("service:updated");
       socket.off("waitlist:added");
       socket.off("waitlist:removed");
       socket.off("reservation:new");
@@ -722,7 +737,6 @@ function ActivityLogs() {
                 <th>Table</th>
                 <th>Order ID</th>
                 <th>User</th>
-                <th>Requested At</th>
                 <th>Accepted In</th>
                 <th>Status</th>
               </tr>
@@ -747,12 +761,6 @@ function ActivityLogs() {
                     <td>{log.order_id ? log.order_id.substring(0, 8) : "-"}</td>
 
                     <td>{formatPerformedBy(log.performed_by)}</td>
-
-                    <td>
-                      {log.requestedAt
-                        ? new Date(log.requestedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-                        : "-"}
-                    </td>
 
                     <td>
                       {log.acceptedIn ? (
