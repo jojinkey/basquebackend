@@ -16,6 +16,7 @@ import TableOrdering from "../components/TableOrdering/TableOrdering";
 import AuditReports from "../components/AuditReports/AuditReports";
 import OwnerGodView from "./OwnerGodView";
 import ManagerDashboard from "./ManagerDashboard";
+import EventsManager from "../components/EventsManager/EventsManager";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 import "./DashboardPage.css";
@@ -36,6 +37,7 @@ const NAV = [
   { id: "alerts", label: "Service Alerts", icon: "🔔", perm: "service_alerts", badge: "alerts" },
   { id: "waitlist", label: "Waitlist & Queue", icon: "≡", perm: "waitlist_view", badge: "waitlist" },
   { id: "reservations", label: "Reservations", icon: "📋", perm: "reservations_view", badge: "reservations" },
+  { id: "events", label: "Events CMS", icon: "🎪", perm: "events_manage" },
   { id: "insights", label: "Insights", icon: "⊙", perm: "insights" },
   { id: "activityLogs", label: "Activity Logs", icon: "🕒", perm: "audit_reports" },
   { id: "audit", label: "Audit Reports", icon: "📊", perm: "audit_reports" },
@@ -83,6 +85,40 @@ export default function DashboardPage() {
 
   const [recentActivity, setRecentActivity] = useState([]);
   const [notifBar, setNotifBar] = useState(null);
+  const [activeAlert, setActiveAlert] = useState(null);
+
+  const playChime = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const now = ctx.currentTime;
+
+      // Note 1 (C5)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(523.25, now);
+      gain1.gain.setValueAtTime(0.12, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.5);
+
+      // Note 2 (E5, slightly offset)
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(659.25, now + 0.1);
+      gain2.gain.setValueAtTime(0.12, now + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.1);
+      osc2.stop(now + 0.7);
+    } catch (_) {}
+  };
 
   useEffect(() => {
     loadBadges();
@@ -99,13 +135,25 @@ export default function DashboardPage() {
 
       if (user?.role === "server") setActiveTab("alerts");
 
-      setNotifBar(
-        `🔔 ${req.tableName} is calling for ${
-          req.type === "bill_request" ? "the bill" : "a waiter"
-        }`
-      );
-
-      setTimeout(() => setNotifBar(null), 5000);
+      if (user?.role !== "owner" && user?.role !== "owner_full") {
+        setActiveAlert({
+          type: "service",
+          title: "Service Request Alert",
+          message: `${req.tableName || `Table ${req.tableId}`} is calling for ${
+            req.type === "bill_request" ? "the bill" : "a waiter"
+          }`,
+          targetTab: "alerts",
+          icon: "🔔"
+        });
+        playChime();
+      } else {
+        setNotifBar(
+          `🔔 ${req.tableName} is calling for ${
+            req.type === "bill_request" ? "the bill" : "a waiter"
+          }`
+        );
+        setTimeout(() => setNotifBar(null), 5000);
+      }
     });
 
     socket.on("service:updated", (req) => {
@@ -125,6 +173,17 @@ export default function DashboardPage() {
     socket.on("waitlist:added", (entry) => {
       setBadges((prev) => ({ ...prev, waitlist: prev.waitlist + 1 }));
       addActivity(`Walk-in: ${entry.guestName} (${entry.partySize} pax) added to queue`);
+
+      if (user?.role !== "owner" && user?.role !== "owner_full") {
+        setActiveAlert({
+          type: "waitlist",
+          title: "New Waitlist Added",
+          message: `${entry.guestName} (${entry.partySize} guests) has been added to the queue`,
+          targetTab: "waitlist",
+          icon: "≡"
+        });
+        playChime();
+      }
     });
 
     socket.on("waitlist:removed", () => {
@@ -137,6 +196,17 @@ export default function DashboardPage() {
     socket.on("reservation:new", (res) => {
       setBadges((prev) => ({ ...prev, reservations: prev.reservations + 1 }));
       addActivity(`New reservation lead: ${res.name} — ${res.service}`);
+
+      if (user?.role !== "owner" && user?.role !== "owner_full") {
+        setActiveAlert({
+          type: "reservation",
+          title: "New Reservation Lead",
+          message: `${res.name} requested a reservation booking for ${res.service || "Dining"}`,
+          targetTab: "reservations",
+          icon: "📋"
+        });
+        playChime();
+      }
     });
 
     socket.on("table:statusChanged", (table) => {
@@ -145,6 +215,17 @@ export default function DashboardPage() {
 
     socket.on("order:new", (order) => {
       addActivity(`New order from ${order.tableName} — ₹${order.total}`);
+
+      if (user?.role !== "owner" && user?.role !== "owner_full") {
+        setActiveAlert({
+          type: "order",
+          title: "New Order Placed",
+          message: `A new order of ₹${order.total.toLocaleString()} was placed from ${order.tableName}`,
+          targetTab: "managerOrders",
+          icon: "🧾"
+        });
+        playChime();
+      }
     });
 
     return () => {
@@ -233,6 +314,9 @@ export default function DashboardPage() {
       case "activityLogs":
         return <ActivityLogs />;
 
+      case "events":
+        return <EventsManager />;
+
       case "audit":
         return <AuditReports />;
 
@@ -260,6 +344,46 @@ export default function DashboardPage() {
             transition={{ duration: 0.3 }}
           >
             {notifBar}
+          </motion.div>
+        )}
+
+        {activeAlert && (
+          <motion.div
+            className="alertPopupOverlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="alertPopupCard"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+            >
+              <div className="alertPopupHeader">
+                <span className="alertPopupIcon">{activeAlert.icon}</span>
+                <h3 className="alertPopupTitle">{activeAlert.title}</h3>
+              </div>
+              <div className="alertPopupMessage">{activeAlert.message}</div>
+              <div className="alertPopupActions">
+                <button
+                  className="alertPopupBtnSecondary"
+                  onClick={() => setActiveAlert(null)}
+                >
+                  Dismiss
+                </button>
+                <button
+                  className="alertPopupBtnPrimary"
+                  onClick={() => {
+                    setActiveTab(activeAlert.targetTab);
+                    setActiveAlert(null);
+                  }}
+                >
+                  View Details
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

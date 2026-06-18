@@ -4,20 +4,20 @@ const PERMISSIONS = {
   owner: [
     "floor_view", "orders_view", "kitchen_view", "waitlist_view",
     "reservations_view", "service_alerts", "insights",
-    "audit_reports", "audit_export", "settings", "god_view",
+    "audit_reports", "audit_export", "settings", "god_view", "events_manage",
   ],
   owner_full: [
     "floor_view", "floor_manage", "orders_view", "orders_manage",
     "kitchen_view", "kitchen_manage", "waitlist_view", "waitlist_manage",
     "reservations_view", "reservations_manage", "service_alerts",
     "insights", "menu_availability", "audit_reports", "audit_export",
-    "settings", "god_view", "table_orders",
+    "settings", "god_view", "table_orders", "events_manage",
   ],
   restaurant_manager: [
     "floor_view", "floor_manage", "orders_view", "orders_manage",
     "kitchen_view", "waitlist_view", "waitlist_manage",
     "reservations_view", "reservations_manage", "service_alerts",
-    "insights", "menu_availability", "audit_export", "table_orders", "audit_reports",
+    "insights", "menu_availability", "audit_export", "table_orders", "audit_reports", "events_manage",
   ],
   floor_manager: [
     "floor_view", "floor_manage", "waitlist_view", "waitlist_manage",

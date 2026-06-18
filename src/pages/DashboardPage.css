@@ -1285,6 +1285,119 @@
     border-radius: 14px !important;
     padding: 12px 16px !important;
     text-align: center !important;
-    z-index: 10000 !important;
+  }
+}
+
+/* === REAL-TIME POPUP ALERTS === */
+.alertPopupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 9, 6, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10100;
+  padding: 24px;
+}
+
+.alertPopupCard {
+  background: #1A1008;
+  border: 1px solid #C8852A;
+  border-radius: 0px;
+  width: 100%;
+  max-width: 460px;
+  padding: 2rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.alertPopupHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alertPopupIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: #C8852A;
+  animation: alarmPulse 1.5s infinite ease-in-out;
+}
+
+.alertPopupTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  color: #C8852A;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.alertPopupMessage {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #F5F0E8;
+  margin: 0;
+  font-weight: 300;
+}
+
+.alertPopupActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.alertPopupBtnSecondary,
+.alertPopupBtnPrimary {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 0px;
+  transition: all 0.25s ease;
+  font-weight: 600;
+}
+
+.alertPopupBtnSecondary {
+  background: transparent;
+  color: #F5F0E8;
+  border: 1px solid rgba(245, 240, 232, 0.3);
+}
+
+.alertPopupBtnSecondary:hover {
+  background: rgba(245, 240, 232, 0.08);
+  border-color: rgba(245, 240, 232, 0.7);
+}
+
+.alertPopupBtnPrimary {
+  background: #C8852A;
+  color: #1A1008;
+  border: 1px solid #C8852A;
+}
+
+.alertPopupBtnPrimary:hover {
+  background: #E8A94A;
+  border-color: #E8A94A;
+  box-shadow: 0 0 12px rgba(200, 133, 42, 0.4);
+}
+
+@keyframes alarmPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.8;
   }
 }

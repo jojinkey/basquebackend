@@ -1,0 +1,910 @@
+/* ─────────────────────────────────────────────────────────────────
+   EventsManager.css — Basque Manager OS Redesigned Design System
+   Aesthetic: Tactile Luxury, Minimalist Serif & Sharp Architectural Lines
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── CONTAINER ──────────────────────────────────────────────────── */
+.evtManager {
+  padding: 3rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Jost', sans-serif;
+  color: #2C1A0E;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────────── */
+.evtHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  gap: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #E2D9CA;
+}
+
+.evtTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #2C1A0E;
+  margin: 0 0 0.4rem;
+}
+
+.evtSub {
+  font-size: 0.85rem;
+  color: rgba(44, 26, 14, 0.55);
+  margin: 0;
+  font-family: 'Jost', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────── */
+.evtBtnPrimary {
+  background: #2C1A0E;
+  color: #FDFAF5;
+  border: 1px solid #C8852A;
+  border-radius: 0px !important; /* Strictly sharp corners */
+  padding: 0.75rem 1.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+.evtBtnPrimary:hover {
+  background: #C8852A;
+  color: #2C1A0E;
+  box-shadow: 0 4px 14px rgba(200, 133, 42, 0.2);
+}
+.evtBtnPrimary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.evtBtnSecondary {
+  background: #FDFAF5;
+  color: #2C1A0E;
+  border: 1px solid #C8852A;
+  border-radius: 0px !important;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.evtBtnSecondary:hover {
+  background: #2C1A0E;
+  color: #FDFAF5;
+  border-color: #2C1A0E;
+}
+
+.evtBtnDanger {
+  background: #FDFAF5;
+  color: #C04040;
+  border: 1px solid rgba(192, 64, 64, 0.4);
+  border-radius: 0px !important;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.evtBtnDanger:hover {
+  background: #C04040;
+  color: #FDFAF5;
+  border-color: #C04040;
+}
+.evtBtnDanger:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.evtBtnSm {
+  padding: 0.45rem 1rem !important;
+  font-size: 0.7rem !important;
+}
+
+.evtBtnAdd {
+  background: transparent;
+  color: #C8852A;
+  border: 1px dashed rgba(200, 133, 42, 0.45);
+  border-radius: 0px !important;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Jost', sans-serif;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.evtBtnAdd:hover {
+  border-color: #C8852A;
+  background: rgba(200, 133, 42, 0.06);
+}
+
+.evtBtnRemove {
+  background: transparent;
+  color: #C04040;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: 0px !important;
+  line-height: 1;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.evtBtnRemove:hover {
+  background: rgba(192, 64, 64, 0.08);
+}
+
+.evtBtnToggle {
+  border: none;
+  border-radius: 0px !important;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.evtBtnToggle.publish {
+  background: #FDFAF5;
+  color: #2F855A;
+  border: 1px solid #2F855A;
+}
+.evtBtnToggle.publish:hover {
+  background: #2F855A;
+  color: #FDFAF5;
+}
+.evtBtnToggle.unpublish {
+  background: #FDFAF5;
+  color: rgba(44, 26, 14, 0.55);
+  border: 1px solid #E2D9CA;
+}
+.evtBtnToggle.unpublish:hover {
+  background: rgba(44, 26, 14, 0.06);
+  color: #2C1A0E;
+}
+
+.evtBtnConfirm {
+  background: #FDFAF5;
+  color: #2F855A;
+  border: 1px solid #2F855A;
+  border-radius: 0px !important;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.evtBtnConfirm:hover {
+  background: #2F855A;
+  color: #FDFAF5;
+}
+
+.evtBtnReject {
+  background: #FDFAF5;
+  color: #C04040;
+  border: 1px solid rgba(192, 64, 64, 0.4);
+  border-radius: 0px !important;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.evtBtnReject:hover {
+  background: #C04040;
+  color: #FDFAF5;
+}
+
+/* ── FEEDBACK BARS ──────────────────────────────────────────────── */
+.evtError {
+  background: #FFF5F5;
+  border: 1px solid rgba(192, 64, 64, 0.3);
+  border-left: 3px solid #C04040;
+  color: #9B2C2C;
+  border-radius: 0px;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.82rem;
+  margin-bottom: 2rem;
+  font-family: 'Jost', sans-serif;
+}
+
+.evtSuccess {
+  background: #F0FFF4;
+  border: 1px solid rgba(56, 161, 105, 0.3);
+  border-left: 3px solid #38A169;
+  color: #276749;
+  border-radius: 0px;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.82rem;
+  margin-bottom: 2rem;
+  font-family: 'Jost', sans-serif;
+}
+
+/* ── EVENT LIST ─────────────────────────────────────────────────── */
+.evtList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.evtCard {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 0px; /* Strictly sharp corners */
+  padding: 2.25rem 2.5rem;
+  display: flex;
+  align-items: center; /* Center aligned for premium balanced look */
+  justify-content: space-between;
+  gap: 2rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  box-shadow: none; /* Removed heavy generic shadows */
+}
+.evtCard:hover {
+  border-color: #C8852A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(200, 133, 42, 0.07);
+}
+
+/* Gold foil border-image for published events */
+.evtCard.published-card {
+  border: 1px solid;
+  border-image: linear-gradient(45deg, #B8860B, #C8852A, #F5E6AB, #C8852A) 1;
+}
+
+/* Redesigned left border highlight */
+.evtCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #E2D9CA; /* Muted default */
+}
+.evtCard.published-card::before {
+  background: #C8852A; /* Gold for published */
+}
+
+.evtCardLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.evtCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.evtPublishBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.12em;
+  padding: 0.25rem 0.85rem;
+  border-radius: 0px;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.evtPublishBadge.published {
+  background: transparent;
+  color: #C8852A;
+  border-color: #C8852A;
+}
+.evtPublishBadge.draft {
+  background: transparent;
+  color: rgba(44, 26, 14, 0.45);
+  border-color: #E2D9CA;
+}
+
+.evtCardDate {
+  font-size: 0.8rem;
+  color: #C8852A;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-family: 'Jost', sans-serif;
+}
+
+.evtCardTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #2C1A0E;
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.evtCardTagline {
+  font-size: 0.88rem;
+  color: rgba(44, 26, 14, 0.6);
+  margin: 0 0 1.25rem;
+  font-family: 'Literata', 'Georgia', serif;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.evtCardInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-size: 0.75rem;
+  color: rgba(44, 26, 14, 0.5);
+  font-family: 'Jost', sans-serif;
+}
+.evtCardInfo span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  letter-spacing: 0.04em;
+}
+.evtCardInfo span::before {
+  content: '✦';
+  color: #C8852A;
+  font-size: 0.6rem;
+}
+
+.evtCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.evtCardActions button {
+  width: 100% !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  padding: 0.55rem 1rem !important;
+  font-size: 0.72rem !important;
+  font-family: 'Cinzel', serif !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* ── FORM PANEL ──────────────────────────────────────────────────── */
+.evtForm {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 0px;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: none;
+}
+
+.evtFormTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2C1A0E;
+  margin: 0 0 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #E2D9CA;
+}
+
+.evtSection {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #EDE8E0;
+}
+.evtSection:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.evtSectionLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #C8852A;
+  margin: 0 0 1.25rem;
+  text-transform: uppercase;
+}
+
+.evtSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.evtSectionHeader .evtSectionLabel {
+  margin: 0;
+}
+
+.evtFormGroup {
+  margin-bottom: 1.5rem;
+}
+.evtFormGroup:last-child {
+  margin-bottom: 0;
+}
+
+.evtLabel {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Jost', sans-serif;
+  color: rgba(44, 26, 14, 0.7);
+  margin-bottom: 0.45rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Minimal bottom-border-only input styling */
+.evtInput {
+  width: 100%;
+  background: #FFF7EB;
+  border: none;
+  border-bottom: 1px solid #E2D9CA;
+  border-radius: 0px;
+  padding: 0.7rem 0.5rem;
+  font-size: 0.88rem;
+  font-family: 'Jost', sans-serif;
+  color: #1A1008;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+.evtInput:focus {
+  border-bottom-color: #C8852A;
+  background: #FDFAF5;
+}
+.evtInput::placeholder {
+  color: rgba(44, 26, 14, 0.28);
+}
+.evtInputSm {
+  width: auto;
+  min-width: 130px;
+}
+
+.evtTextarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: 'Jost', sans-serif;
+  width: 100%;
+  line-height: 1.6;
+}
+
+.evtSelect {
+  width: 100%;
+  background: #FFF7EB;
+  border: none;
+  border-bottom: 1px solid #E2D9CA;
+  border-radius: 0px;
+  padding: 0.7rem 0.5rem;
+  font-size: 0.88rem;
+  font-family: 'Jost', sans-serif;
+  color: #1A1008;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+.evtSelect:focus {
+  border-bottom-color: #C8852A;
+  background: #FDFAF5;
+}
+
+.evtColorPickerWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.evtColorInput {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #E2D9CA;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 0px;
+  flex-shrink: 0;
+}
+.evtColorInput::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.evtColorInput::-webkit-color-swatch {
+  border: none;
+  border-radius: 0px;
+}
+
+.evtSlider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #E2D9CA;
+  outline: none;
+  margin: 10px 0;
+  border-radius: 0px;
+}
+.evtSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #C8852A;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.1s ease;
+}
+.evtSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+.evtGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.evtHint {
+  font-size: 0.75rem;
+  color: rgba(44, 26, 14, 0.4);
+  margin: 0.4rem 0 0;
+  font-family: 'Jost', sans-serif;
+  font-style: italic;
+}
+
+/* Ticket/VIP rows */
+.evtTicketRow, .evtVipRow {
+  background: #FFF7EB;
+  border: 1px solid #E2D9CA;
+  border-radius: 0px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+.evtTicketRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.evtTicketRow .evtInput {
+  flex: 1;
+}
+.evtVipRowTop {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.evtVipRowTop .evtInput {
+  flex: 1;
+}
+
+/* Image preview */
+.evtImagePreview {
+  width: 100%;
+  height: 180px;
+  border-radius: 0px;
+  border: 1px solid #E2D9CA;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+.evtImagePreviewLabel {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #FDFAF5;
+  background: #2C1A0E;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0px;
+  text-transform: uppercase;
+}
+
+/* Publish toggle */
+.evtPublishRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+.evtToggleWrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+.evtToggleTrack {
+  width: 50px;
+  height: 24px;
+  background: #E2D9CA;
+  border-radius: 100px; /* Toggle tracks remain rounded for standard indicator */
+  position: relative;
+  transition: background 0.25s;
+  flex-shrink: 0;
+}
+.evtToggleWrap.active .evtToggleTrack {
+  background: #C8852A;
+}
+.evtToggleThumb {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: left 0.22s;
+}
+.evtToggleWrap.active .evtToggleThumb {
+  left: 29px;
+}
+.evtToggleLabel {
+  font-size: 0.82rem;
+  color: #2C1A0E;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: 'Jost', sans-serif;
+}
+
+.evtFormActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 2rem;
+  border-top: 1px solid #E2D9CA;
+  margin-top: 2rem;
+}
+
+/* ── BOOKINGS PANEL ──────────────────────────────────────────────── */
+.evtBookings {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.evtBookingStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.evtStatChip {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 0px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.evtStatChip.confirmed { border-left: 4px solid #38A169; }
+.evtStatChip.pending   { border-left: 4px solid #C8852A; }
+.evtStatChip.rejected  { border-left: 4px solid #C04040; }
+
+.evtStatVal {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: 500;
+  color: #2C1A0E;
+  line-height: 1;
+}
+.evtStatKey {
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.12em;
+  color: rgba(44, 26, 14, 0.45);
+  text-transform: uppercase;
+}
+
+/* Bookings table */
+.evtBookingTable {
+  background: #FDFAF5;
+  border: 1px solid #E2D9CA;
+  border-radius: 0px;
+  overflow: hidden;
+}
+.evtBookingTableHead {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(44, 26, 14, 0.55);
+  background: #FFF7EB;
+  border-bottom: 1px solid #E2D9CA;
+}
+.evtBookingRow {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.1rem 1.5rem;
+  font-size: 0.82rem;
+  color: #2C1A0E;
+  border-bottom: 1px solid #EDE8E0;
+  font-family: 'Jost', sans-serif;
+  transition: background 0.2s;
+}
+.evtBookingRow:last-child {
+  border-bottom: none;
+}
+.evtBookingRow:hover {
+  background: #FFFDF9;
+}
+
+.evtBookingName {
+  font-weight: 600;
+  color: #2C1A0E;
+}
+.evtBookingContact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  color: rgba(44, 26, 14, 0.6);
+}
+.evtBookingRef {
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: #2C1A0E;
+  background: #FFF7EB;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0px;
+  border: 1px solid #E2D9CA;
+  text-align: center;
+}
+.evtBookingActionBtns {
+  display: flex;
+  gap: 0.45rem;
+}
+
+/* ── STATUS BADGES ──────────────────────────────────────────────── */
+.evtStatusBadge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.22rem 0.65rem;
+  border-radius: 0px;
+  text-transform: uppercase;
+  display: inline-block;
+  border: 1px solid;
+}
+.statusPending {
+  background: transparent;
+  color: #C8852A;
+  border-color: #C8852A;
+}
+.statusConfirmed {
+  background: transparent;
+  color: #2F855A;
+  border-color: #2F855A;
+}
+.statusRejected {
+  background: transparent;
+  color: #C04040;
+  border-color: rgba(192, 64, 64, 0.5);
+}
+
+/* ── LOADING / EMPTY STATE ───────────────────────────────────────── */
+.evtLoading {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.evtSkeleton {
+  height: 110px;
+  background: #EDE8E0;
+  border-radius: 0px;
+  animation: evtPulse 1.6s ease-in-out infinite;
+}
+
+.evtEmptyState {
+  background: #FDFAF5;
+  border: 1px dashed #E2D9CA;
+  border-radius: 0px;
+  text-align: center;
+  padding: 5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.evtEmptyIcon {
+  font-size: 3rem;
+  margin: 0;
+}
+.evtEmptyTitle {
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #2C1A0E;
+  letter-spacing: 0.08em;
+}
+.evtEmptySub {
+  font-size: 0.85rem;
+  color: rgba(44, 26, 14, 0.45);
+  margin: 0 0 1.5rem;
+  font-family: 'Jost', sans-serif;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .evtManager {
+    padding: 1.5rem;
+  }
+  .evtHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .evtCard {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+  .evtCardActions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .evtGrid2 {
+    grid-template-columns: 1fr;
+  }
+  .evtBookingStats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .evtBookingTableHead {
+    display: none;
+  }
+  .evtBookingRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    border: 1px solid #E2D9CA;
+    padding: 1rem;
+  }
+  .evtForm {
+    padding: 1.5rem;
+  }
+}
