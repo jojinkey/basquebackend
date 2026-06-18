@@ -414,16 +414,16 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   -- Clear transactional data
-  DELETE FROM order_items;
-  DELETE FROM orders;
-  DELETE FROM service_requests;
-  DELETE FROM waitlist_entries;
-  DELETE FROM table_sessions;
-  DELETE FROM audit_logs;
-  DELETE FROM reservation_stage_history;
+  DELETE FROM order_items WHERE id IS NOT NULL;
+  DELETE FROM orders WHERE id IS NOT NULL;
+  DELETE FROM service_requests WHERE id IS NOT NULL;
+  DELETE FROM waitlist_entries WHERE id IS NOT NULL;
+  DELETE FROM table_sessions WHERE id IS NOT NULL;
+  DELETE FROM audit_logs WHERE id IS NOT NULL;
+  DELETE FROM reservation_stage_history WHERE id IS NOT NULL;
 
   -- Reset all tables to available
-  UPDATE tables SET status = 'available', current_session = NULL;
+  UPDATE tables SET status = 'available', current_session = NULL WHERE id IS NOT NULL;
 
   -- Delete demo reservations (keep any real ones from website)
   DELETE FROM reservations WHERE id LIKE 'c0000001%';
