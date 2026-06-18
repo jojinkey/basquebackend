@@ -29,7 +29,7 @@ function _startRealtime() {
   // Tables channel
   _channels.tables = supabase
     .channel('rt-tables')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tables' }, (p) => _emit('table:statusChanged', p.new))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, (p) => _emit('table:statusChanged', p.new || p.old))
     .subscribe()
 
   // Service requests channel

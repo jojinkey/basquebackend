@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- BASQUE MANAGER OS â€” SUPABASE MIGRATION
 -- Run this in: Supabase Dashboard â†’ SQL Editor â†’ New query â†’ Paste â†’ Run
 -- ============================================================================
@@ -192,6 +192,12 @@ END $$;
 ALTER TABLE menu_items ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Anyone can read menu" ON menu_items;
 CREATE POLICY "Anyone can read menu" ON menu_items FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Anyone can insert menu" ON menu_items;
+CREATE POLICY "Anyone can insert menu" ON menu_items FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can update menu" ON menu_items;
+CREATE POLICY "Anyone can update menu" ON menu_items FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Anyone can delete menu" ON menu_items;
+CREATE POLICY "Anyone can delete menu" ON menu_items FOR DELETE USING (true);
 
 -- Menu categories
 ALTER TABLE menu_categories ENABLE ROW LEVEL SECURITY;
@@ -204,6 +210,10 @@ DROP POLICY IF EXISTS "Anyone can read tables" ON tables;
 CREATE POLICY "Anyone can read tables" ON tables FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Anyone can update tables" ON tables;
 CREATE POLICY "Anyone can update tables" ON tables FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Anyone can insert tables" ON tables;
+CREATE POLICY "Anyone can insert tables" ON tables FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can delete tables" ON tables;
+CREATE POLICY "Anyone can delete tables" ON tables FOR DELETE USING (true);
 
 -- Sections
 ALTER TABLE sections ENABLE ROW LEVEL SECURITY;
@@ -268,6 +278,12 @@ CREATE POLICY "Anyone can update sessions" ON table_sessions FOR UPDATE USING (t
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Anyone can read users" ON users;
 CREATE POLICY "Anyone can read users" ON users FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Anyone can insert users" ON users;
+CREATE POLICY "Anyone can insert users" ON users FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can update users" ON users;
+CREATE POLICY "Anyone can update users" ON users FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Anyone can delete users" ON users;
+CREATE POLICY "Anyone can delete users" ON users FOR DELETE USING (true);
 
 -- Audit logs
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;

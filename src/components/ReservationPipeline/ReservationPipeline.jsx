@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { tablesApi } from "../../services/api";
 import "./ReservationPipeline.css";
 
 const STAGES = ["new", "reviewing", "accepted", "declined"];
@@ -78,11 +79,27 @@ function ReservationCard({ reservation, isActive, onClick }) {
 }
 
 function ReservationDetail({ reservation, canManage, onStageChange }) {
+  const { user } = useAuth();
   const [note, setNote] = useState("");
+  const [selectedTable, setSelectedTable] = useState("");
+  const [tablesList, setTablesList] = useState([]);
 
   useEffect(() => {
     setNote(reservation?.manager_notes || "");
+    setSelectedTable(reservation?.details?.tableId || "");
   }, [reservation]);
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const res = await tablesApi.getAll();
+        setTablesList(res.data || []);
+      } catch (err) {
+        console.error("Error fetching tables for assignment:", err);
+      }
+    };
+    fetchTables();
+  }, []);
 
   if (!reservation) {
     return (
@@ -144,6 +161,65 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
     }
   };
 
+  const handleConfirmReservation = async () => {
+    if (!selectedTable) {
+      toast.error("Please assign a table before confirming.");
+      return;
+    }
+    try {
+      const updatedDetails = {
+        ...(reservation.details || {}),
+        tableId: selectedTable,
+        tableName: `Table ${selectedTable}`
+      };
+
+      const { error } = await supabase
+        .from('reservations')
+        .update({
+          stage: "accepted",
+          manager_notes: note,
+          details: updatedDetails
+        })
+        .eq('id', reservation.id);
+
+      if (error) throw error;
+      toast.success("Reservation confirmed and table assigned.");
+      sendWhatsAppNotification("accepted");
+      onStageChange();
+    } catch (e) {
+      console.error("Error confirming reservation:", e);
+      toast.error("Failed to confirm reservation.");
+    }
+  };
+
+  const handleCheckIn = async () => {
+    try {
+      const assignedTableId = reservation.details?.tableId;
+      if (assignedTableId) {
+        // Seat guest on table
+        await tablesApi.updateStatus(assignedTableId, {
+          status: "seated",
+          guest: reservation.name,
+          performer: { name: user?.name, role: user?.role }
+        });
+        toast.success(`Table ${assignedTableId} allocated to ${reservation.name}`);
+      }
+
+      // Update reservation stage to completed
+      const { error } = await supabase
+        .from('reservations')
+        .update({ stage: "completed" })
+        .eq('id', reservation.id);
+
+      if (error) throw error;
+      toast.success("Guest checked in successfully.");
+      onStageChange();
+    } catch (e) {
+      console.error("Error checking in guest:", e);
+      toast.error("Failed to check in guest.");
+    }
+  };
+
   const handleSaveNote = async () => {
     try {
       const { error } = await supabase
@@ -188,6 +264,14 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
           <label className="resDetailLabel">PHONE</label>
           <span className="resDetailValue">{reservation.phone || "No Phone"}</span>
         </div>
+        {details.tableId && (
+          <div className="resDetailField">
+            <label className="resDetailLabel">ASSIGNED TABLE</label>
+            <span className="resDetailValue" style={{ color: "#48B076", fontWeight: "bold" }}>
+              📍 Table {details.tableId}
+            </span>
+          </div>
+        )}
         {details.occasion && (
           <div className="resDetailField span2">
             <label className="resDetailLabel">OCCASION</label>
@@ -212,10 +296,37 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
       </div>
 
       <div className="resDetailActions">
+        {(reservation.stage === "new" || reservation.stage === "reviewing") && canManage && (
+          <div className="resDetailTableSelectSection" style={{ marginBottom: "1.5rem" }}>
+            <label className="resDetailLabel" style={{ display: "block", marginBottom: "0.5rem" }}>ASSIGN TABLE FOR CONFIRMATION</label>
+            <select
+              className="formSelect"
+              value={selectedTable}
+              onChange={(e) => setSelectedTable(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                borderRadius: "6px",
+                border: "1px solid rgba(140, 123, 106, 0.3)",
+                background: "#1E1A16",
+                color: "#F3EFEA",
+                fontFamily: "'Inter', sans-serif"
+              }}
+            >
+              <option value="">-- Select Table --</option>
+              {tablesList.map((t) => (
+                <option key={t.tableId} value={t.tableId}>
+                  Table {t.tableId} ({t.pax} pax) - {t.section} [{t.status}]
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="resDetailActionGroup">
           {(reservation.stage === "new" || reservation.stage === "reviewing") && canManage && (
             <>
-              <button className="btnPrimary resActionBtn" onClick={() => handleStage("accepted")}>
+              <button className="btnPrimary resActionBtn" onClick={handleConfirmReservation}>
                 ✓ Confirm Reservation
               </button>
               <button className="btnDanger resActionBtn" onClick={() => handleStage("declined")}>
@@ -232,7 +343,7 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
             <button
               className="btnPrimary resActionBtn"
               style={{ background: "#48B076" }}
-              onClick={() => handleStage("completed")}
+              onClick={handleCheckIn}
             >
               ✓ Check In Guest
             </button>
@@ -240,7 +351,7 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
         </div>
 
         {reservation.phone && (
-          <div className="resDetailContactGroup">
+          <div className="resDetailContactGroup" style={{ marginTop: "1rem" }}>
             <a href={`tel:${reservation.phone}`} className="btnSecondary resContactBtn">
               📞 Call Guest
             </a>

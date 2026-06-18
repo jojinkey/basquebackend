@@ -2,6 +2,35 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  --basque-text-dark: var(--charcoal);
+  --basque-text-muted: #8C7B6A;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auditReports {
+    --basque-text-muted: #d8c8b8;
+  }
+  .auditCard,
+  .summaryTile {
+    background: #1a100b !important;
+    border-color: rgba(232, 169, 74, 0.25) !important;
+  }
+  .rangeSelect,
+  .customRange input[type="date"] {
+    background: #1a100b !important;
+    color: #F6F1EA !important;
+    border-color: rgba(232, 169, 74, 0.25) !important;
+  }
+  .auditReports .btnSecondary {
+    color: #F6F1EA !important;
+    background-color: #1a100b !important;
+    border: 1px solid rgba(232, 169, 74, 0.25) !important;
+  }
+  .auditReports .btnSecondary:hover {
+    background-color: rgba(232, 169, 74, 0.08) !important;
+    border-color: #E8A94A !important;
+    color: #E8A94A !important;
+  }
 }
 
 .auditActions {
@@ -18,7 +47,7 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--warm-white);
+  color: var(--basque-text-dark);
 }
 
 .rangeLabel {
@@ -28,9 +57,10 @@
 .rangeSelect {
   padding: 8px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(242, 225, 206, 0.2);
-  background: rgba(15, 10, 7, 0.85);
-  color: var(--warm-white);
+  border: 1px solid #E2D9CA;
+  background: #FEFCF8;
+  color: var(--basque-text-dark);
+  outline: none;
 }
 
 .customRange {
@@ -42,9 +72,22 @@
 .customRange input[type="date"] {
   padding: 6px 10px;
   border-radius: 10px;
-  border: 1px solid rgba(242, 225, 206, 0.2);
-  background: rgba(17, 11, 8, 0.8);
-  color: var(--warm-white);
+  border: 1px solid #E2D9CA;
+  background: #FEFCF8;
+  color: var(--basque-text-dark);
+  outline: none;
+}
+
+.auditReports .btnSecondary {
+  color: #8C7B6A !important;
+  background-color: #FEFCF8 !important;
+  border: 1px solid #E2D9CA !important;
+}
+
+.auditReports .btnSecondary:hover {
+  border-color: #C8852A !important;
+  color: #C8852A !important;
+  background-color: rgba(200, 133, 42, 0.03) !important;
 }
 
 .actionButtons {

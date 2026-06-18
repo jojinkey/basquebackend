@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import { serviceApi, waitlistApi, reservationsApi } from "../services/api";
+import { serviceApi, waitlistApi, reservationsApi, tablesApi } from "../services/api";
 import { socket } from "../services/socket";
 import { supabase } from "../lib/supabase";
+import { toast } from "react-hot-toast";
 
 import FloorPlan from "../components/FloorPlan/FloorPlan";
 import KitchenDisplay from "../components/KitchenDisplay/KitchenDisplay";
@@ -17,6 +18,8 @@ import AuditReports from "../components/AuditReports/AuditReports";
 import OwnerGodView from "./OwnerGodView";
 import ManagerDashboard from "./ManagerDashboard";
 import EventsManager from "../components/EventsManager/EventsManager";
+import Employees from "../components/Employees/Employees";
+import RestaurantSetup from "../components/RestaurantSetup/RestaurantSetup";
 import ErrorBoundary from "../components/ErrorBoundary";
 
 import "./DashboardPage.css";
@@ -41,6 +44,8 @@ const NAV = [
   { id: "insights", label: "Insights", icon: "⊙", perm: "insights" },
   { id: "activityLogs", label: "Activity Logs", icon: "🕒", perm: "audit_reports" },
   { id: "audit", label: "Audit Reports", icon: "📊", perm: "audit_reports" },
+  { id: "employees", label: "Employees", icon: "👥", perm: "employee_manage" },
+  { id: "setup", label: "Restaurant Setup", icon: "🛠", perm: "setup_manage" },
   { id: "settings", label: "Settings", icon: "⚙", perm: "settings" },
 ];
 
@@ -86,6 +91,7 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [notifBar, setNotifBar] = useState(null);
   const [activeAlert, setActiveAlert] = useState(null);
+  const [dismissedReservations, setDismissedReservations] = useState([]);
 
   const playChime = () => {
     try {
@@ -210,7 +216,13 @@ export default function DashboardPage() {
     });
 
     socket.on("table:statusChanged", (table) => {
-      addActivity(`Table ${table.tableId || table.id} -> ${table.status.replace("_", " ")}`);
+      if (table) {
+        if (table.status) {
+          addActivity(`Table ${table.tableId || table.id} -> ${table.status.replace("_", " ")}`);
+        } else {
+          addActivity(`Table layout updated`);
+        }
+      }
     });
 
     socket.on("order:new", (order) => {
@@ -238,6 +250,67 @@ export default function DashboardPage() {
       socket.off("order:new");
     };
   }, [user]);
+
+  useEffect(() => {
+    let active = true;
+
+    const checkDueReservations = async () => {
+      if (!user || !["restaurant_manager", "floor_manager", "owner", "owner_full"].includes(user.role)) {
+        return;
+      }
+      try {
+        const { data: resList, error } = await supabase
+          .from("reservations")
+          .select("*")
+          .eq("stage", "accepted");
+
+        if (error) throw error;
+        if (!active || !resList) return;
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+
+        for (const res of resList) {
+          if (!res.date || !res.time_slot || !res.details?.tableId) continue;
+          if (dismissedReservations.includes(res.id)) continue;
+
+          if (res.date === todayStr) {
+            const [hours, minutes] = res.time_slot.split(":");
+            const resDateTime = new Date();
+            resDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+            const diffMinutes = (resDateTime - now) / 60000;
+
+            if (diffMinutes <= 15 && diffMinutes >= -120) {
+              setActiveAlert({
+                type: "reservation_due",
+                title: "Reservation Seating Due",
+                message: `Reservation for ${res.name} (${res.guests} pax) at ${res.time_slot} is ready for seating at Table ${res.details.tableId}.`,
+                icon: "📋",
+                targetTab: "reservations",
+                reservation: res
+              });
+              playChime();
+              break;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error checking due reservations:", err);
+      }
+    };
+
+    const interval = setInterval(checkDueReservations, 30000);
+    checkDueReservations();
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [user, dismissedReservations]);
 
   const loadBadges = async () => {
     try {
@@ -320,6 +393,12 @@ export default function DashboardPage() {
       case "audit":
         return <AuditReports />;
 
+      case "employees":
+        return <Employees />;
+
+      case "setup":
+        return <RestaurantSetup />;
+
       case "settings":
         return <SettingsTab />;
 
@@ -369,19 +448,55 @@ export default function DashboardPage() {
               <div className="alertPopupActions">
                 <button
                   className="alertPopupBtnSecondary"
-                  onClick={() => setActiveAlert(null)}
-                >
-                  Dismiss
-                </button>
-                <button
-                  className="alertPopupBtnPrimary"
                   onClick={() => {
-                    setActiveTab(activeAlert.targetTab);
+                    if (activeAlert.type === "reservation_due" && activeAlert.reservation) {
+                      setDismissedReservations((prev) => [...prev, activeAlert.reservation.id]);
+                    }
                     setActiveAlert(null);
                   }}
                 >
-                  View Details
+                  Dismiss
                 </button>
+                {activeAlert.type === "reservation_due" ? (
+                  <button
+                    className="alertPopupBtnPrimary"
+                    onClick={async () => {
+                      const res = activeAlert.reservation;
+                      try {
+                        // 1. Seat guest on the table
+                        await tablesApi.updateStatus(res.details.tableId, {
+                          status: "seated",
+                          guest: res.name,
+                          performer: { name: user?.name, role: user?.role }
+                        });
+
+                        // 2. Update reservation stage to completed
+                        await supabase
+                          .from("reservations")
+                          .update({ stage: "completed" })
+                          .eq("id", res.id);
+
+                        toast.success(`Table ${res.details.tableId} allocated to ${res.name}`);
+                      } catch (err) {
+                        console.error(err);
+                        toast.error("Failed to allocate table.");
+                      }
+                      setActiveAlert(null);
+                    }}
+                  >
+                    Seat & Check-In
+                  </button>
+                ) : (
+                  <button
+                    className="alertPopupBtnPrimary"
+                    onClick={() => {
+                      setActiveTab(activeAlert.targetTab);
+                      setActiveAlert(null);
+                    }}
+                  >
+                    View Details
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>

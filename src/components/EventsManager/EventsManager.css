@@ -867,6 +867,39 @@
   font-family: 'Jost', sans-serif;
 }
 
+/* Date Input Wrapper & Calendar Button */
+.evtDateInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.evtDateInputWrapper .evtInput {
+  padding-right: 3.5rem;
+}
+.evtCalendarBtn {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #C8852A;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  z-index: 2;
+  outline: none;
+}
+.evtCalendarBtn:hover {
+  transform: scale(1.15);
+  color: #2C1A0E;
+}
+.evtCalendarBtn:active {
+  transform: scale(0.95);
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .evtManager {

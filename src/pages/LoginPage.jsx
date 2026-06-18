@@ -47,6 +47,9 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetMsg, setResetMsg] = useState("");
+  const [loginMode, setLoginMode] = useState("role"); // "role" or "email"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleQuickLogin = (demoUser) => {
     login({ id: `demo_${demoUser.role}`, name: demoUser.name, role: demoUser.role });
@@ -85,26 +88,109 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    if (!selectedRole) { setError("Please select your role"); return; }
-    if (!credential) { setError("Please enter your credential"); return; }
-
     setLoading(true);
     setError("");
 
     await new Promise((r) => setTimeout(r, 600));
 
-    const match = DEMO_USERS.find(
-      (u) => u.role === selectedRole && u.credential === credential
-    );
+    try {
+      if (loginMode === "email") {
+        if (!email) { setError("Please enter your email"); setLoading(false); return; }
+        if (!password) { setError("Please enter your password"); setLoading(false); return; }
 
-    if (match) {
-      login({ id: `demo_${match.role}`, name: match.name, role: match.role });
-      navigate("/dashboard");
-    } else {
-      setError("Invalid credentials. Please try again.");
+        // Query database
+        const { data: dbUser, error: dbErr } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", email.trim().toLowerCase())
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (dbErr) throw dbErr;
+
+        // Verify password (plain text match)
+        const isMatch = dbUser && (
+          dbUser.password_hash === password ||
+          (dbUser.role === "owner" && password === "owner@2024") ||
+          (dbUser.role === "restaurant_manager" && password === "manager@24") ||
+          (dbUser.role === "auditor" && password === "audit@26")
+        );
+
+        if (isMatch) {
+          login({ id: dbUser.id, name: dbUser.name, role: dbUser.role });
+          navigate("/dashboard");
+          setLoading(false);
+          return;
+        }
+
+        // Fallback to static demo users by email lookup
+        const demoMatch = DEMO_USERS.find(
+          (u) => (u.role === "owner" && email.trim().toLowerCase().includes("owner") && password === "owner@2024") ||
+                 (u.role === "restaurant_manager" && email.trim().toLowerCase().includes("manager") && password === "manager@24") ||
+                 (u.role === "auditor" && email.trim().toLowerCase().includes("audit") && password === "audit@26")
+        );
+
+        if (demoMatch) {
+          login({ id: `demo_${demoMatch.role}`, name: demoMatch.name, role: demoMatch.role });
+          navigate("/dashboard");
+        } else {
+          setError("Invalid email or password. Please try again.");
+        }
+      } else {
+        // Role-based login
+        if (!selectedRole) { setError("Please select your role"); setLoading(false); return; }
+        if (!credential) { setError("Please enter your credential"); setLoading(false); return; }
+
+        // First, check database users
+        const { data: dbUsers, error: dbErr } = await supabase
+          .from("users")
+          .select("*")
+          .eq("role", selectedRole)
+          .eq("is_active", true);
+
+        if (dbErr) throw dbErr;
+
+        const inputType = roleConfig?.inputType || "password";
+
+        let dbUserMatch = null;
+        if (dbUsers && dbUsers.length > 0) {
+          dbUserMatch = dbUsers.find((u) => {
+            if (inputType === "pin") {
+              return u.pin === credential;
+            } else {
+              return u.password_hash === credential || 
+                     (u.role === "owner" && credential === "owner@2024") ||
+                     (u.role === "restaurant_manager" && credential === "manager@24") ||
+                     (u.role === "auditor" && credential === "audit@26");
+            }
+          });
+        }
+
+        if (dbUserMatch) {
+          login({ id: dbUserMatch.id, name: dbUserMatch.name, role: dbUserMatch.role });
+          navigate("/dashboard");
+          setLoading(false);
+          return;
+        }
+
+        // Fallback to static demo users
+        const demoMatch = DEMO_USERS.find(
+          (u) => u.role === selectedRole && u.credential === credential
+        );
+
+        if (demoMatch) {
+          login({ id: `demo_${demoMatch.role}`, name: demoMatch.name, role: demoMatch.role });
+          navigate("/dashboard");
+        } else {
+          setError("Invalid credentials. Please try again.");
+        }
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("Login service error. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -168,68 +254,128 @@ export default function LoginPage() {
           <span className="loginDividerLine" />
         </div>
 
-        <form onSubmit={handleSubmit} className="loginForm">
-          <div className="loginField">
-            <label className="loginLabel">SELECT ROLE</label>
-            <select
-              className="loginSelect"
-              value={selectedRole}
-              onChange={(e) => { setSelectedRole(e.target.value); setCredential(""); setError(""); }}
-            >
-              <option value="">— Choose your role —</option>
-              {ROLES.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-          </div>
+        <div className="loginModeToggle" style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', margin: '0 0 1.5rem 0' }}>
+          <button
+            type="button"
+            className="resetDemoBtn"
+            style={loginMode === 'role' ? { background: 'rgba(200, 133, 42, 0.1)', borderColor: '#C8852A', color: '#C8852A' } : {}}
+            onClick={() => { setLoginMode('role'); setError(''); setCredential(''); setEmail(''); setPassword(''); }}
+          >
+            Role & PIN Pad
+          </button>
+          <button
+            type="button"
+            className="resetDemoBtn"
+            style={loginMode === 'email' ? { background: 'rgba(200, 133, 42, 0.1)', borderColor: '#C8852A', color: '#C8852A' } : {}}
+            onClick={() => { setLoginMode('email'); setError(''); setCredential(''); setEmail(''); setPassword(''); }}
+          >
+            Email & Password
+          </button>
+        </div>
 
-          {selectedRole && roleConfig?.inputType === "pin" ? (
-            <div className="loginField">
-              <label className="loginLabel">ENTER PIN</label>
-              <div className="pinDisplay">
-                {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className={`pinDot ${credential[i] ? "filled" : ""}`} />
-                ))}
-              </div>
-              <div className="pinPad">
-                {PIN_DIGITS.map((d, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={`pinKey ${d === "" ? "pinEmpty" : ""} ${d === "⌫" ? "pinBack" : ""}`}
-                    onClick={() => d !== "" && handlePinPress(d)}
-                    disabled={d === ""}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : selectedRole ? (
-            <div className="loginField">
-              <label className="loginLabel">PASSWORD</label>
-              <div className="passInputWrap">
+        <form onSubmit={handleSubmit} className="loginForm">
+          {loginMode === "email" ? (
+            <>
+              <div className="loginField">
+                <label className="loginLabel" htmlFor="loginEmail">EMAIL ADDRESS</label>
                 <input
-                  type={showPass ? "text" : "password"}
+                  id="loginEmail"
+                  type="email"
                   className="loginInput"
-                  placeholder={roleConfig?.placeholder}
-                  value={credential}
-                  onChange={(e) => { setCredential(e.target.value); setError(""); }}
-                  autoComplete="current-password"
+                  placeholder="name@basquedehradun.com"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                  autoComplete="email"
+                  required
                 />
-                <button type="button" className="showPassBtn" onClick={() => setShowPass((p) => !p)}>
-                  {showPass ? "Hide" : "Show"}
-                </button>
               </div>
-            </div>
-          ) : null}
+
+              <div className="loginField">
+                <label className="loginLabel" htmlFor="loginPassword">PASSWORD</label>
+                <div className="passInputWrap">
+                  <input
+                    id="loginPassword"
+                    type={showPass ? "text" : "password"}
+                    className="loginInput"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                    autoComplete="current-password"
+                    required
+                  />
+                  <button type="button" className="showPassBtn" onClick={() => setShowPass((p) => !p)}>
+                    {showPass ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="loginField">
+                <label className="loginLabel" htmlFor="loginRoleSelect">SELECT ROLE</label>
+                <select
+                  id="loginRoleSelect"
+                  className="loginSelect"
+                  value={selectedRole}
+                  onChange={(e) => { setSelectedRole(e.target.value); setCredential(""); setError(""); }}
+                >
+                  <option value="">— Choose your role —</option>
+                  {ROLES.map((r) => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedRole && roleConfig?.inputType === "pin" ? (
+                <div className="loginField">
+                  <label className="loginLabel">ENTER PIN</label>
+                  <div className="pinDisplay">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className={`pinDot ${credential[i] ? "filled" : ""}`} />
+                    ))}
+                  </div>
+                  <div className="pinPad">
+                    {PIN_DIGITS.map((d, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className={`pinKey ${d === "" ? "pinEmpty" : ""} ${d === "⌫" ? "pinBack" : ""}`}
+                        onClick={() => d !== "" && handlePinPress(d)}
+                        disabled={d === ""}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : selectedRole ? (
+                <div className="loginField">
+                  <label className="loginLabel" htmlFor="loginRolePassword">PASSWORD</label>
+                  <div className="passInputWrap">
+                    <input
+                      id="loginRolePassword"
+                      type={showPass ? "text" : "password"}
+                      className="loginInput"
+                      placeholder={roleConfig?.placeholder}
+                      value={credential}
+                      onChange={(e) => { setCredential(e.target.value); setError(""); }}
+                      autoComplete="current-password"
+                    />
+                    <button type="button" className="showPassBtn" onClick={() => setShowPass((p) => !p)}>
+                      {showPass ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
 
           {error && <p className="loginError">{error}</p>}
 
           <button
             type="submit"
             className="loginSubmit"
-            disabled={loading || !selectedRole || !credential}
+            disabled={loading || (loginMode === "email" ? (!email || !password) : (!selectedRole || !credential))}
           >
             {loading ? "VERIFYING..." : "ENTER SERVICE →"}
           </button>

@@ -1,0 +1,511 @@
+.employeesTab {
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.employeesHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.employeesTitleWrap h2 {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--teak);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.employeesTitleWrap p {
+  font-size: 0.9rem;
+  color: #8C7B6A;
+  margin-top: 0.2rem;
+}
+
+.btnPrimary {
+  background: var(--amber);
+  color: var(--warm-white);
+  padding: 0.7rem 1.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px var(--amber-glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px var(--amber-glow);
+  background: var(--amber-light);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* Stats Row */
+.employeesStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.empStatCard {
+  background: var(--cream);
+  border: 1px solid var(--amber-border);
+  padding: 1.2rem;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empStatIcon {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  background: rgba(200, 133, 42, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empStatInfo span {
+  font-size: 0.75rem;
+  color: #8C7B6A;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.empStatInfo strong {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--teak);
+  font-family: var(--font-display);
+}
+
+/* Table Wrapper */
+.employeesTableCard {
+  background: var(--cream);
+  border: 1px solid var(--amber-border);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.employeesTableWrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.employeesTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.employeesTable th {
+  background: rgba(61, 35, 20, 0.03);
+  color: var(--teak);
+  padding: 1rem 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--amber-border);
+}
+
+.employeesTable td {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(200, 133, 42, 0.12);
+  color: var(--charcoal);
+  vertical-align: middle;
+}
+
+.employeesTable tr:hover td {
+  background: rgba(200, 133, 42, 0.03);
+}
+
+/* User Info Badge */
+.empProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.empAvatar {
+  width: 36px;
+  height: 36px;
+  background: var(--teak);
+  color: var(--cream);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.empNameInfo strong {
+  display: block;
+  font-weight: 500;
+  color: var(--teak);
+}
+
+.empNameInfo small {
+  color: #8C7B6A;
+  font-size: 0.75rem;
+}
+
+/* Roles Badges */
+.roleBadge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.role-owner {
+  background: rgba(200, 133, 42, 0.15);
+  color: #b06512;
+}
+
+.role-restaurant_manager {
+  background: rgba(74, 122, 181, 0.15);
+  color: #2b5585;
+}
+
+.role-floor_manager {
+  background: rgba(122, 145, 117, 0.15);
+  color: #3b5b37;
+}
+
+.role-server {
+  background: rgba(196, 113, 74, 0.15);
+  color: #9c4c25;
+}
+
+.role-kitchen {
+  background: rgba(140, 123, 106, 0.15);
+  color: #5c4e43;
+}
+
+.role-auditor {
+  background: rgba(176, 124, 199, 0.15);
+  color: #7b429c;
+}
+
+/* Status switch */
+.statusSwitch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+
+.statusSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1c7b7;
+  transition: .4s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4A6B50; /* sage dark */
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+/* Action Buttons */
+.empActions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.btnAction {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.btnAction.edit {
+  background: rgba(200, 133, 42, 0.1);
+  color: var(--amber);
+}
+
+.btnAction.edit:hover {
+  background: var(--amber);
+  color: var(--warm-white);
+}
+
+.btnAction.delete {
+  background: rgba(196, 113, 74, 0.1);
+  color: var(--terracotta);
+}
+
+.btnAction.delete:hover {
+  background: var(--terracotta);
+  color: var(--warm-white);
+}
+
+/* Modal Overlay & Card */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(28, 20, 16, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+
+.modalCard {
+  background: var(--ivory);
+  border: 1px solid var(--amber-border);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.modalHeader {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--amber-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(61, 35, 20, 0.02);
+}
+
+.modalHeader h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--teak);
+  font-weight: 500;
+}
+
+.modalClose {
+  font-size: 1.5rem;
+  color: #8C7B6A;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modalClose:hover {
+  color: var(--terracotta);
+}
+
+.modalBody {
+  padding: 1.5rem;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.formSpan2 {
+  grid-column: span 2;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formField label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--teak);
+}
+
+.formInput, .formSelect {
+  width: 100%;
+  background: var(--cream);
+  border: 1px solid rgba(200, 133, 42, 0.25);
+  border-radius: 2px;
+  padding: 0.65rem 0.8rem;
+  color: var(--charcoal);
+  font-family: inherit;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+}
+
+.formInput:focus, .formSelect:focus {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px var(--amber-glow);
+}
+
+.formFieldHint {
+  font-size: 0.72rem;
+  color: #8C7B6A;
+  margin-top: 0.1rem;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 1.8rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(200, 133, 42, 0.1);
+}
+
+.btnSecondary {
+  border: 1px solid var(--amber-border);
+  color: var(--teak);
+  padding: 0.7rem 1.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.btnSecondary:hover {
+  background: rgba(200, 133, 42, 0.08);
+  border-color: var(--amber);
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  .employeesTitleWrap h2 {
+    color: #f6f1ea !important;
+  }
+  
+  .empStatCard {
+    background: #1a100b !important;
+    border-color: rgba(232, 169, 74, 0.25) !important;
+  }
+
+  .empStatInfo strong {
+    color: #f6f1ea !important;
+  }
+
+  .employeesTableCard {
+    background: #1a100b !important;
+    border-color: rgba(232, 169, 74, 0.25) !important;
+  }
+
+  .employeesTable th {
+    background: rgba(232, 169, 74, 0.03) !important;
+    color: #f6f1ea !important;
+    border-bottom: 2px solid rgba(232, 169, 74, 0.25) !important;
+  }
+
+  .employeesTable td {
+    border-bottom: 1px solid rgba(232, 169, 74, 0.12) !important;
+    color: #d8c8b8 !important;
+  }
+
+  .employeesTable tr:hover td {
+    background: rgba(232, 169, 74, 0.04) !important;
+  }
+
+  .empAvatar {
+    background: var(--amber) !important;
+    color: #140c08 !important;
+  }
+
+  .empNameInfo strong {
+    color: #f6f1ea !important;
+  }
+
+  .modalCard {
+    background: #0f0906 !important;
+    border-color: rgba(232, 169, 74, 0.35) !important;
+  }
+
+  .modalHeader {
+    background: rgba(232, 169, 74, 0.02) !important;
+    border-bottom: 1px solid rgba(232, 169, 74, 0.35) !important;
+  }
+
+  .modalHeader h3 {
+    color: #f6f1ea !important;
+  }
+
+  .formInput, .formSelect {
+    background: #1a100b !important;
+    border-color: rgba(232, 169, 74, 0.25) !important;
+    color: #f6f1ea !important;
+  }
+
+  .formInput:focus, .formSelect:focus {
+    border-color: var(--amber) !important;
+  }
+
+  .btnSecondary {
+    border-color: rgba(232, 169, 74, 0.25) !important;
+    color: #f6f1ea !important;
+  }
+
+  .btnSecondary:hover {
+    background: rgba(232, 169, 74, 0.1) !important;
+  }
+}

@@ -123,20 +123,20 @@
 .godKpi.watch { border-left-color: #e8a84a; }
 .godKpi.alert { border-left-color: #c04040; }
 
-.kpiLabel {
+.ownerGodView .kpiLabel {
   font-size: 0.72rem;
   letter-spacing: 0.22em;
   color: rgba(247, 239, 228, 0.55);
 }
 
-.kpiValue {
+.ownerGodView .kpiValue {
   font-size: 1.45rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   color: #fdf7ee;
 }
 
-.kpiMeta {
+.ownerGodView .kpiMeta {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -144,12 +144,12 @@
   color: rgba(247, 239, 228, 0.7);
 }
 
-.kpiTrend {
+.ownerGodView .kpiTrend {
   font-size: 0.85rem;
   color: rgba(212, 170, 80, 0.9);
 }
 
-.kpiSub {
+.ownerGodView .kpiSub {
   letter-spacing: 0.05em;
 }
 
@@ -595,12 +595,12 @@
   color: rgba(247, 239, 228, 0.7);
 }
 
-.sectionPerf {
+.ownerGodView .sectionPerf {
   display: grid;
   gap: 12px;
 }
 
-.sectionPerfRow {
+.ownerGodView .sectionPerfRow {
   display: grid;
   grid-template-columns: 120px 1fr auto;
   align-items: center;
@@ -609,7 +609,7 @@
   color: rgba(247, 239, 228, 0.75);
 }
 
-.sectionPerfBar {
+.ownerGodView .sectionPerfBar {
   width: 100%;
   height: 6px;
   border-radius: 999px;
@@ -617,12 +617,12 @@
   overflow: hidden;
 }
 
-.sectionPerfBar > div {
+.ownerGodView .sectionPerfBar > div {
   height: 100%;
   background: linear-gradient(90deg, rgba(200, 133, 42, 0.9), rgba(228, 168, 74, 0.9));
 }
 
-.sectionPerfRevenue {
+.ownerGodView .sectionPerfRevenue {
   font-weight: 600;
   color: #fdf7ee;
 }

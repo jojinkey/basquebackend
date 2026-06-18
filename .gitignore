@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Basque backend copy and scratch files
+basque-backend/
+scratch/
+scratch_check_active_sessions.js
