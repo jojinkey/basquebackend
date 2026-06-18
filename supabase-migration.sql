@@ -413,7 +413,10 @@ RETURNS void
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  -- Clear transactional data
+  -- 1. Break foreign key references first
+  UPDATE tables SET current_session = NULL WHERE id IS NOT NULL;
+
+  -- 2. Clear transactional data
   DELETE FROM order_items WHERE id IS NOT NULL;
   DELETE FROM orders WHERE id IS NOT NULL;
   DELETE FROM service_requests WHERE id IS NOT NULL;
@@ -422,8 +425,8 @@ BEGIN
   DELETE FROM audit_logs WHERE id IS NOT NULL;
   DELETE FROM reservation_stage_history WHERE id IS NOT NULL;
 
-  -- Reset all tables to available
-  UPDATE tables SET status = 'available', current_session = NULL WHERE id IS NOT NULL;
+  -- 3. Reset all tables to available
+  UPDATE tables SET status = 'available' WHERE id IS NOT NULL;
 
   -- Delete demo reservations (keep any real ones from website)
   DELETE FROM reservations WHERE id LIKE 'c0000001%';

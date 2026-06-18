@@ -15,6 +15,10 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- 1. Break the foreign key reference from tables -> table_sessions first
+  UPDATE tables SET current_session = NULL WHERE id IS NOT NULL;
+
+  -- 2. Clean up transactional records
   DELETE FROM order_items WHERE id IS NOT NULL;
   DELETE FROM orders WHERE id IS NOT NULL;
   DELETE FROM service_requests WHERE id IS NOT NULL;
@@ -23,7 +27,9 @@ BEGIN
   DELETE FROM table_sessions WHERE id IS NOT NULL;
   DELETE FROM audit_logs WHERE id IS NOT NULL;
   DELETE FROM reservations WHERE id IS NOT NULL;
-  UPDATE tables SET status = 'available', current_session = NULL WHERE id IS NOT NULL;
+
+  -- 3. Reset table statuses to available
+  UPDATE tables SET status = 'available' WHERE id IS NOT NULL;
 END;
 $$;
 
