@@ -129,6 +129,16 @@
   text-overflow: ellipsis;
 }
 
+.tableCardServer {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  color: #8C7B6A;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .tableCardTime {
   font-family: 'Jost', sans-serif;
   font-size: 0.7rem;

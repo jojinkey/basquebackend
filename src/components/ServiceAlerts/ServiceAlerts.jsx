@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { serviceApi } from "../../services/api";
 import { socket } from "../../services/socket";
 import { useAuth } from "../../context/AuthContext";
+import { supabase } from "../../lib/supabase";
 import "./ServiceAlerts.css";
 
 const REQUEST_META = {
@@ -87,18 +88,26 @@ function AlertCard({ request, onUpdate, user }) {
         </p>
       </div>
       <div className="alertCardActions">
-        {request.status === "new" && (
-          <button className="btnSecondary alertBtn" onClick={() => update("acknowledged")} disabled={updating}>
-            Acknowledge
-          </button>
-        )}
-        {(request.status === "new" || request.status === "acknowledged") && (
-          <button className="btnPrimary alertBtn" onClick={() => update("completed")} disabled={updating}>
-            On My Way
-          </button>
-        )}
-        {request.status === "completed" && (
-          <span className="alertDone">On My Way</span>
+        {user?.role === "server" ? (
+          <>
+            {request.status === "new" && (
+              <button className="btnSecondary alertBtn" onClick={() => update("acknowledged")} disabled={updating}>
+                Acknowledge
+              </button>
+            )}
+            {(request.status === "new" || request.status === "acknowledged") && (
+              <button className="btnPrimary alertBtn" onClick={() => update("completed")} disabled={updating}>
+                On My Way
+              </button>
+            )}
+            {request.status === "completed" && (
+              <span className="alertDone">On My Way</span>
+            )}
+          </>
+        ) : (
+          <span className="alertDone" style={{ opacity: 0.65 }}>
+            {request.status === "new" ? "Pending" : request.status === "acknowledged" ? "Active" : "On My Way"}
+          </span>
         )}
       </div>
     </motion.div>
@@ -114,7 +123,11 @@ export default function ServiceAlerts({ onAck }) {
   const fetchRequests = useCallback(async () => {
     try {
       const res = await serviceApi.getAll({ includeBussing: user?.role === "server" });
-      const sorted = [...res.data].sort((a, b) => {
+      let data = res.data || [];
+      if (user?.role === "server") {
+        data = data.filter((req) => !req.serverId || req.serverId === user.id);
+      }
+      const sorted = [...data].sort((a, b) => {
         const typeOrder = { bussing_request: 0, bill_request: 1, call_waiter: 2 };
         const tDiff = (typeOrder[a.type] ?? 3) - (typeOrder[b.type] ?? 3);
         if (tDiff !== 0) return tDiff;
@@ -126,33 +139,69 @@ export default function ServiceAlerts({ onAck }) {
     } finally {
       setLoading(false);
     }
-  }, [user?.role]);
+  }, [user?.role, user?.id]);
 
   useEffect(() => {
     fetchRequests();
 
-    socket.on("service:new", (req) => {
+    const handleServiceNew = async (req) => {
       if (req.type === "bussing_request" && user?.role !== "server") return;
+
+      // Resolve serverId dynamically
+      try {
+        const { data: tableData } = await supabase
+          .from("tables")
+          .select("current_session(server_id)")
+          .eq("id", req.tableId)
+          .maybeSingle();
+        req.serverId = tableData?.current_session?.server_id || null;
+      } catch (err) {
+        console.error("Error resolving server for service request:", err);
+      }
+
+      if (user?.role === "server" && req.serverId && req.serverId !== user.id) {
+        return; // Filter out if assigned to someone else
+      }
 
       setRequests((prev) => {
         const exists = prev.some((r) => r._id === req._id);
         if (exists) return prev;
         return [req, ...prev];
       });
-    });
+    };
 
-    socket.on("service:updated", (updated) => {
+    const handleServiceUpdated = async (updated) => {
       if (updated.type === "bussing_request" && user?.role !== "server") return;
+
+      // Resolve serverId dynamically
+      try {
+        const { data: tableData } = await supabase
+          .from("tables")
+          .select("current_session(server_id)")
+          .eq("id", updated.tableId)
+          .maybeSingle();
+        updated.serverId = tableData?.current_session?.server_id || null;
+      } catch (err) {
+        console.error("Error resolving server for service request:", err);
+      }
+
+      if (user?.role === "server" && updated.serverId && updated.serverId !== user.id) {
+        setRequests((prev) => prev.filter((r) => r._id !== updated._id));
+        return;
+      }
 
       setRequests((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
       if (updated.status === "completed" && onAck) onAck();
-    });
+    };
+
+    socket.on("service:new", handleServiceNew);
+    socket.on("service:updated", handleServiceUpdated);
 
     return () => {
-      socket.off("service:new");
-      socket.off("service:updated");
+      socket.off("service:new", handleServiceNew);
+      socket.off("service:updated", handleServiceUpdated);
     };
-  }, [fetchRequests, onAck]);
+  }, [fetchRequests, onAck, user]);
 
   const pending = requests.filter((r) => r.status === "new");
   const inProgress = requests.filter((r) => r.status === "acknowledged");

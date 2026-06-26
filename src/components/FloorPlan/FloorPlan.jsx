@@ -64,6 +64,10 @@ function TableCard({ table, isSelected, onClick }) {
         <p className="tableCardGuest">{table.guest}</p>
       )}
 
+      {table.assignedServer && (
+        <p className="tableCardServer">🤵 {table.assignedServer.name}</p>
+      )}
+
       {table.seatedAt && (
         <p className="tableCardTime">{elapsed(table.seatedAt)} seated</p>
       )}
@@ -171,6 +175,7 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
           <div className="detailSection">
             <p className="detailSectionTitle">GUEST</p>
             <p className="detailGuestName">{table.guest} {table.isVip && "★"}</p>
+            {table.assignedServer && <p className="detailSub">🤵 Server: {table.assignedServer.name}</p>}
             {table.seatedAt && <p className="detailSub">{elapsed(table.seatedAt)} seated</p>}
             {table.reservation && <p className="detailSub">Reservation: {table.reservation}</p>}
           </div>
@@ -302,18 +307,23 @@ export default function FloorPlan() {
     fetchTables();
     fetchStats();
 
-    socket.on("table:statusChanged", () => { fetchTables(); fetchStats(); });
+    const handleTableStatusChanged = () => {
+      fetchTables();
+      fetchStats();
+    };
+
+    socket.on("table:statusChanged", handleTableStatusChanged);
     socket.on("order:new", fetchTables);
     socket.on("order:updated", fetchTables);
     socket.on("service:new", fetchTables);
     socket.on("service:updated", fetchTables);
 
     return () => {
-      socket.off("table:statusChanged");
-      socket.off("order:new");
-      socket.off("order:updated");
-      socket.off("service:new");
-      socket.off("service:updated");
+      socket.off("table:statusChanged", handleTableStatusChanged);
+      socket.off("order:new", fetchTables);
+      socket.off("order:updated", fetchTables);
+      socket.off("service:new", fetchTables);
+      socket.off("service:updated", fetchTables);
     };
   }, [fetchTables, fetchStats]);
 

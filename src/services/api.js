@@ -38,7 +38,7 @@ export const tablesApi = {
     let q = supabase
       .from("tables")
       .select(
-        "id, capacity, status, current_session, sort_order, is_active, sections(id, name, label), session:current_session(id, guest_name, party_size, is_vip, created_at)"
+        "id, capacity, status, current_session, sort_order, is_active, sections(id, name, label), session:current_session(id, guest_name, party_size, is_vip, created_at, server_id, server:users(id, name))"
       )
       .eq("is_active", true)
       .order("sort_order");
@@ -54,14 +54,19 @@ export const tablesApi = {
     let ordersByTable = {};
     let svcByTable = {};
 
-    const { data: ords, error: ordersError } = await supabase
-      .from("orders")
-      .select(
-        "id, session_id, stage, subtotal, created_at, kitchen_started_at, table_sessions(table_id), order_items(quantity, unit_price, menu_items(name))"
-      )
-      .neq("stage", "served");
+    const activeSessionIds = rows.map((t) => t.current_session).filter(Boolean);
+    let ords = [];
+    if (activeSessionIds.length > 0) {
+      const { data: ordsData, error: ordersError } = await supabase
+        .from("orders")
+        .select(
+          "id, session_id, stage, subtotal, created_at, kitchen_started_at, table_sessions(table_id), order_items(quantity, unit_price, menu_items(name))"
+        )
+        .in("session_id", activeSessionIds);
 
-    if (ordersError) throw ordersError;
+      if (ordersError) throw ordersError;
+      ords = ordsData || [];
+    }
 
     (ords || [])
       .filter((o) => !isDemoId(o.id) && o.stage !== "pending_approval")
@@ -125,6 +130,7 @@ export const tablesApi = {
           isVip: isDemoSession ? false : t.session?.is_vip || false,
           seatedAt: isDemoSession ? null : t.session?.created_at || null,
           occupiedSince: isDemoSession ? null : t.session?.created_at || null,
+          assignedServer: isDemoSession ? null : (t.session?.server ? { id: t.session.server.id, name: t.session.server.name } : null),
           activeOrders: ordersByTable[t.id] || [],
           serviceRequests: svcByTable[t.id] || [],
         };
@@ -149,18 +155,19 @@ export const tablesApi = {
       table.current_session
         ? supabase
             .from("table_sessions")
-            .select("id, guest_name, party_size, is_vip, created_at")
+            .select("id, guest_name, party_size, is_vip, created_at, server_id, server:users(id, name)")
             .eq("id", table.current_session)
             .maybeSingle()
         : Promise.resolve({ data: null }),
 
-      supabase
-        .from("orders")
-        .select(
-          "id, session_id, stage, subtotal, created_at, kitchen_started_at, table_sessions(table_id), order_items(id, quantity, unit_price, menu_items(name))"
-        )
-        .eq("table_sessions.table_id", tableId)
-        .neq("stage", "served"),
+      table.current_session
+        ? supabase
+            .from("orders")
+            .select(
+              "id, session_id, stage, subtotal, created_at, kitchen_started_at, table_sessions(table_id), order_items(id, quantity, unit_price, menu_items(name))"
+            )
+            .eq("session_id", table.current_session)
+        : Promise.resolve({ data: [] }),
 
       supabase
         .from("service_requests")
@@ -206,6 +213,7 @@ export const tablesApi = {
         guest: isDemoSession ? null : sessionData?.guest_name || null,
         isVip: isDemoSession ? false : sessionData?.is_vip || false,
         seatedAt: isDemoSession ? null : sessionData?.created_at || null,
+        assignedServer: isDemoSession ? null : (sessionData?.server ? { id: sessionData.server.id, name: sessionData.server.name } : null),
         activeOrders,
         serviceRequests,
       },
@@ -326,7 +334,7 @@ export const ordersApi = {
     let q = supabase
       .from("orders")
       .select(
-        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, kitchen_started_at, table_sessions(table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))"
+        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, kitchen_started_at, table_sessions(table_id, guest_name, server_id), order_items(id, quantity, unit_price, menu_items(name))"
       )
       .order("created_at", { ascending: false });
 
@@ -342,7 +350,7 @@ export const ordersApi = {
     };
   },
 
-  updateStatus: async (id, status) => {
+  updateStatus: async (id, status, serverId) => {
     const stage = uiToStage(status);
 
     const updates = { stage };
@@ -360,7 +368,7 @@ export const ordersApi = {
       .update(updates)
       .eq("id", id)
       .select(
-        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, kitchen_started_at, table_sessions(id, table_id, guest_name), order_items(id, quantity, unit_price, menu_items(name))"
+        "id, session_id, stage, subtotal, notes, created_at, placed_at, ready_at, served_at, kitchen_started_at, table_sessions(id, table_id, guest_name, server_id), order_items(id, quantity, unit_price, menu_items(name))"
       )
       .single();
 
@@ -380,10 +388,14 @@ export const ordersApi = {
           .maybeSingle();
 
         if (session && !session.left_at) {
-          // 1. Activate session
+          // 1. Activate session and set server_id if provided
+          const sessionUpdates = { is_active: true };
+          if (serverId) {
+            sessionUpdates.server_id = serverId;
+          }
           await supabase
             .from("table_sessions")
-            .update({ is_active: true })
+            .update(sessionUpdates)
             .eq("id", sessionId);
 
           // 2. Set table occupied
@@ -429,6 +441,7 @@ function _shapeOrder(o) {
     total: o.subtotal,
     createdAt: o.created_at,
     notes: o.notes,
+    serverId: o.table_sessions?.server_id || null,
     items: (o.order_items || []).map((i) => ({
       name: i.menu_items?.name || "Unknown",
       qty: i.quantity,
@@ -441,6 +454,19 @@ function _shapeOrder(o) {
 
 export const serviceApi = {
   getAll: async ({ includeBussing = false } = {}) => {
+    // 1. Fetch tables to build a map of tableId -> server_id
+    const { data: tablesData, error: tablesError } = await supabase
+      .from("tables")
+      .select("id, current_session(server_id)");
+
+    if (tablesError) throw tablesError;
+
+    const serverMap = {};
+    (tablesData || []).forEach((t) => {
+      serverMap[t.id] = t.current_session?.server_id || null;
+    });
+
+    // 2. Fetch service requests
     const { data, error } = await supabase
       .from("service_requests")
       .select("id, table_id, table_name, type, status, created_at, updated_at")
@@ -451,6 +477,10 @@ export const serviceApi = {
     return {
       data: (data || [])
         .filter((s) => !isDemoId(s.id))
+        .map((s) => ({
+          ...s,
+          serverId: serverMap[s.table_id] || null,
+        }))
         .map(_shapeService)
         .filter((s) => includeBussing || s.type !== "bussing_request"),
     };
@@ -531,6 +561,7 @@ function _shapeService(s) {
     status: s.status,
     createdAt: s.created_at || s.createdAt,
     updatedAt: s.updated_at || s.updatedAt,
+    serverId: s.tables?.session?.server_id || s.serverId || null,
   };
 }
 
@@ -864,6 +895,53 @@ export const insightsApi = {
     URL.revokeObjectURL(url);
   },
 };
+
+// ─── PLAYBOOK KPIS ────────────────────────────────────────────────────────────
+
+export const kpisApi = {
+  getPlaybookKPIs: async () => {
+    const [
+      tablesRes,
+      sessionsRes,
+      ordersRes,
+      servicesRes,
+      waitlistRes,
+      reservationsRes,
+      orderLogsRes,
+      auditLogsRes,
+      menuItemsRes,
+    ] = await Promise.all([
+      supabase.from("tables").select("id, status, capacity, current_session, sections(name, label)"),
+      supabase.from("table_sessions").select("*"),
+      supabase.from("orders").select("id, session_id, stage, subtotal, created_at, placed_at, kitchen_started_at, ready_at, served_at, order_items(id, quantity, unit_price, menu_items(name, category_id, menu_categories(name, label)))"),
+      supabase.from("service_requests").select("*"),
+      supabase.from("waitlist_entries").select("*"),
+      supabase.from("reservations").select("*"),
+      supabase.from("order_logs").select("*").order("created_at", { ascending: false }),
+      supabase.from("audit_logs").select("*").order("created_at", { ascending: false }),
+      supabase.from("menu_items").select("id, name, is_available"),
+    ]);
+
+    if (tablesRes.error) throw tablesRes.error;
+    if (sessionsRes.error) throw sessionsRes.error;
+    if (ordersRes.error) throw ordersRes.error;
+
+    return {
+      data: {
+        tables: tablesRes.data || [],
+        sessions: sessionsRes.data || [],
+        orders: ordersRes.data || [],
+        services: servicesRes.data || [],
+        waitlist: waitlistRes.data || [],
+        reservations: reservationsRes.data || [],
+        orderLogs: orderLogsRes.data || [],
+        auditLogs: auditLogsRes.data || [],
+        menuItems: menuItemsRes.data || [],
+      }
+    };
+  }
+};
+
 
 // ─── AUDIT REPORTS ───────────────────────────────────────────────────────────
 

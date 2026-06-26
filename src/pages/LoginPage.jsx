@@ -51,9 +51,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleQuickLogin = (demoUser) => {
-    login({ id: `demo_${demoUser.role}`, name: demoUser.name, role: demoUser.role });
-    navigate("/dashboard");
+  const handleQuickLogin = async (demoUser) => {
+    setLoading(true);
+    try {
+      const { data: dbUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("role", demoUser.role)
+        .eq("name", demoUser.name)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      const userId = dbUser?.id || `demo_${demoUser.role}`;
+      login({ id: userId, name: demoUser.name, role: demoUser.role });
+      navigate("/dashboard");
+    } catch (e) {
+      console.error("Quick login resolution failed, falling back:", e);
+      login({ id: `demo_${demoUser.role}`, name: demoUser.name, role: demoUser.role });
+      navigate("/dashboard");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResetDemo = async () => {

@@ -66,6 +66,16 @@ export const eventsApi = {
 // ─── TICKET BOOKINGS ─────────────────────────────────────────────────────────
 
 export const bookingsApi = {
+  create: async (payload) => {
+    const { data, error } = await supabase
+      .from("ticket_bookings")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw error;
+    return { data };
+  },
+
   getByEvent: async (eventId) => {
     const { data, error } = await supabase
       .from("ticket_bookings")

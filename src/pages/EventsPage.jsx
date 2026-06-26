@@ -1,6 +1,7 @@
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useModal } from '../context/ModalContext'
+import { eventsApi } from '../services/eventsApi'
 import styles from './EventsPage.module.css'
 
 const EVENT_TYPES = [
@@ -106,6 +107,21 @@ const SpaceCard = ({ space, index }) => {
 
 const EventsPage = () => {
   const { openModal } = useModal()
+  const [featuredEvent, setFeaturedEvent] = useState(null)
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const res = await eventsApi.getPublished()
+        if (res?.data) {
+          setFeaturedEvent(res.data)
+        }
+      } catch (err) {
+        console.error('Failed to load published event:', err)
+      }
+    }
+    fetchEvent()
+  }, [])
 
   return (
     <div className={styles.page}>
@@ -139,6 +155,99 @@ const EventsPage = () => {
           </motion.button>
         </motion.div>
       </section>
+
+      {/* Featured Event Section */}
+      {featuredEvent && (
+        <section className={styles.featuredEventSection} style={{
+          padding: '80px 24px',
+          background: '#0c0603',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          borderBottom: '1px solid rgba(200, 133, 42, 0.15)'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: featuredEvent.background_image_url ? `linear-gradient(135deg, rgba(26,14,8,0.95) 0%, rgba(10,6,3,0.92) 100%), url(${featuredEvent.background_image_url})` : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.85
+          }} />
+          <motion.div 
+            style={{
+              position: 'relative',
+              maxWidth: '800px',
+              width: '100%',
+              background: 'rgba(255, 255, 255, 0.02)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(200, 133, 42, 0.25)',
+              padding: '48px 24px',
+              borderRadius: '4px',
+              boxShadow: '0 30px 60px rgba(0,0,0,0.4)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px'
+            }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className={styles.eyebrow} style={{ color: 'var(--amber)', letterSpacing: '0.25em' }}>FEATURED UPCOMING EVENT</span>
+            <h2 className={styles.sectionHeading} style={{ color: '#f8ebcb', margin: '8px 0', fontSize: '2.5rem', fontFamily: 'var(--font-display)' }}>{featuredEvent.title}</h2>
+            {featuredEvent.tagline && (
+              <p style={{ fontFamily: 'var(--font-body)', fontWeight: 300, fontSize: '1.05rem', color: 'rgba(248, 235, 203, 0.8)', maxWidth: '600px', margin: '0 auto 8px', lineHeight: 1.5 }}>
+                {featuredEvent.tagline}
+              </p>
+            )}
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '24px',
+              justifyContent: 'center',
+              margin: '8px 0 16px',
+              fontFamily: 'var(--font-sc)',
+              fontSize: '0.8rem',
+              color: '#f8ebcb',
+              opacity: 0.8,
+              letterSpacing: '0.12em'
+            }}>
+              <span>📅 {featuredEvent.event_date}</span>
+              {featuredEvent.ticket_types && featuredEvent.ticket_types.length > 0 && (
+                <span>🎟️ Tickets from ₹{Math.min(...featuredEvent.ticket_types.map(t => t.price || 0)).toLocaleString()}</span>
+              )}
+            </div>
+            <motion.button
+              onClick={() => openModal('eventTicket', { event: featuredEvent })}
+              style={{
+                background: 'var(--amber)',
+                color: 'var(--warm-white)',
+                border: 'none',
+                padding: '14px 36px',
+                fontFamily: 'var(--font-sc)',
+                fontSize: '0.72rem',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                borderRadius: '2px',
+                cursor: 'pointer',
+                boxShadow: '0 12px 24px rgba(200, 133, 42, 0.2)'
+              }}
+              whileHover={{ scale: 1.04, y: -2, boxShadow: '0 20px 40px rgba(200, 133, 42, 0.4)' }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Book Tickets Now →
+            </motion.button>
+          </motion.div>
+        </section>
+      )}
 
       {/* Event Types */}
       <section className={styles.typesSection}>

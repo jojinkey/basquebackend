@@ -744,3 +744,403 @@
     gap: 10px;
   }
 }
+
+/* ─── PLAYBOOK TAB STYLES ──────────────────────────────────────────── */
+
+.godTabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid rgba(212, 170, 80, 0.2);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.godTabBtn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(247, 239, 228, 0.55);
+  padding: 10px 20px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.godTabBtn:hover {
+  color: #f7efe4;
+  border-bottom-color: rgba(212, 170, 80, 0.4);
+}
+
+.godTabBtn.active {
+  color: #d4aa50;
+  border-bottom-color: #d4aa50;
+}
+
+.tabBadge {
+  background: #c04040;
+  color: #fff;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: bold;
+}
+
+/* SLA Table & Cards */
+.slaContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.slaGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1200px) {
+  .slaGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.slaSection h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slaTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+.slaTable th,
+.slaTable td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(247, 239, 228, 0.08);
+}
+
+.slaTable th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 228, 0.55);
+  font-weight: normal;
+}
+
+.slaTable td strong {
+  font-size: 0.95rem;
+  color: #fdf7ee;
+  letter-spacing: 0.04em;
+}
+
+.greenText { color: #48b076; }
+.amberText { color: #e8a84a; }
+.redText { color: #c04040; }
+
+/* Anti-Pilferage Alerts & Dashboard */
+.pilferageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.pilferageAlertBanner {
+  background: rgba(192, 64, 64, 0.18);
+  border: 1px solid rgba(192, 64, 64, 0.4);
+  border-left: 6px solid #c04040;
+  border-radius: 16px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #f7efe4;
+}
+
+.pilferageAlertBanner .bannerIcon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.pilferageAlertBanner strong {
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.pilferageAlertBanner p {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: rgba(247, 239, 228, 0.75);
+}
+
+.pilferageGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1200px) {
+  .pilferageGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.checklistList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.checkCard {
+  background: rgba(30, 18, 10, 0.6);
+  border: 1px solid rgba(247, 239, 228, 0.08);
+  border-left: 4px solid transparent;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.checkCard.passed {
+  border-left-color: #48b076;
+}
+
+.checkCard.failed {
+  border-left-color: #c04040;
+  background: rgba(192, 64, 64, 0.05);
+}
+
+.checkCard.warning {
+  border-left-color: #e8a84a;
+}
+
+.checkStatusIcon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.checkContent strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #fdf7ee;
+  letter-spacing: 0.04em;
+}
+
+.checkContent p {
+  margin: 4px 0;
+  font-size: 0.76rem;
+  color: rgba(247, 239, 228, 0.55);
+}
+
+.checkMeta {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: rgba(212, 170, 80, 0.85);
+  font-weight: 500;
+}
+
+/* Audit Logs Trail */
+.auditLogTableWrap {
+  overflow-x: auto;
+  max-height: 520px;
+}
+
+.auditLogTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.auditLogTable th,
+.auditLogTable td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(247, 239, 228, 0.06);
+}
+
+.auditLogTable th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 228, 0.5);
+  font-weight: normal;
+}
+
+.auditLogTable td {
+  color: rgba(247, 239, 228, 0.8);
+}
+
+.noDataText {
+  text-align: center;
+  padding: 24px;
+  color: rgba(247, 239, 228, 0.4);
+  font-style: italic;
+}
+
+.pillBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pillBadge.red {
+  background: rgba(192, 64, 64, 0.2);
+  color: #ffb0b0;
+  border: 1px solid rgba(192, 64, 64, 0.4);
+}
+
+.pillBadge.gold {
+  background: rgba(212, 170, 80, 0.15);
+  color: #e8c070;
+  border: 1px solid rgba(212, 170, 80, 0.3);
+}
+
+.pillBadge.teal {
+  background: rgba(72, 176, 176, 0.15);
+  color: #8cffff;
+  border: 1px solid rgba(72, 176, 176, 0.35);
+}
+
+/* Revenue & Incentives Tab */
+.revenueStaffContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.revenueGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1200px) {
+  .revenueGrid {
+    grid-template-columns: 1fr 1.2fr;
+  }
+}
+
+.revenueStatsList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.revHealthItem {
+  background: rgba(26, 15, 9, 0.5);
+  border: 1px solid rgba(247, 239, 228, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.revHealthItem strong {
+  font-size: 0.9rem;
+  color: #fdf7ee;
+  letter-spacing: 0.04em;
+}
+
+.revHealthItem p {
+  margin: 2px 0 0;
+  font-size: 0.74rem;
+  color: rgba(247, 239, 228, 0.5);
+}
+
+.revHealthValue {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.revHealthValue strong {
+  font-size: 1.1rem;
+  color: #d4aa50;
+  letter-spacing: 0.05em;
+}
+
+.revHealthValue span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.revHealthValue span.passed { color: #48b076; }
+.revHealthValue span.warning { color: #e8a84a; }
+
+/* Leaderboard */
+.leaderboardTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.leaderboardTable th,
+.leaderboardTable td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(247, 239, 228, 0.08);
+}
+
+.leaderboardTable th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 228, 0.55);
+  font-weight: normal;
+}
+
+.leaderboardTable td {
+  color: rgba(247, 239, 228, 0.85);
+}
+
+.badgeEligible {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeEligible.active {
+  background: rgba(72, 176, 118, 0.15);
+  color: #8cffb8;
+  border: 1px solid rgba(72, 176, 118, 0.35);
+}
+
+.badgeEligible.failed {
+  background: rgba(192, 64, 64, 0.15);
+  color: #ffb0b0;
+  border: 1px solid rgba(192, 64, 64, 0.35);
+}
+

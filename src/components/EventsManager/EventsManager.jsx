@@ -8,6 +8,8 @@ const emptyEvent = () => ({
   title: "",
   tagline: "",
   event_date: "",
+  start_time: "",
+  end_time: "",
   background_image_url: "",
   qr_image_url: "",
   upi_id: "",
@@ -106,6 +108,8 @@ function VipPackageRow({ pkg, index, onChange, onRemove }) {
 export default function EventsManager() {
   const { user } = useAuth();
   const dateInputRef = useRef(null);
+  const bgFileInputRef = useRef(null);
+  const qrFileInputRef = useRef(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -124,6 +128,8 @@ export default function EventsManager() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isStyleCustomized, setIsStyleCustomized] = useState(false);
+  const [detectedVibe, setDetectedVibe] = useState("Basque Classic");
 
   // ─── FETCH EVENTS ───────────────────────────────────────────────────────────
   const fetchEvents = useCallback(async () => {
@@ -143,13 +149,176 @@ export default function EventsManager() {
   // ─── FORM FIELD HELPERS ─────────────────────────────────────────────────────
   const setField = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
 
+  const handleImageUpload = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError("Image size must be less than 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setField(field, reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const setStyleField = (key, val) => {
+    setIsStyleCustomized(true);
     setForm((prev) => ({
       ...prev,
       custom_styles: {
         ...(prev.custom_styles || {}),
         [key]: val,
       },
+    }));
+  };
+
+  const generateAesthetics = (title, tagline) => {
+    const t = (title || "").toLowerCase();
+    const tag = (tagline || "").toLowerCase();
+    const text = `${t} ${tag}`;
+
+    let vibeName = "Basque Classic";
+    let theme = {
+      title_font: "'Cinzel Decorative', serif",
+      title_size: "3.5rem",
+      text_color: "#f8ebcb",
+      tagline_color: "rgba(248, 235, 203, 0.65)",
+      accent_color: "#c8852a",
+      overlay_color: "#0a0603",
+      overlay_opacity: 0.82
+    };
+
+    if (text.match(/neon|techno|edm|rave|club|dj|trance|electro|house|beats|synth|party|dance/)) {
+      vibeName = "🎧 Techno & Neon Rave";
+      theme = {
+        title_font: "'Outfit', sans-serif",
+        title_size: "3.5rem",
+        text_color: "#ffffff",
+        tagline_color: "rgba(255, 255, 255, 0.7)",
+        accent_color: "#ff007f", // Neon Magenta
+        overlay_color: "#06020f", // Midnight Violet
+        overlay_opacity: 0.80
+      };
+    } else if (text.match(/sufi|ghazal|classical|mehfil|qawwali|heritage|shaam|traditional|gazal/)) {
+      vibeName = "🕌 Sufi & Ghazal Mehfil";
+      theme = {
+        title_font: "'Cinzel Decorative', serif",
+        title_size: "3.5rem",
+        text_color: "#fcecd2",
+        tagline_color: "rgba(252, 236, 210, 0.65)",
+        accent_color: "#d4af37", // Antique Gold
+        overlay_color: "#120904", // Mahogany Wood
+        overlay_opacity: 0.86
+      };
+    } else if (text.match(/jazz|acoustic|soul|blues|live|guitar|unplugged|harmony/)) {
+      vibeName = "🎷 Jazz & Acoustic Lounge";
+      theme = {
+        title_font: "'Cormorant Garamond', serif",
+        title_size: "3.5rem",
+        text_color: "#f7ebd3",
+        tagline_color: "rgba(247, 235, 211, 0.65)",
+        accent_color: "#c8852a", // Copper Gold
+        overlay_color: "#0a0806", // Dark Lounge Charcoal
+        overlay_opacity: 0.80
+      };
+    } else if (text.match(/bollywood|punjabi|desi|beats|dhol|fest|dandiya|holi|diwali/)) {
+      vibeName = "🥁 Bollywood & Desi Beats";
+      theme = {
+        title_font: "'Montserrat', sans-serif",
+        title_size: "3.5rem",
+        text_color: "#fffbeb",
+        tagline_color: "rgba(255, 251, 235, 0.7)",
+        accent_color: "#e6005c", // Fuchsia
+        overlay_color: "#0f0205", // Deep Ruby Velvet
+        overlay_opacity: 0.84
+      };
+    } else if (text.match(/brunch|sunset|sundowner|day|pool|afternoon|feast|summer/)) {
+      vibeName = "🌅 Sunset & Brunch Sundowner";
+      theme = {
+        title_font: "'Outfit', sans-serif",
+        title_size: "3.5rem",
+        text_color: "#fff9f0",
+        tagline_color: "rgba(255, 249, 240, 0.7)",
+        accent_color: "#e07a5f", // Terracotta Orange
+        overlay_color: "#1d1512", // Warm Dusk
+        overlay_opacity: 0.72
+      };
+    } else if (text.match(/monsoon|rain|cool|winter|ice|frost|breeze|blue/)) {
+      vibeName = "🌧️ Monsoon & Cool Breeze";
+      theme = {
+        title_font: "'Cormorant Garamond', serif",
+        title_size: "3.5rem",
+        text_color: "#e3f2fd",
+        tagline_color: "rgba(227, 242, 253, 0.7)",
+        accent_color: "#80deea", // Cool Ice Blue
+        overlay_color: "#050b14", // Deep Ocean
+        overlay_opacity: 0.84
+      };
+    } else if (text.match(/halloween|spooky|horror|dark|ghost|phantom|witch/)) {
+      vibeName = "🎃 Halloween & Dark Mystery";
+      theme = {
+        title_font: "'Cinzel', serif",
+        title_size: "3.5rem",
+        text_color: "#ffe57f",
+        tagline_color: "rgba(255, 229, 127, 0.65)",
+        accent_color: "#ff6d00", // Pumpkin Orange
+        overlay_color: "#0d0200", // Deep blood-red black
+        overlay_opacity: 0.90
+      };
+    } else {
+      // Heuristic 2: Direct Color extraction
+      if (text.match(/gold|amber|yellow/)) {
+        vibeName = "✨ Warm Gold Theme";
+        theme.accent_color = "#d4af37";
+        theme.overlay_color = "#0a0603";
+      } else if (text.match(/ruby|red|crimson|burgundy/)) {
+        vibeName = "🍷 Crimson Velvet Theme";
+        theme.accent_color = "#d32f2f";
+        theme.overlay_color = "#0c0204";
+      } else if (text.match(/emerald|green|forest/)) {
+        vibeName = "🌲 Emerald Forest Theme";
+        theme.accent_color = "#2e7d32";
+        theme.overlay_color = "#020803";
+        theme.title_font = "'Cormorant Garamond', serif";
+      } else if (text.match(/sapphire|blue|indigo|ocean|aqua/)) {
+        vibeName = "🌊 Sapphire Blue Theme";
+        theme.accent_color = "#1565c0";
+        theme.overlay_color = "#02050f";
+        theme.title_font = "'Outfit', sans-serif";
+      } else if (text.match(/rose|pink|magenta|fuchsia/)) {
+        vibeName = "🌸 Rose Blossom Theme";
+        theme.accent_color = "#ec407a";
+        theme.overlay_color = "#0d0208";
+        theme.title_font = "'Outfit', sans-serif";
+      } else if (text.match(/violet|purple|plum/)) {
+        vibeName = "🍇 Royal Violet Theme";
+        theme.accent_color = "#7b1fa2";
+        theme.overlay_color = "#08020d";
+      } else if (text.match(/orange|peach|sunset/)) {
+        vibeName = "🍊 Sunset Peach Theme";
+        theme.accent_color = "#f57c00";
+        theme.overlay_color = "#120902";
+        theme.title_font = "'Outfit', sans-serif";
+      } else if (text.match(/white|silver|platinum/)) {
+        vibeName = "❄️ Platinum Silver Theme";
+        theme.accent_color = "#cfd8dc";
+        theme.overlay_color = "#0b0c10";
+        theme.title_font = "'Montserrat', sans-serif";
+      }
+    }
+
+    return { theme, vibeName };
+  };
+
+  const runAestheticsEngine = (title, tagline) => {
+    const { theme, vibeName } = generateAesthetics(title, tagline);
+    setDetectedVibe(vibeName);
+    setForm(prev => ({
+      ...prev,
+      custom_styles: theme
     }));
   };
 
@@ -204,6 +373,8 @@ export default function EventsManager() {
   const handleNew = () => {
     setEditingEvent(null);
     setForm(emptyEvent());
+    setIsStyleCustomized(false);
+    setDetectedVibe("Basque Classic");
     setError("");
     setSuccess("");
     setPanel("form");
@@ -225,6 +396,8 @@ export default function EventsManager() {
       title: event.title || "",
       tagline: event.tagline || "",
       event_date: event.event_date || "",
+      start_time: event.start_time || "",
+      end_time: event.end_time || "",
       background_image_url: event.background_image_url || "",
       qr_image_url: event.qr_image_url || "",
       upi_id: event.upi_id || "",
@@ -235,6 +408,9 @@ export default function EventsManager() {
       vip_packages: event.vip_packages || [],
       custom_styles: { ...defaults, ...(event.custom_styles || {}) },
     });
+    setIsStyleCustomized(true);
+    const { vibeName } = generateAesthetics(event.title, event.tagline);
+    setDetectedVibe(vibeName);
     setError("");
     setSuccess("");
     setPanel("form");
@@ -371,6 +547,11 @@ export default function EventsManager() {
                       <span className="evtCardDate">{event.event_date}</span>
                     )}
                   </div>
+                  {(event.start_time || event.end_time) && (
+                    <div className="evtCardTimeDisplay" style={{ fontSize: "0.82rem", opacity: 0.8, color: "var(--teak-dim)", marginBottom: "6px", fontFamily: "var(--font-body)" }}>
+                      🕒 {event.start_time || "N/A"} - {event.end_time || "N/A"}
+                    </div>
+                  )}
                   <h2 className="evtCardTitle">{event.title}</h2>
                   {event.tagline && <p className="evtCardTagline">{event.tagline}</p>}
                   <div className="evtCardInfo">
@@ -417,7 +598,18 @@ export default function EventsManager() {
             <div className="evtGrid2">
               <div className="evtFormGroup">
                 <label className="evtLabel">Event Title *</label>
-                <input className="evtInput" value={form.title} onChange={(e) => setField("title", e.target.value)} placeholder="e.g. Arabian Night" />
+                <input 
+                  className="evtInput" 
+                  value={form.title} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setField("title", val);
+                    if (!editingEvent && !isStyleCustomized) {
+                      runAestheticsEngine(val, form.tagline);
+                    }
+                  }} 
+                  placeholder="e.g. Arabian Night" 
+                />
               </div>
               <div className="evtFormGroup">
                 <label className="evtLabel">Event Date</label>
@@ -469,9 +661,30 @@ export default function EventsManager() {
                 </div>
               </div>
             </div>
+            <div className="evtGrid2" style={{ marginTop: '1.25rem', marginBottom: '1.25rem' }}>
+              <div className="evtFormGroup">
+                <label className="evtLabel">Start Time</label>
+                <input className="evtInput" value={form.start_time || ""} onChange={(e) => setField("start_time", e.target.value)} placeholder="e.g. 8:00 PM" />
+              </div>
+              <div className="evtFormGroup">
+                <label className="evtLabel">End Time</label>
+                <input className="evtInput" value={form.end_time || ""} onChange={(e) => setField("end_time", e.target.value)} placeholder="e.g. 1:00 AM" />
+              </div>
+            </div>
             <div className="evtFormGroup">
               <label className="evtLabel">Tagline</label>
-              <input className="evtInput" value={form.tagline} onChange={(e) => setField("tagline", e.target.value)} placeholder="e.g. An unforgettable evening of mystique, music & indulgence" />
+              <input 
+                className="evtInput" 
+                value={form.tagline} 
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setField("tagline", val);
+                  if (!editingEvent && !isStyleCustomized) {
+                    runAestheticsEngine(form.title, val);
+                  }
+                }} 
+                placeholder="e.g. An unforgettable evening of mystique, music & indulgence" 
+              />
             </div>
             <div className="evtFormGroup">
               <label className="evtLabel">Max Tickets</label>
@@ -483,19 +696,66 @@ export default function EventsManager() {
           <div className="evtSection">
             <p className="evtSectionLabel">VISUAL</p>
             <div className="evtFormGroup">
-              <label className="evtLabel">Background Image URL</label>
-              <input className="evtInput" value={form.background_image_url} onChange={(e) => setField("background_image_url", e.target.value)} placeholder="https://..." />
+              <label className="evtLabel">Background Image</label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input 
+                  className="evtInput" 
+                  style={{ flex: 1 }}
+                  value={form.background_image_url || ""} 
+                  onChange={(e) => setField("background_image_url", e.target.value)} 
+                  placeholder="Paste URL or upload file..." 
+                />
+                <button
+                  type="button"
+                  className="evtBtnSecondary"
+                  style={{ padding: '0.65rem 1rem', whiteSpace: 'nowrap', fontSize: '0.82rem' }}
+                  onClick={() => bgFileInputRef.current.click()}
+                >
+                  📁 Upload File
+                </button>
+                <input
+                  type="file"
+                  ref={bgFileInputRef}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, "background_image_url")}
+                />
+              </div>
             </div>
             {form.background_image_url && (
-              <div className="evtImagePreview" style={{ backgroundImage: `url(${form.background_image_url})` }}>
-                <span className="evtImagePreviewLabel">Preview</span>
+              <div style={{ marginTop: '10px' }}>
+                <div className="evtImagePreview" style={{ backgroundImage: `url(${form.background_image_url})` }}>
+                  <span className="evtImagePreviewLabel">Preview</span>
+                </div>
+                <button
+                  type="button"
+                  className="evtBtnDanger evtBtnSm"
+                  style={{ marginTop: '5px' }}
+                  onClick={() => setField("background_image_url", "")}
+                >
+                  Clear Image
+                </button>
               </div>
             )}
           </div>
 
           {/* Theme & Styling */}
           <div className="evtSection">
-            <p className="evtSectionLabel">THEME & STYLING</p>
+            <div className="evtSectionHeader">
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <p className="evtSectionLabel">THEME & STYLING</p>
+                {detectedVibe && (
+                  <span className="evtVibeBadge">{detectedVibe}</span>
+                )}
+              </div>
+              <button
+                type="button"
+                className="evtBtnAdd"
+                onClick={() => runAestheticsEngine(form.title, form.tagline)}
+              >
+                ✨ Auto-Generate Theme
+              </button>
+            </div>
             <div className="evtGrid2">
               <div className="evtFormGroup">
                 <label className="evtLabel">Title Font Family</label>
@@ -584,8 +844,47 @@ export default function EventsManager() {
                 <input className="evtInput" value={form.upi_id} onChange={(e) => setField("upi_id", e.target.value)} placeholder="yourupi@bank" />
               </div>
               <div className="evtFormGroup">
-                <label className="evtLabel">QR Image URL</label>
-                <input className="evtInput" value={form.qr_image_url} onChange={(e) => setField("qr_image_url", e.target.value)} placeholder="https://... or /qr-image.png" />
+                <label className="evtLabel">QR Image</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input 
+                    className="evtInput" 
+                    style={{ flex: 1 }}
+                    value={form.qr_image_url || ""} 
+                    onChange={(e) => setField("qr_image_url", e.target.value)} 
+                    placeholder="Paste URL or upload file..." 
+                  />
+                  <button
+                    type="button"
+                    className="evtBtnSecondary"
+                    style={{ padding: '0.65rem 1rem', whiteSpace: 'nowrap', fontSize: '0.82rem' }}
+                    onClick={() => qrFileInputRef.current.click()}
+                  >
+                    📁 Upload File
+                  </button>
+                  <input
+                    type="file"
+                    ref={qrFileInputRef}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, "qr_image_url")}
+                  />
+                </div>
+                {form.qr_image_url && (
+                  <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-start' }}>
+                    <img 
+                      src={form.qr_image_url} 
+                      alt="QR Preview" 
+                      style={{ maxWidth: '120px', maxHeight: '120px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', objectFit: 'contain' }} 
+                    />
+                    <button
+                      type="button"
+                      className="evtBtnDanger evtBtnSm"
+                      onClick={() => setField("qr_image_url", "")}
+                    >
+                      Clear QR
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <div className="evtFormGroup">

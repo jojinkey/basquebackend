@@ -5,6 +5,7 @@ import CourtBookingModal from './CourtBookingModal'
 import GolfBookingModal from './GolfBookingModal'
 import EventEnquiryModal from './EventEnquiryModal'
 import GolfDiningModal from './GolfDiningModal'
+import EventTicketModal from './EventTicketModal'
 import styles from './BookingModalShell.module.css'
 
 const MODAL_MAP = {
@@ -13,6 +14,7 @@ const MODAL_MAP = {
   golf: GolfBookingModal,
   event: EventEnquiryModal,
   golfDining: GolfDiningModal,
+  eventTicket: EventTicketModal,
 }
 
 const BookingModalShell = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
@@ -6,20 +6,26 @@ import { useAuth } from "../../context/AuthContext";
 import { tablesApi } from "../../services/api";
 import "./ReservationPipeline.css";
 
-const STAGES = ["new", "reviewing", "accepted", "declined"];
-
 const STAGE_LABELS = {
-  new: "New Leads",
+  new: "New Lead",
   reviewing: "Reviewing",
   accepted: "Confirmed",
   declined: "Declined",
+  completed: "Completed / Seated",
 };
 
 const SERVICE_COLORS = {
-  table:       "#C8852A",
-  event:       "#2A8C7A",
-  golf:        "#4A7AB5",
-  golf_dining: "#7A5AB5",
+  table:       "#d4af37", // Gold
+  event:       "#705a4f", // Dark Brown
+  golf:        "#8c7e76", // Stone
+  golf_dining: "#B08A4E", // Secondary Gold
+};
+
+const SERVICE_LABELS = {
+  table: "TABLE",
+  event: "EVENT",
+  golf: "GOLF",
+  golf_dining: "GOLF & DINING",
 };
 
 const getServiceType = (sourceModal) => {
@@ -32,13 +38,6 @@ const getServiceType = (sourceModal) => {
   }
 };
 
-const SERVICE_LABELS = {
-  table: "TABLE",
-  event: "EVENT",
-  golf: "GOLF",
-  golf_dining: "GOLF & DINING",
-};
-
 function timeAgo(date) {
   if (!date) return "";
   const mins = Math.floor((Date.now() - new Date(date)) / 60000);
@@ -48,69 +47,326 @@ function timeAgo(date) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function ReservationCard({ reservation, isActive, onClick }) {
+function PipelineCard({ 
+  reservation, 
+  tablesList, 
+  canManage, 
+  onConfirm, 
+  onDecline, 
+  onStageChange, 
+  onCheckIn, 
+  onSaveNote,
+  allReservations
+}) {
+  const [selectedTable, setSelectedTable] = useState(reservation?.details?.tableId || "");
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [note, setNote] = useState(reservation?.manager_notes || "");
+
+  const assignedTableIds = useMemo(() => {
+    if (!reservation.date || !reservation.time_slot || !allReservations) return [];
+    return allReservations
+      .filter(r => 
+        r.id !== reservation.id && 
+        (r.stage === "accepted" || r.stage === "completed") && 
+        r.date === reservation.date && 
+        r.time_slot === reservation.time_slot && 
+        r.details?.tableId
+      )
+      .map(r => String(r.details.tableId));
+  }, [reservation.date, reservation.time_slot, reservation.id, allReservations]);
+
+  useEffect(() => {
+    setSelectedTable(reservation?.details?.tableId || "");
+    setNote(reservation?.manager_notes || "");
+  }, [reservation]);
+
   const serviceKey = getServiceType(reservation.source_modal);
-  const color = SERVICE_COLORS[serviceKey] || "#8C7B6A";
+  const color = SERVICE_COLORS[serviceKey] || "#8c7e76";
+  const details = reservation.details || {};
+  const isLead = reservation.stage === "new" || reservation.stage === "reviewing";
+  const isAccepted = reservation.stage === "accepted";
+  const isCompleted = reservation.stage === "completed";
+  const isDeclined = reservation.stage === "declined";
 
   return (
-    <button
-      className={`resMasterCard ${isActive ? "resMasterActive" : ""}`}
+    <div 
+      className={`pipelineCard ${isAccepted ? "pipelineCardConfirmed" : ""} ${isCompleted ? "pipelineCardCompleted" : ""} ${isDeclined ? "pipelineCardDeclined" : ""}`}
       style={{ borderLeftColor: color }}
-      onClick={onClick}
     >
-      <div className="resCardHeader">
-        <span className="resCardName">{reservation.name}</span>
-        <span className="resCardAgo">{timeAgo(reservation.created_at)}</span>
+      {/* Card Header */}
+      <div className="pipelineCardHeader">
+        <div className="pipelineCardTitleRow">
+          <span className="pipelineCardName">{reservation.name}</span>
+          <span className="pipelineCardAgo">{timeAgo(reservation.created_at)}</span>
+        </div>
+        <div className="pipelineCardSubtitleRow">
+          <span className="pipelineCardService" style={{ color }}>
+            {SERVICE_LABELS[serviceKey]}
+          </span>
+          {reservation.phone && (
+            <div className="pipelineCardContactLinks">
+              <a href={`tel:${reservation.phone}`} title="Call Guest">📞</a>
+              <a 
+                href={`https://wa.me/${reservation.phone.replace(/\D/g, "")}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                title="WhatsApp Message"
+              >
+                💬
+              </a>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="resCardMeta">
-        <span>📅 {reservation.date || "No Date"}</span>
-        <span>👥 {reservation.guests || 1} pax</span>
-      </div>
-      <div className="resCardFooter">
-        <span className="resCardTag" style={{ color, borderColor: `${color}33` }}>
-          {SERVICE_LABELS[serviceKey]}
-        </span>
-        {reservation.time_slot && (
-          <span className="resCardTimeSlot">🕐 {reservation.time_slot}</span>
+
+      {/* Card Body Details */}
+      <div className="pipelineCardBody">
+        <div className="pipelineCardGrid">
+          <div><span className="pipelineCardMetaLabel">DATE</span> <strong>{reservation.date || "N/A"}</strong></div>
+          <div><span className="pipelineCardMetaLabel">TIME</span> <strong>{reservation.time_slot || "N/A"}</strong></div>
+          <div><span className="pipelineCardMetaLabel">PAX</span> <strong>{reservation.guests || 1} pax</strong></div>
+          <div>
+            <span className="pipelineCardMetaLabel">ASSIGNED</span>
+            {details.tableId ? (
+              <span className="pipelineCardTableAssigned">📍 Table {details.tableId}</span>
+            ) : (
+              <span className="pipelineCardUnassigned">Unassigned</span>
+            )}
+          </div>
+        </div>
+
+        {details.occasion && (
+          <div className="pipelineCardOccasion">
+            🎉 Occasion: {details.occasion}
+          </div>
         )}
       </div>
-    </button>
+
+      {/* Table Selection Dropdown (Only for active reviewable leads) */}
+      {isLead && canManage && (
+        <div className="pipelineCardSelectSection">
+          <label className="pipelineCardMetaLabel">SELECT TABLE</label>
+          <select
+            className="pipelineCardSelect"
+            value={selectedTable}
+            onChange={(e) => setSelectedTable(e.target.value)}
+          >
+            <option value="">-- Assign Table --</option>
+            {tablesList.map((t) => {
+              const isTableAssigned = assignedTableIds.includes(String(t.tableId));
+              return (
+                <option key={t.tableId} value={t.tableId} disabled={isTableAssigned}>
+                  Table {t.tableId} ({t.pax} pax) - {t.section} {isTableAssigned ? "[OCCUPIED]" : `[${t.status}]`}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      )}
+
+      {/* Note Area */}
+      <div className="pipelineCardNotes">
+        {isEditingNote ? (
+          <div className="pipelineCardNotesEdit">
+            <textarea
+              className="pipelineCardNotesTextarea"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add manager notes..."
+            />
+            <div className="pipelineCardNotesEditButtons">
+              <button 
+                className="pipelineCardNotesSave" 
+                onClick={() => {
+                  onSaveNote(reservation, note);
+                  setIsEditingNote(false);
+                }}
+              >
+                Save
+              </button>
+              <button 
+                className="pipelineCardNotesCancel" 
+                onClick={() => {
+                  setNote(reservation?.manager_notes || "");
+                  setIsEditingNote(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="pipelineCardNotesDisplay">
+            <span className="pipelineCardNotesText">
+              {reservation.manager_notes ? `📝 ${reservation.manager_notes}` : "No notes added"}
+            </span>
+            <button 
+              className="pipelineCardNotesEditBtn" 
+              onClick={() => setIsEditingNote(true)}
+            >
+              Edit
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Actions Footer */}
+      {canManage && (
+        <div className="pipelineCardActions">
+          {isLead && (
+            <>
+              <button 
+                className="pipelineCardBtn pipelineCardConfirm"
+                onClick={() => onConfirm(reservation, selectedTable, note)}
+                disabled={!selectedTable}
+              >
+                Confirm
+              </button>
+              <button 
+                className="pipelineCardBtn pipelineCardDecline"
+                onClick={() => onDecline(reservation, "declined", note)}
+              >
+                Decline
+              </button>
+              {reservation.stage === "new" && (
+                <button 
+                  className="pipelineCardBtn pipelineCardReview"
+                  onClick={() => onStageChange(reservation, "reviewing", note)}
+                >
+                  Contacted
+                </button>
+              )}
+            </>
+          )}
+
+          {isAccepted && (
+            <button 
+              className="pipelineCardBtn pipelineCardCheckIn"
+              onClick={() => onCheckIn(reservation)}
+            >
+              ✓ Seat Guest
+            </button>
+          )}
+
+          {isCompleted && (
+            <button 
+              className="pipelineCardBtn pipelineCardRestore"
+              onClick={() => onStageChange(reservation, "accepted", note)}
+            >
+              Un-seat Guest
+            </button>
+          )}
+
+          {isDeclined && (
+            <button 
+              className="pipelineCardBtn pipelineCardRestore"
+              onClick={() => onStageChange(reservation, "new", note)}
+            >
+              Restore Lead
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-function ReservationDetail({ reservation, canManage, onStageChange }) {
-  const { user } = useAuth();
-  const [note, setNote] = useState("");
-  const [selectedTable, setSelectedTable] = useState("");
+export default function ReservationPipeline({ onNewCount }) {
+  const { user, can } = useAuth();
+  const [reservations, setReservations] = useState([]);
+  const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
   const [tablesList, setTablesList] = useState([]);
+  const [viewMode, setViewMode] = useState("active"); // "active" (leads/confirmed) or "history" (declined/completed)
+  
+  const [isMobile, setIsMobile] = useState(false);
+  const [expandedColumn, setExpandedColumn] = useState(null);
 
   useEffect(() => {
-    setNote(reservation?.manager_notes || "");
-    setSelectedTable(reservation?.details?.tableId || "");
-  }, [reservation]);
-
-  useEffect(() => {
-    const fetchTables = async () => {
-      try {
-        const res = await tablesApi.getAll();
-        setTablesList(res.data || []);
-      } catch (err) {
-        console.error("Error fetching tables for assignment:", err);
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 900;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setExpandedColumn(null);
       }
     };
-    fetchTables();
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  if (!reservation) {
-    return (
-      <div className="resDetailEmpty">
-        <div className="resDetailEmptyIcon">📖</div>
-        <p className="resDetailEmptyText">Select a reservation to view details</p>
-      </div>
-    );
-  }
+  const toggleColumn = (colName) => {
+    setExpandedColumn(prev => prev === colName ? null : colName);
+  };
 
-  const sendWhatsAppNotification = (stage) => {
+  const canManage = can("reservations_manage");
+
+  const fetchTables = useCallback(async () => {
+    try {
+      const res = await tablesApi.getAll();
+      setTablesList(res.data || []);
+    } catch (err) {
+      console.error("Error fetching tables:", err);
+    }
+  }, []);
+
+  const fetchAll = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('reservations')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setReservations(data || []);
+      setStats({
+        new: data?.filter(r => r.stage === 'new').length || 0,
+        reviewing: data?.filter(r => r.stage === 'reviewing').length || 0,
+        accepted: data?.filter(r => r.stage === 'accepted').length || 0,
+        declined: data?.filter(r => r.stage === 'declined').length || 0,
+        completed: data?.filter(r => r.stage === 'completed').length || 0,
+      });
+    } catch (e) {
+      console.error("Error fetching reservations:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAll();
+    fetchTables();
+
+    const channel = supabase
+      .channel('reservations-pipeline')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reservations' }, (payload) => {
+        setReservations((prev) => [payload.new, ...prev]);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reservations' }, (payload) => {
+        setReservations((prev) =>
+          prev.map((r) => (r.id === payload.new.id ? payload.new : r))
+        );
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchAll, fetchTables]);
+
+  useEffect(() => {
+    const newCount = reservations.filter(r => r.stage === 'new').length;
+    setStats({
+      new: newCount,
+      reviewing: reservations.filter(r => r.stage === 'reviewing').length,
+      accepted: reservations.filter(r => r.stage === 'accepted').length,
+      declined: reservations.filter(r => r.stage === 'declined').length,
+      completed: reservations.filter(r => r.stage === 'completed').length,
+    });
+    if (onNewCount) onNewCount(newCount);
+  }, [reservations, onNewCount]);
+
+  const sendWhatsAppNotification = (reservation, stage) => {
     const guestName = reservation.name || "Guest";
     const phone = (reservation.phone || "").replace(/\D/g, "");
     if (!phone) {
@@ -140,63 +396,65 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
     window.open(waUrl, "_blank");
   };
 
-  const handleStage = async (stage) => {
+  const handleStageChange = async (reservation, stage, noteText) => {
     try {
       const { error } = await supabase
         .from('reservations')
-        .update({ stage, manager_notes: note })
+        .update({ stage, manager_notes: noteText })
         .eq('id', reservation.id);
 
       if (error) throw error;
       toast.success(`Moved to ${STAGE_LABELS[stage] || stage}`);
 
       if (stage === "accepted" || stage === "declined") {
-        sendWhatsAppNotification(stage);
+        sendWhatsAppNotification(reservation, stage);
       }
-
-      onStageChange();
+      
+      fetchAll();
+      fetchTables();
     } catch (e) {
       console.error("Error updating stage:", e);
       toast.error("Failed to update reservation stage.");
     }
   };
 
-  const handleConfirmReservation = async () => {
-    if (!selectedTable) {
+  const handleConfirmReservation = async (reservation, tableId, noteText) => {
+    if (!tableId) {
       toast.error("Please assign a table before confirming.");
       return;
     }
     try {
       const updatedDetails = {
         ...(reservation.details || {}),
-        tableId: selectedTable,
-        tableName: `Table ${selectedTable}`
+        tableId: tableId,
+        tableName: `Table ${tableId}`
       };
 
       const { error } = await supabase
         .from('reservations')
         .update({
           stage: "accepted",
-          manager_notes: note,
+          manager_notes: noteText || reservation.manager_notes || "",
           details: updatedDetails
         })
         .eq('id', reservation.id);
 
       if (error) throw error;
       toast.success("Reservation confirmed and table assigned.");
-      sendWhatsAppNotification("accepted");
-      onStageChange();
+      sendWhatsAppNotification(reservation, "accepted");
+      
+      fetchAll();
+      fetchTables();
     } catch (e) {
       console.error("Error confirming reservation:", e);
       toast.error("Failed to confirm reservation.");
     }
   };
 
-  const handleCheckIn = async () => {
+  const handleCheckIn = async (reservation) => {
     try {
       const assignedTableId = reservation.details?.tableId;
       if (assignedTableId) {
-        // Seat guest on table
         await tablesApi.updateStatus(assignedTableId, {
           status: "seated",
           guest: reservation.name,
@@ -205,7 +463,6 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
         toast.success(`Table ${assignedTableId} allocated to ${reservation.name}`);
       }
 
-      // Update reservation stage to completed
       const { error } = await supabase
         .from('reservations')
         .update({ stage: "completed" })
@@ -213,317 +470,420 @@ function ReservationDetail({ reservation, canManage, onStageChange }) {
 
       if (error) throw error;
       toast.success("Guest checked in successfully.");
-      onStageChange();
+      
+      fetchAll();
+      fetchTables();
     } catch (e) {
       console.error("Error checking in guest:", e);
       toast.error("Failed to check in guest.");
     }
   };
 
-  const handleSaveNote = async () => {
+  const handleSaveNote = async (reservation, noteText) => {
     try {
       const { error } = await supabase
         .from('reservations')
-        .update({ manager_notes: note })
+        .update({ manager_notes: noteText })
         .eq('id', reservation.id);
       if (error) throw error;
       toast.success("Manager notes saved");
-      onStageChange();
+      fetchAll();
     } catch (e) {
       console.error("Save note failed:", e);
       toast.error("Failed to save note");
     }
   };
 
-  const serviceKey = getServiceType(reservation.source_modal);
-  const color = SERVICE_COLORS[serviceKey] || "#8C7B6A";
-  const details = reservation.details || {};
+  const getReservationsByStage = (stage) => reservations.filter((r) => r.stage === stage);
 
   return (
-    <div className="resDetailContent">
-      <div className="resDetailHeader" style={{ borderLeftColor: color }}>
-        <span className="resDetailService" style={{ color }}>{SERVICE_LABELS[serviceKey]}</span>
-        <h2 className="resDetailName">{reservation.name}</h2>
-        <span className="resDetailTimeAgo">Received {timeAgo(reservation.created_at)}</span>
-      </div>
-
-      <div className="resDetailGrid">
-        <div className="resDetailField">
-          <label className="resDetailLabel">DATE</label>
-          <span className="resDetailValue">{reservation.date || "Not Specified"}</span>
+    <div className="resPipelinePage">
+      {/* Dashboard Top Header */}
+      <div className="dashPanelHeader">
+        <div>
+          <h2 className="dashPanelTitle">RESERVATION PIPELINE</h2>
+          <p className="dashPanelSub">LIVE RESTAURANT HOST DASHBOARD · SHARP EDGES · STITCH GASTRONOMY UI</p>
         </div>
-        <div className="resDetailField">
-          <label className="resDetailLabel">TIME SLOT</label>
-          <span className="resDetailValue">{reservation.time_slot || "Not Specified"}</span>
-        </div>
-        <div className="resDetailField">
-          <label className="resDetailLabel">GUESTS</label>
-          <span className="resDetailValue">{reservation.guests ? `${reservation.guests} pax` : "1 pax"}</span>
-        </div>
-        <div className="resDetailField">
-          <label className="resDetailLabel">PHONE</label>
-          <span className="resDetailValue">{reservation.phone || "No Phone"}</span>
-        </div>
-        {details.tableId && (
-          <div className="resDetailField">
-            <label className="resDetailLabel">ASSIGNED TABLE</label>
-            <span className="resDetailValue" style={{ color: "#48B076", fontWeight: "bold" }}>
-              📍 Table {details.tableId}
-            </span>
-          </div>
-        )}
-        {details.occasion && (
-          <div className="resDetailField span2">
-            <label className="resDetailLabel">OCCASION</label>
-            <span className="resDetailValue">🎉 {details.occasion}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="resDetailNotesSection">
-        <label className="resDetailLabel">MANAGER NOTES</label>
-        <div className="resDetailNotesInputWrapper">
-          <textarea
-            className="resDetailNotesTextarea"
-            placeholder="Add reservation notes (table preference, guest allergies, special details)..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-          <button className="btnSecondary resSaveNoteBtn" onClick={handleSaveNote}>
-            Save Note
+        <div className="dashPanelActions">
+          <button 
+            className={`btnOutlined ${viewMode === "active" ? "btnViewModeActive" : ""}`}
+            onClick={() => setViewMode("active")}
+            style={{ padding: "0.5rem 1rem", fontSize: "0.68rem" }}
+          >
+            ACTIVE LEADS
+          </button>
+          <button 
+            className={`btnOutlined ${viewMode === "history" ? "btnViewModeActive" : ""}`}
+            onClick={() => setViewMode("history")}
+            style={{ padding: "0.5rem 1rem", fontSize: "0.68rem" }}
+          >
+            HISTORY
+          </button>
+          <button 
+            className="btnSecondary" 
+            onClick={() => { fetchAll(); fetchTables(); }}
+            style={{ padding: "0.5rem 1rem", fontSize: "0.68rem" }}
+          >
+            REFRESH
           </button>
         </div>
       </div>
 
-      <div className="resDetailActions">
-        {(reservation.stage === "new" || reservation.stage === "reviewing") && canManage && (
-          <div className="resDetailTableSelectSection" style={{ marginBottom: "1.5rem" }}>
-            <label className="resDetailLabel" style={{ display: "block", marginBottom: "0.5rem" }}>ASSIGN TABLE FOR CONFIRMATION</label>
-            <select
-              className="formSelect"
-              value={selectedTable}
-              onChange={(e) => setSelectedTable(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: "6px",
-                border: "1px solid rgba(140, 123, 106, 0.3)",
-                background: "#1E1A16",
-                color: "#F3EFEA",
-                fontFamily: "'Inter', sans-serif"
-              }}
-            >
-              <option value="">-- Select Table --</option>
-              {tablesList.map((t) => (
-                <option key={t.tableId} value={t.tableId}>
-                  Table {t.tableId} ({t.pax} pax) - {t.section} [{t.status}]
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+      {/* Premium Real-Time Table Status Summary Bar */}
+      <div className="resDashboardStatsBar">
+        <div className="resDashboardStatItem">
+          <span className="resDashboardStatVal">{tablesList.length}</span>
+          <span className="resDashboardStatLabel">TOTAL TABLES</span>
+        </div>
+        <div className="resDashboardStatItem statusVacant">
+          <span className="resDashboardStatVal">
+            {tablesList.filter(t => t.status === 'vacant').length}
+          </span>
+          <span className="resDashboardStatLabel">VACANT</span>
+        </div>
+        <div className="resDashboardStatItem statusReserved">
+          <span className="resDashboardStatVal">
+            {tablesList.filter(t => t.status === 'reserved').length}
+          </span>
+          <span className="resDashboardStatLabel">RESERVED</span>
+        </div>
+        <div className="resDashboardStatItem statusSeated">
+          <span className="resDashboardStatVal">
+            {tablesList.filter(t => t.status === 'seated').length}
+          </span>
+          <span className="resDashboardStatLabel">SEATED / BUSY</span>
+        </div>
+      </div>
 
-        <div className="resDetailActionGroup">
-          {(reservation.stage === "new" || reservation.stage === "reviewing") && canManage && (
+      {loading ? (
+        <div className="resPipelineLoading">
+          <div className="spinner"></div>
+          <p>LOADING PIPELINE CHANNELS...</p>
+        </div>
+      ) : (
+        <div className="resBoardLayout">
+          {viewMode === "active" ? (
             <>
-              <button className="btnPrimary resActionBtn" onClick={handleConfirmReservation}>
-                ✓ Confirm Reservation
-              </button>
-              <button className="btnDanger resActionBtn" onClick={() => handleStage("declined")}>
-                ✕ Decline Booking
-              </button>
-              {reservation.stage === "new" && (
-                <button className="btnSecondary resActionBtn" onClick={() => handleStage("reviewing")}>
-                  Mark Contacted
-                </button>
-              )}
+              {/* Column 1: New Leads */}
+              <div className={`resBoardColumn ${isMobile && expandedColumn === "new" ? "resColumnExpanded" : ""}`}>
+                <div 
+                  className="resColumnHeader borderNew"
+                  onClick={() => isMobile && toggleColumn("new")}
+                  style={{ cursor: isMobile ? "pointer" : "default" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {isMobile && (
+                      <span className="resColumnArrow">
+                        ▶
+                      </span>
+                    )}
+                    <h3>NEW REQUESTS</h3>
+                  </div>
+                  <span className="resColumnBadge">{stats.new || 0}</span>
+                </div>
+                
+                <motion.div 
+                  initial={isMobile ? { height: 0, opacity: 0 } : { height: "auto", opacity: 1 }}
+                  animate={
+                    !isMobile || expandedColumn === "new"
+                      ? { height: "auto", opacity: 1, display: "flex" }
+                      : { height: 0, opacity: 0, transitionEnd: { display: "none" } }
+                  }
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="resColumnCards"
+                >
+                  <div className="resColumnCardsInner">
+                    <AnimatePresence mode="popLayout">
+                      {getReservationsByStage("new").length === 0 ? (
+                        <div className="resColumnEmpty">
+                          <p>No new leads</p>
+                        </div>
+                      ) : (
+                        getReservationsByStage("new").map((r) => (
+                          <motion.div
+                            key={r.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            style={{ width: "100%" }}
+                          >
+                            <PipelineCard
+                              reservation={r}
+                              tablesList={tablesList}
+                              canManage={canManage}
+                              onConfirm={handleConfirmReservation}
+                              onDecline={handleStageChange}
+                              onStageChange={handleStageChange}
+                              onCheckIn={handleCheckIn}
+                              onSaveNote={handleSaveNote}
+                              allReservations={reservations}
+                            />
+                          </motion.div>
+                        ))
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Column 2: Reviewing */}
+              <div className={`resBoardColumn ${isMobile && expandedColumn === "reviewing" ? "resColumnExpanded" : ""}`}>
+                <div 
+                  className="resColumnHeader borderReviewing"
+                  onClick={() => isMobile && toggleColumn("reviewing")}
+                  style={{ cursor: isMobile ? "pointer" : "default" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {isMobile && (
+                      <span className="resColumnArrow">
+                        ▶
+                      </span>
+                    )}
+                    <h3>CONTACTED & REVIEWING</h3>
+                  </div>
+                  <span className="resColumnBadge">{stats.reviewing || 0}</span>
+                </div>
+                
+                <motion.div 
+                  initial={isMobile ? { height: 0, opacity: 0 } : { height: "auto", opacity: 1 }}
+                  animate={
+                    !isMobile || expandedColumn === "reviewing"
+                      ? { height: "auto", opacity: 1, display: "flex" }
+                      : { height: 0, opacity: 0, transitionEnd: { display: "none" } }
+                  }
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="resColumnCards"
+                >
+                  <div className="resColumnCardsInner">
+                    <AnimatePresence mode="popLayout">
+                      {getReservationsByStage("reviewing").length === 0 ? (
+                        <div className="resColumnEmpty">
+                          <p>No reviewed leads</p>
+                        </div>
+                      ) : (
+                        getReservationsByStage("reviewing").map((r) => (
+                          <motion.div
+                            key={r.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            style={{ width: "100%" }}
+                          >
+                            <PipelineCard
+                              reservation={r}
+                              tablesList={tablesList}
+                              canManage={canManage}
+                              onConfirm={handleConfirmReservation}
+                              onDecline={handleStageChange}
+                              onStageChange={handleStageChange}
+                              onCheckIn={handleCheckIn}
+                              onSaveNote={handleSaveNote}
+                              allReservations={reservations}
+                            />
+                          </motion.div>
+                        ))
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Column 3: Confirmed */}
+              <div className={`resBoardColumn ${isMobile && expandedColumn === "accepted" ? "resColumnExpanded" : ""}`}>
+                <div 
+                  className="resColumnHeader borderConfirmed"
+                  onClick={() => isMobile && toggleColumn("accepted")}
+                  style={{ cursor: isMobile ? "pointer" : "default" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {isMobile && (
+                      <span className="resColumnArrow">
+                        ▶
+                      </span>
+                    )}
+                    <h3>CONFIRMED ARRIVALS</h3>
+                  </div>
+                  <span className="resColumnBadge">{stats.accepted || 0}</span>
+                </div>
+                
+                <motion.div 
+                  initial={isMobile ? { height: 0, opacity: 0 } : { height: "auto", opacity: 1 }}
+                  animate={
+                    !isMobile || expandedColumn === "accepted"
+                      ? { height: "auto", opacity: 1, display: "flex" }
+                      : { height: 0, opacity: 0, transitionEnd: { display: "none" } }
+                  }
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="resColumnCards"
+                >
+                  <div className="resColumnCardsInner">
+                    <AnimatePresence mode="popLayout">
+                      {getReservationsByStage("accepted").length === 0 ? (
+                        <div className="resColumnEmpty">
+                          <p>No confirmed arrivals</p>
+                        </div>
+                      ) : (
+                        getReservationsByStage("accepted").map((r) => (
+                          <motion.div
+                            key={r.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            style={{ width: "100%" }}
+                          >
+                            <PipelineCard
+                              reservation={r}
+                              tablesList={tablesList}
+                              canManage={canManage}
+                              onConfirm={handleConfirmReservation}
+                              onDecline={handleStageChange}
+                              onStageChange={handleStageChange}
+                              onCheckIn={handleCheckIn}
+                              onSaveNote={handleSaveNote}
+                              allReservations={reservations}
+                            />
+                          </motion.div>
+                        ))
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* History Column 1: Seated / Completed */}
+              <div className={`resBoardColumn ${isMobile && expandedColumn === "completed" ? "resColumnExpanded" : ""}`}>
+                <div 
+                  className="resColumnHeader borderConfirmed"
+                  onClick={() => isMobile && toggleColumn("completed")}
+                  style={{ cursor: isMobile ? "pointer" : "default" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {isMobile && (
+                      <span className="resColumnArrow">
+                        ▶
+                      </span>
+                    )}
+                    <h3>CHECKED IN / SEATED</h3>
+                  </div>
+                  <span className="resColumnBadge">{stats.completed || 0}</span>
+                </div>
+                
+                <motion.div 
+                  initial={isMobile ? { height: 0, opacity: 0 } : { height: "auto", opacity: 1 }}
+                  animate={
+                    !isMobile || expandedColumn === "completed"
+                      ? { height: "auto", opacity: 1, display: "flex" }
+                      : { height: 0, opacity: 0, transitionEnd: { display: "none" } }
+                  }
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="resColumnCards"
+                >
+                  <div className="resColumnCardsInner">
+                    <AnimatePresence mode="popLayout">
+                      {getReservationsByStage("completed").length === 0 ? (
+                        <div className="resColumnEmpty">
+                          <p>No seated guests in history</p>
+                        </div>
+                      ) : (
+                        getReservationsByStage("completed").map((r) => (
+                          <motion.div
+                            key={r.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            style={{ width: "100%" }}
+                          >
+                            <PipelineCard
+                              reservation={r}
+                              tablesList={tablesList}
+                              canManage={canManage}
+                              onConfirm={handleConfirmReservation}
+                              onDecline={handleStageChange}
+                              onStageChange={handleStageChange}
+                              onCheckIn={handleCheckIn}
+                              onSaveNote={handleSaveNote}
+                              allReservations={reservations}
+                            />
+                          </motion.div>
+                        ))
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* History Column 2: Declined */}
+              <div className={`resBoardColumn ${isMobile && expandedColumn === "declined" ? "resColumnExpanded" : ""}`}>
+                <div 
+                  className="resColumnHeader borderDeclined"
+                  onClick={() => isMobile && toggleColumn("declined")}
+                  style={{ cursor: isMobile ? "pointer" : "default" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {isMobile && (
+                      <span className="resColumnArrow">
+                        ▶
+                      </span>
+                    )}
+                    <h3>DECLINED LEADS</h3>
+                  </div>
+                  <span className="resColumnBadge">{stats.declined || 0}</span>
+                </div>
+                
+                <motion.div 
+                  initial={isMobile ? { height: 0, opacity: 0 } : { height: "auto", opacity: 1 }}
+                  animate={
+                    !isMobile || expandedColumn === "declined"
+                      ? { height: "auto", opacity: 1, display: "flex" }
+                      : { height: 0, opacity: 0, transitionEnd: { display: "none" } }
+                  }
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="resColumnCards"
+                >
+                  <div className="resColumnCardsInner">
+                    <AnimatePresence mode="popLayout">
+                      {getReservationsByStage("declined").length === 0 ? (
+                        <div className="resColumnEmpty">
+                          <p>No declined leads in history</p>
+                        </div>
+                      ) : (
+                        getReservationsByStage("declined").map((r) => (
+                          <motion.div
+                            key={r.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                            style={{ width: "100%" }}
+                          >
+                            <PipelineCard
+                              reservation={r}
+                              tablesList={tablesList}
+                              canManage={canManage}
+                              onConfirm={handleConfirmReservation}
+                              onDecline={handleStageChange}
+                              onStageChange={handleStageChange}
+                              onCheckIn={handleCheckIn}
+                              onSaveNote={handleSaveNote}
+                              allReservations={reservations}
+                            />
+                          </motion.div>
+                        ))
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              </div>
             </>
           )}
-          {reservation.stage === "accepted" && (
-            <button
-              className="btnPrimary resActionBtn"
-              style={{ background: "#48B076" }}
-              onClick={handleCheckIn}
-            >
-              ✓ Check In Guest
-            </button>
-          )}
         </div>
-
-        {reservation.phone && (
-          <div className="resDetailContactGroup" style={{ marginTop: "1rem" }}>
-            <a href={`tel:${reservation.phone}`} className="btnSecondary resContactBtn">
-              📞 Call Guest
-            </a>
-            <a
-              href={`https://wa.me/${reservation.phone.replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btnSecondary resContactBtn resWaBtn"
-            >
-              💬 WhatsApp Notify
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function ReservationPipeline({ onNewCount }) {
-  const { can } = useAuth();
-  const [reservations, setReservations] = useState([]);
-  const [stats, setStats] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [activeStage, setActiveStage] = useState("new");
-  const [selectedId, setSelectedId] = useState(null);
-  const canManage = can("reservations_manage");
-
-  const fetchAll = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('reservations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setReservations(data || []);
-      setStats({
-        new: data?.filter(r => r.stage === 'new').length || 0,
-        reviewing: data?.filter(r => r.stage === 'reviewing').length || 0,
-        accepted: data?.filter(r => r.stage === 'accepted').length || 0,
-        declined: data?.filter(r => r.stage === 'declined').length || 0,
-      });
-    } catch (e) {
-      console.error("Error fetching reservations:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAll();
-
-    const channel = supabase
-      .channel('reservations-pipeline')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reservations' }, (payload) => {
-        setReservations((prev) => [payload.new, ...prev]);
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reservations' }, (payload) => {
-        setReservations((prev) =>
-          prev.map((r) => (r.id === payload.new.id ? payload.new : r))
-        );
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [fetchAll]);
-
-  useEffect(() => {
-    const newCount = reservations.filter(r => r.stage === 'new').length;
-    setStats({
-      new: newCount,
-      reviewing: reservations.filter(r => r.stage === 'reviewing').length,
-      accepted: reservations.filter(r => r.stage === 'accepted').length,
-      declined: reservations.filter(r => r.stage === 'declined').length,
-    });
-    if (onNewCount) onNewCount(newCount);
-  }, [reservations, onNewCount]);
-
-  const byStage = (stage) => reservations.filter((r) => r.stage === stage);
-
-  const stageReservations = byStage(activeStage);
-
-  // Auto-select first item when stage or reservations change
-  useEffect(() => {
-    if (stageReservations.length > 0) {
-      const found = stageReservations.some(r => r.id === selectedId);
-      if (!found) {
-        setSelectedId(stageReservations[0].id);
-      }
-    } else {
-      setSelectedId(null);
-    }
-  }, [activeStage, reservations, selectedId, stageReservations]);
-
-  const stageColors = { new: "#4A7AB5", reviewing: "#C8852A", accepted: "#48B076", declined: "#C04040" };
-
-  return (
-    <div className="resPipelinePage">
-      {/* Header */}
-      <div className="dashPanelHeader">
-        <div>
-          <h2 className="dashPanelTitle">Reservation Pipeline</h2>
-          <p className="dashPanelSub">Live Supabase Connection · Leads & Events</p>
-        </div>
-        <button className="btnSecondary" onClick={fetchAll}>Refresh</button>
-      </div>
-
-      <div className="resSplitLayout">
-        {/* Left Master List */}
-        <div className="resMasterPane">
-          {/* Stage Pill Tabs */}
-          <div className="resStageTabs">
-            {STAGES.map((stage) => (
-              <button
-                key={stage}
-                className={`resStageTab ${activeStage === stage ? "resStageTabActive" : ""}`}
-                style={activeStage === stage ? { borderColor: stageColors[stage], color: stageColors[stage] } : {}}
-                onClick={() => setActiveStage(stage)}
-              >
-                {STAGE_LABELS[stage]}
-                <span
-                  className="resStageTabBadge"
-                  style={activeStage === stage ? { background: stageColors[stage] } : {}}
-                >
-                  {stats[stage] || 0}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {loading ? (
-            <div className="emptyState"><p className="emptyStateText">Loading pipeline...</p></div>
-          ) : (
-            <div className="resRowList">
-              <AnimatePresence mode="popLayout">
-                {stageReservations.length === 0 ? (
-                  <div className="emptyState" style={{ padding: "3rem 1rem" }}>
-                    <p className="emptyStateText">No {STAGE_LABELS[activeStage]} leads</p>
-                  </div>
-                ) : (
-                  stageReservations.map((r) => (
-                    <motion.div
-                      key={r.id}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.97 }}
-                      transition={{ duration: 0.15 }}
-                    >
-                      <ReservationCard
-                        reservation={r}
-                        isActive={selectedId === r.id}
-                        onClick={() => setSelectedId(r.id)}
-                      />
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-
-        {/* Right Detail Pane */}
-        <div className="resDetailPane">
-          <ReservationDetail
-            reservation={stageReservations.find(r => r.id === selectedId)}
-            canManage={canManage}
-            onStageChange={fetchAll}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useModal } from '../../context/ModalContext'
 import styles from './Navbar.module.css'
 
-const NAV_ITEMS = ['Reserve a Table', 'Book a Court', 'Host an Event', 'Golf Simulator', 'Menu']
+const NAV_ITEMS = ['Reserve a Table', 'Book a Court', 'Upcoming Events', 'Host an Event', 'Golf Simulator', 'Menu']
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -17,8 +17,10 @@ const Navbar = () => {
     setMenuOpen(false)
     if (item === 'Reserve a Table') openModal('table')
     else if (item === 'Book a Court') openModal('court')
+    else if (item === 'Upcoming Events') navigate('/events')
     else if (item === 'Host an Event') openModal('event')
     else if (item === 'Golf Simulator') openModal('golf')
+    else if (item === 'Menu') navigate('/menu')
   }
 
   return (
@@ -110,6 +112,20 @@ const Navbar = () => {
               color: useTransform(scrollY, [0, 80],
                 ['var(--warm-white)', 'var(--amber)']),
             }}
+            onClick={() => navigate('/events')}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            Upcoming Events
+          </motion.button>
+
+          <motion.button
+            className={styles.btnOutlined}
+            style={{
+              color: useTransform(scrollY, [0, 80],
+                ['var(--warm-white)', 'var(--amber)']),
+            }}
             onClick={() => openModal('event')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
@@ -124,6 +140,7 @@ const Navbar = () => {
               color: useTransform(scrollY, [0, 80],
                 ['var(--warm-white)', 'var(--teak)']),
             }}
+            onClick={() => navigate('/menu')}
             whileHover={{ color: 'var(--amber)' }}
           >
             Menu

@@ -282,27 +282,31 @@ export default function WaitlistModule() {
   useEffect(() => {
     fetchQueue();
 
-    socket.on("waitlist:added", (entry) => {
+    const handleWaitlistAdded = (entry) => {
       setQueue((prev) => {
         const exists = prev.some((e) => e._id === entry._id);
         if (exists) return prev;
         return [entry, ...prev];
       });
-    });
-    socket.on("waitlist:updated", (entry) => {
+    };
+    const handleWaitlistUpdated = (entry) => {
       setQueue((prev) => prev.map((e) => (e._id === entry._id ? entry : e)));
-    });
-    socket.on("waitlist:removed", (id) => {
+    };
+    const handleWaitlistRemoved = (id) => {
       setQueue((prev) => prev.filter((e) => e._id !== id));
       setSelectedEntry((prev) => (prev?._id === id ? null : prev));
-    });
+    };
+
+    socket.on("waitlist:added", handleWaitlistAdded);
+    socket.on("waitlist:updated", handleWaitlistUpdated);
+    socket.on("waitlist:removed", handleWaitlistRemoved);
     socket.on("table:statusChanged", fetchQueue);
 
     return () => {
-      socket.off("waitlist:added");
-      socket.off("waitlist:updated");
-      socket.off("waitlist:removed");
-      socket.off("table:statusChanged");
+      socket.off("waitlist:added", handleWaitlistAdded);
+      socket.off("waitlist:updated", handleWaitlistUpdated);
+      socket.off("waitlist:removed", handleWaitlistRemoved);
+      socket.off("table:statusChanged", fetchQueue);
     };
   }, [fetchQueue]);
 

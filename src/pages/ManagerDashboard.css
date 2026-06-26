@@ -964,3 +964,49 @@
     margin-top: 1rem;
   }
 }
+
+/* Server assignment styles */
+.mgServerAssignSection {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #FDFAF5;
+  border: 1px solid rgba(226, 217, 202, 0.7);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mgServerAssignLabel {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: #8C7B6A;
+  font-weight: 700;
+}
+
+.mgServerSelect {
+  width: 100%;
+  padding: 10px 14px;
+  background: #FEFCF8;
+  border: 1px solid #E2D9CA;
+  border-radius: 4px;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.85rem;
+  color: #1A1008;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.mgServerSelect:focus {
+  border-color: #C8852A;
+}
+
+.mgServerWarning {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  color: #C04040;
+  display: inline-flex;
+  align-items: center;
+}
