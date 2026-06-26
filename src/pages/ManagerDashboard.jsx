@@ -5,6 +5,7 @@ import { syncOfflineOrders } from "../services/orderApi";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { socket } from "../services/socket";
 
 const logOrderAction = async ({ orderId = null, tableId = null, action, performedBy }) => {
   const { error } = await supabase.from("order_logs").insert({
@@ -85,7 +86,13 @@ function RequestMasterCard({ request, isActive, onClick, getServiceRequestLabel 
   );
 }
 
-function OrderDetail({ order, onApprove, onReject }) {
+function OrderDetail({ order, onApprove, onReject, servers = [] }) {
+  const [selectedServerId, setSelectedServerId] = useState("");
+
+  useEffect(() => {
+    setSelectedServerId(order?.serverId || "");
+  }, [order]);
+
   if (!order) {
     return (
       <div className="mgDetailEmpty">
@@ -152,10 +159,35 @@ function OrderDetail({ order, onApprove, onReject }) {
         </div>
       </div>
 
+      {isPending && (
+        <div className="mgServerAssignSection">
+          <label className="mgServerAssignLabel">🧑‍🍽️ Assign Server to Table</label>
+          <select 
+            className="mgServerSelect"
+            value={selectedServerId} 
+            onChange={(e) => setSelectedServerId(e.target.value)}
+          >
+            <option value="">— Select Server —</option>
+            {servers.map(srv => (
+              <option key={srv.id} value={srv.id}>
+                {srv.name} {srv.is_active ? "🟢 (Active)" : "🔴 (Offline)"}
+              </option>
+            ))}
+          </select>
+          {!selectedServerId && (
+            <span className="mgServerWarning">⚠️ Please assign a server before approving.</span>
+          )}
+        </div>
+      )}
+
       <div className="mgDetailActions">
         {isPending ? (
           <div className="mgDetailActionGroup">
-            <button className="btnPrimary mgLargeActionBtn" onClick={() => onApprove(orderId)}>
+            <button 
+              className="btnPrimary mgLargeActionBtn" 
+              onClick={() => onApprove(orderId, selectedServerId)}
+              disabled={!selectedServerId}
+            >
               ✓ Approve & Send to Kitchen
             </button>
             <button className="btnDanger mgCancelBtn" onClick={() => onReject(orderId)}>
@@ -172,7 +204,7 @@ function OrderDetail({ order, onApprove, onReject }) {
   );
 }
 
-function RequestDetail({ request, onUpdateStatus, getServiceRequestLabel }) {
+function RequestDetail({ request, onUpdateStatus, getServiceRequestLabel, user }) {
   if (!request) {
     return (
       <div className="mgDetailEmpty">
@@ -221,23 +253,29 @@ function RequestDetail({ request, onUpdateStatus, getServiceRequestLabel }) {
       </div>
 
       <div className="mgDetailActions">
-        <div className="mgDetailActionGroup">
-          {isNew && (
-            <button className="btnPrimary mgLargeActionBtn" onClick={() => onUpdateStatus(requestId, "acknowledged")}>
-              ✓ Acknowledge Request
-            </button>
-          )}
-          {request.status !== "completed" && (
-            <button className="btnSecondary mgLargeActionBtn" onClick={() => onUpdateStatus(requestId, "completed")}>
-              Mark Completed
-            </button>
-          )}
-          {request.status === "completed" && (
-            <div className="mgStatusBanner served">
-              ✓ Request completed and closed
-            </div>
-          )}
-        </div>
+        {user?.role === "server" ? (
+          <div className="mgDetailActionGroup">
+            {isNew && (
+              <button className="btnPrimary mgLargeActionBtn" onClick={() => onUpdateStatus(requestId, "acknowledged")}>
+                ✓ Acknowledge Request
+              </button>
+            )}
+            {request.status !== "completed" && (
+              <button className="btnSecondary mgLargeActionBtn" onClick={() => onUpdateStatus(requestId, "completed")}>
+                Mark Completed
+              </button>
+            )}
+            {request.status === "completed" && (
+              <div className="mgStatusBanner served">
+                ✓ Request completed and closed
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mgStatusBanner">
+            {request.status === "new" ? "Pending" : request.status === "acknowledged" ? "In Progress" : "Completed"}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -256,6 +294,7 @@ function ManagerDashboard() {
 
   const [orders, setOrders] = useState([]);
   const [serviceRequests, setServiceRequests] = useState([]);
+  const [servers, setServers] = useState([]);
   const [activeTab, setActiveTab] = useState("orders");
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
@@ -285,22 +324,34 @@ function ManagerDashboard() {
   const fetchServiceRequests = async () => {
     try {
       const res = await serviceApi.getAll();
-      setServiceRequests(res.data || []);
+      setServiceRequests((res.data || []).filter((r) => r.status !== "completed"));
     } catch (err) {
       console.log("Failed to fetch service requests:", err);
     }
   };
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status, serverId) => {
     try {
       const order = orders.find((o) => getOrderId(o) === id);
       const tableId = order?.tableId || order?.tableName || null;
 
-      await ordersApi.updateStatus(id, status);
+      await ordersApi.updateStatus(id, status, serverId);
 
       if (status === "placed") {
         await supabase.from("orders").update({ approved_at: new Date().toISOString() }).eq("id", id);
         await logOrderAction({ orderId: id, tableId, action: "ORDER_APPROVED", performedBy: getPerformedBy() });
+        
+        if (serverId) {
+          const assignedServer = servers.find(s => s.id === serverId);
+          if (assignedServer) {
+            await logOrderAction({
+              orderId: id,
+              tableId,
+              action: `SERVER_ASSIGNED: ${assignedServer.name}`,
+              performedBy: getPerformedBy(),
+            });
+          }
+        }
       }
 
       if (status === "served") {
@@ -377,26 +428,40 @@ function ManagerDashboard() {
   };
 
   useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("id, name, is_active")
+          .eq("role", "server")
+          .order("name");
+        if (error) throw error;
+        setServers(data || []);
+      } catch (err) {
+        console.error("Failed to fetch servers:", err);
+      }
+    };
+
     const loadData = async () => {
       await syncOfflineOrders();
       await fetchOrders();
       await fetchServiceRequests();
+      await fetchServers();
     };
     loadData();
 
-    const ordersChannel = supabase
-      .channel("manager-orders-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders())
-      .subscribe();
-
-    const serviceChannel = supabase
-      .channel("manager-service-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "service_requests" }, () => fetchServiceRequests())
-      .subscribe();
+    socket.on("order:new", fetchOrders);
+    socket.on("order:updated", fetchOrders);
+    socket.on("order:deleted", fetchOrders);
+    socket.on("service:new", fetchServiceRequests);
+    socket.on("service:updated", fetchServiceRequests);
 
     return () => {
-      supabase.removeChannel(ordersChannel);
-      supabase.removeChannel(serviceChannel);
+      socket.off("order:new", fetchOrders);
+      socket.off("order:updated", fetchOrders);
+      socket.off("order:deleted", fetchOrders);
+      socket.off("service:new", fetchServiceRequests);
+      socket.off("service:updated", fetchServiceRequests);
     };
   }, []);
 
@@ -559,10 +624,11 @@ function ManagerDashboard() {
             <div className="mgDetailPane">
               <OrderDetail
                 order={selectedOrder}
-                onApprove={(id) => updateStatus(id, "placed")}
+                onApprove={(id, serverId) => updateStatus(id, "placed", serverId)}
                 onReject={rejectOrder}
                 onDelete={deleteOrder}
                 getPerformedBy={getPerformedBy}
+                servers={servers}
               />
             </div>
           </div>
@@ -602,6 +668,7 @@ function ManagerDashboard() {
                 request={selectedRequest}
                 onUpdateStatus={updateServiceStatus}
                 getServiceRequestLabel={getServiceRequestLabel}
+                user={user}
               />
             </div>
           </div>

@@ -129,8 +129,25 @@ export default function DashboardPage() {
   useEffect(() => {
     loadBadges();
 
-    socket.on("service:new", (req) => {
+    const handleServiceNew = async (req) => {
       if (req.type === "bussing_request" && user?.role !== "server") return;
+
+      // Resolve serverId dynamically
+      let reqServerId = null;
+      try {
+        const { data: tableData } = await supabase
+          .from("tables")
+          .select("current_session(server_id)")
+          .eq("id", req.tableId)
+          .maybeSingle();
+        reqServerId = tableData?.current_session?.server_id || null;
+      } catch (err) {
+        console.error("Error resolving server for service request in dashboard:", err);
+      }
+
+      if (user?.role === "server" && reqServerId && reqServerId !== user.id) {
+        return; // Filter out if assigned to someone else
+      }
 
       setBadges((prev) => ({ ...prev, alerts: prev.alerts + 1 }));
       addActivity(
@@ -143,6 +160,7 @@ export default function DashboardPage() {
 
       if (user?.role !== "owner" && user?.role !== "owner_full") {
         setActiveAlert({
+          id: req.id || req._id,
           type: "service",
           title: "Service Request Alert",
           message: `${req.tableName || `Table ${req.tableId}`} is calling for ${
@@ -160,9 +178,19 @@ export default function DashboardPage() {
         );
         setTimeout(() => setNotifBar(null), 5000);
       }
-    });
+    };
 
-    socket.on("service:updated", (req) => {
+    const handleServiceUpdated = (req) => {
+      loadBadges();
+
+      const reqId = req.id || req._id;
+      setActiveAlert((prev) => {
+        if (prev && prev.id === reqId && req.status === "completed") {
+          return null;
+        }
+        return prev;
+      });
+
       if (req.type !== "bussing_request" || req.status !== "completed") return;
       if (!["floor_manager", "restaurant_manager"].includes(user?.role)) return;
 
@@ -171,12 +199,11 @@ export default function DashboardPage() {
 
       addActivity(message);
       setNotifBar(message);
-      loadBadges();
 
       setTimeout(() => setNotifBar(null), 5000);
-    });
+    };
 
-    socket.on("waitlist:added", (entry) => {
+    const handleWaitlistAdded = (entry) => {
       setBadges((prev) => ({ ...prev, waitlist: prev.waitlist + 1 }));
       addActivity(`Walk-in: ${entry.guestName} (${entry.partySize} pax) added to queue`);
 
@@ -190,16 +217,16 @@ export default function DashboardPage() {
         });
         playChime();
       }
-    });
+    };
 
-    socket.on("waitlist:removed", () => {
+    const handleWaitlistRemoved = () => {
       setBadges((prev) => ({
         ...prev,
         waitlist: Math.max(0, prev.waitlist - 1),
       }));
-    });
+    };
 
-    socket.on("reservation:new", (res) => {
+    const handleReservationNew = (res) => {
       setBadges((prev) => ({ ...prev, reservations: prev.reservations + 1 }));
       addActivity(`New reservation lead: ${res.name} — ${res.service}`);
 
@@ -213,9 +240,9 @@ export default function DashboardPage() {
         });
         playChime();
       }
-    });
+    };
 
-    socket.on("table:statusChanged", (table) => {
+    const handleTableStatusChanged = (table) => {
       if (table) {
         if (table.status) {
           addActivity(`Table ${table.tableId || table.id} -> ${table.status.replace("_", " ")}`);
@@ -223,9 +250,9 @@ export default function DashboardPage() {
           addActivity(`Table layout updated`);
         }
       }
-    });
+    };
 
-    socket.on("order:new", (order) => {
+    const handleOrderNew = (order) => {
       addActivity(`New order from ${order.tableName} — ₹${order.total}`);
 
       if (user?.role !== "owner" && user?.role !== "owner_full") {
@@ -238,16 +265,58 @@ export default function DashboardPage() {
         });
         playChime();
       }
-    });
+    };
+
+    const handleOrderUpdated = async (order) => {
+      if (order.stage !== "ready") return;
+
+      // Resolve table_id and server_id from table_sessions
+      let tableId = null;
+      let assignedServerId = null;
+      try {
+        const { data: sessionData } = await supabase
+          .from("table_sessions")
+          .select("table_id, server_id")
+          .eq("id", order.sessionId)
+          .maybeSingle();
+        tableId = sessionData?.table_id || null;
+        assignedServerId = sessionData?.server_id || null;
+      } catch (err) {
+        console.error("Error resolving table session for ready order:", err);
+      }
+
+      if (user?.role === "server" && assignedServerId && assignedServerId === user.id) {
+        const tableName = tableId ? `Table ${tableId}` : order.tableName;
+        setActiveAlert({
+          type: "order_ready",
+          title: "🍽️ Food Ready to Serve",
+          message: `${tableName} order is ready! Please serve it immediately.`,
+          icon: "🍳",
+          targetTab: "floor"
+        });
+        playChime();
+        toast.success(`🍽️ Order for ${tableName} is ready!`);
+      }
+    };
+
+    socket.on("service:new", handleServiceNew);
+    socket.on("service:updated", handleServiceUpdated);
+    socket.on("waitlist:added", handleWaitlistAdded);
+    socket.on("waitlist:removed", handleWaitlistRemoved);
+    socket.on("reservation:new", handleReservationNew);
+    socket.on("table:statusChanged", handleTableStatusChanged);
+    socket.on("order:new", handleOrderNew);
+    socket.on("order:updated", handleOrderUpdated);
 
     return () => {
-      socket.off("service:new");
-      socket.off("service:updated");
-      socket.off("waitlist:added");
-      socket.off("waitlist:removed");
-      socket.off("reservation:new");
-      socket.off("table:statusChanged");
-      socket.off("order:new");
+      socket.off("service:new", handleServiceNew);
+      socket.off("service:updated", handleServiceUpdated);
+      socket.off("waitlist:added", handleWaitlistAdded);
+      socket.off("waitlist:removed", handleWaitlistRemoved);
+      socket.off("reservation:new", handleReservationNew);
+      socket.off("table:statusChanged", handleTableStatusChanged);
+      socket.off("order:new", handleOrderNew);
+      socket.off("order:updated", handleOrderUpdated);
     };
   }, [user]);
 
@@ -320,8 +389,13 @@ export default function DashboardPage() {
         reservationsApi.getStats(),
       ]);
 
+      let alertsData = alertsRes.data || [];
+      if (user?.role === "server") {
+        alertsData = alertsData.filter((r) => !r.serverId || r.serverId === user.id);
+      }
+
       setBadges({
-        alerts: alertsRes.data.filter((r) => r.status === "new").length,
+        alerts: alertsData.filter((r) => r.status === "new").length,
         waitlist: waitlistRes.data.length,
         reservations: resRes.data.newLeads,
       });
@@ -678,6 +752,7 @@ export default function DashboardPage() {
 
 const STATUS_FILTER_OPTIONS = [
   { value: "ALL", label: "All" },
+  { value: "SERVER_ASSIGNED", label: "Server Assigned" },
   { value: "ORDER_APPROVED", label: "Approved" },
   { value: "ORDER_REJECTED", label: "Rejected" },
   { value: "KITCHEN_STARTED", label: "Preparing" },
@@ -731,6 +806,9 @@ function ActivityLogs() {
   };
 
   const getStatusBadge = (action) => {
+    if (String(action || "").startsWith("SERVER_ASSIGNED")) {
+      return { className: "ready", label: "🤵 Server Assigned" };
+    }
     switch (action) {
       case "ORDER_APPROVED":
         return { className: "approved", label: "🟢 Approved" };
@@ -924,6 +1002,8 @@ function ActivityLogs() {
   const filteredLogs =
     statusFilter === "ALL"
       ? activityLogs
+      : statusFilter === "SERVER_ASSIGNED"
+      ? activityLogs.filter((log) => String(log.action).startsWith("SERVER_ASSIGNED"))
       : activityLogs.filter((log) => log.action === statusFilter);
 
   return (
