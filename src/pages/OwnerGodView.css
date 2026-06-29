@@ -1144,3 +1144,40 @@
   border: 1px solid rgba(192, 64, 64, 0.35);
 }
 
+.godEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5rem 2rem;
+  background: rgba(27, 16, 10, 0.4);
+  border: 1px dashed rgba(212, 170, 80, 0.2);
+  border-radius: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.emptyStateIcon {
+  font-size: 3.5rem;
+  margin-bottom: 1.2rem;
+  opacity: 0.8;
+  filter: drop-shadow(0 4px 12px rgba(212, 170, 80, 0.1));
+}
+
+.godEmptyState h3 {
+  font-family: "Outfit", sans-serif;
+  color: #d4aa50;
+  font-size: 1.3rem;
+  margin: 0 0 0.6rem 0;
+  letter-spacing: 0.02em;
+}
+
+.godEmptyState p {
+  font-size: 0.88rem;
+  color: rgba(247, 239, 228, 0.6);
+  max-width: 450px;
+  line-height: 1.5;
+  margin: 0;
+}
+

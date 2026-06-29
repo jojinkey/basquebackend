@@ -27,6 +27,10 @@ BEGIN
   DELETE FROM table_sessions WHERE id IS NOT NULL;
   DELETE FROM audit_logs WHERE id IS NOT NULL;
   DELETE FROM reservations WHERE id IS NOT NULL;
+  DELETE FROM order_logs WHERE id IS NOT NULL;
+  DELETE FROM ticket_bookings WHERE id IS NOT NULL;
+  DELETE FROM events WHERE id IS NOT NULL;
+  DELETE FROM shifts WHERE id IS NOT NULL;
 
   -- 3. Reset table statuses to available
   UPDATE tables SET status = 'available' WHERE id IS NOT NULL;

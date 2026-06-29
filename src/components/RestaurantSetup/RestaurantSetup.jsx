@@ -47,6 +47,10 @@ export default function RestaurantSetup() {
   const [dishIsNew, setDishIsNew] = useState(false);
   const [menuSubmitting, setMenuSubmitting] = useState(false);
 
+  // Category form state
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
+  const [categorySubmitting, setCategorySubmitting] = useState(false);
+
   // Price edits temporary states (itemId -> price string)
   const [priceEdits, setPriceEdits] = useState({});
 
@@ -241,6 +245,43 @@ export default function RestaurantSetup() {
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Add Category
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategoryLabel.trim()) return;
+
+    setCategorySubmitting(true);
+    try {
+      const name = newCategoryLabel.trim().toLowerCase().replace(/\s+/g, "_");
+      const sortOrder = categories.length + 1;
+
+      const { data, error } = await supabase
+        .from("menu_categories")
+        .insert([
+          {
+            name,
+            label: newCategoryLabel.trim(),
+            sort_order: sortOrder,
+            is_active: true
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      toast.success("Category added successfully!");
+      setNewCategoryLabel("");
+      
+      // Reload categories list
+      await loadMenuAndCategories();
+    } catch (err) {
+      console.error("Error adding category:", err);
+      toast.error(err.message || "Failed to add category.");
+    } finally {
+      setCategorySubmitting(false);
     }
   };
 
@@ -598,8 +639,10 @@ export default function RestaurantSetup() {
         </div>
       ) : (
         <div className="setupSplitLayout">
-          {/* Add Dish Form */}
-          <div className="setupFormCard">
+          {/* Form Column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", width: "100%" }}>
+            {/* Add Dish Form */}
+            <div className="setupFormCard">
             <h3>Add New Dish</h3>
             <form onSubmit={handleAddDish} className="setupForm">
               <div className="formField">
@@ -745,7 +788,30 @@ export default function RestaurantSetup() {
             </form>
           </div>
 
-          {/* Menu Items List */}
+          {/* Add Category Card */}
+          <div className="setupFormCard">
+            <h3>Add New Category</h3>
+            <form onSubmit={handleAddCategory} className="setupForm">
+              <div className="formField">
+                <label htmlFor="categoryLabelInput">Category Name</label>
+                <input 
+                  id="categoryLabelInput"
+                  type="text" 
+                  className="formInput"
+                  placeholder="e.g. Desserts"
+                  value={newCategoryLabel}
+                  onChange={e => setNewCategoryLabel(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btnPrimary" style={{ marginTop: "0.6rem" }} disabled={categorySubmitting}>
+                {categorySubmitting ? "Adding..." : "Add Category"}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Menu Items List */}
           <div className="setupListCard">
             <div className="setupListHeader">
               <h3>Active Menu Cards</h3>
