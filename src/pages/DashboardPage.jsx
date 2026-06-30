@@ -252,6 +252,20 @@ export default function DashboardPage() {
       }
     };
 
+    const handleTableSeated = (data) => {
+      if (user?.role === "server") {
+        setActiveAlert({
+          type: "table_seated",
+          title: "🪑 Table Seated",
+          message: `Table ${data.tableId} (${data.guestName || "Walk-in"}) is now seated. Tap here to assign yourself.`,
+          icon: "🪑",
+          targetTab: "floor"
+        });
+        playChime();
+        toast.success(`🪑 Table ${data.tableId} seated!`);
+      }
+    };
+
     const handleOrderNew = (order) => {
       addActivity(`New order from ${order.tableName} — ₹${order.total}`);
 
@@ -305,6 +319,7 @@ export default function DashboardPage() {
     socket.on("waitlist:removed", handleWaitlistRemoved);
     socket.on("reservation:new", handleReservationNew);
     socket.on("table:statusChanged", handleTableStatusChanged);
+    socket.on("table:seated", handleTableSeated);
     socket.on("order:new", handleOrderNew);
     socket.on("order:updated", handleOrderUpdated);
 
@@ -315,6 +330,7 @@ export default function DashboardPage() {
       socket.off("waitlist:removed", handleWaitlistRemoved);
       socket.off("reservation:new", handleReservationNew);
       socket.off("table:statusChanged", handleTableStatusChanged);
+      socket.off("table:seated", handleTableSeated);
       socket.off("order:new", handleOrderNew);
       socket.off("order:updated", handleOrderUpdated);
     };

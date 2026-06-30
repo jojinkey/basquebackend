@@ -293,6 +293,12 @@
   transition: all 0.2s ease;
 }
 
+.setupMenuItemCard.card-unavailable {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+  border: 1px dashed rgba(192, 64, 64, 0.4);
+}
+
 .setupMenuItemCard:hover {
   border-color: var(--amber);
   box-shadow: 0 4px 15px rgba(200,133,42,0.06);

@@ -39,6 +39,24 @@ const AuthContext = createContext(null);
 const SESSION_KEY = "basque_session";
 const INACTIVITY_LIMIT = 8 * 60 * 60 * 1000;
 
+const PAGE_PERMISSIONS = {
+  god: ["god_view"],
+  floor: ["floor_view", "floor_manage"],
+  managerOrders: ["table_orders"],
+  orders: ["kitchen_view", "kitchen_manage"],
+  tableOrders: ["table_orders"],
+  alerts: ["service_alerts"],
+  waitlist: ["waitlist_view", "waitlist_manage"],
+  reservations: ["reservations_view", "reservations_manage"],
+  events: ["events_manage"],
+  insights: ["insights"],
+  activityLogs: ["audit_reports"],
+  audit: ["audit_reports", "audit_export"],
+  employees: ["employee_manage"],
+  setup: ["setup_manage"],
+  settings: ["settings"]
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +97,11 @@ export function AuthProvider({ children }) {
       if (!user) return false;
       if (user.role === "owner" && overrideMode) {
         return (PERMISSIONS.owner_full || []).includes(permission);
+      }
+      if (user.allowed_pages && Array.isArray(user.allowed_pages)) {
+        return user.allowed_pages
+          .flatMap((pId) => PAGE_PERMISSIONS[pId] || [])
+          .includes(permission);
       }
       return (PERMISSIONS[user.role] || []).includes(permission);
     },

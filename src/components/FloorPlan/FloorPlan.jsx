@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { tablesApi, ordersApi, serviceApi } from "../../services/api";
 import { socket } from "../../services/socket";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-hot-toast";
 import "./FloorPlan.css";
 
 const SECTIONS = ["All", "Indoor", "Terrace", "Garden", "Bar"];
@@ -41,16 +42,18 @@ function TableCard({ table, isSelected, onClick }) {
   const orderBadge = orderStatusIcon(table.activeOrders);
   const hasAlert = table.serviceRequests?.some((r) => r.status === "new");
   const hasBillReq = table.serviceRequests?.some((r) => r.status === "new" && r.type === "bill_request");
+  const isClosed = table.sections?.is_active === false;
 
   let cardClass = `floorTableCard status-${table.status}`;
   if (isSelected) cardClass += " selected";
   if (table.isVip) cardClass += " vip";
+  if (isClosed) cardClass += " section-closed";
 
   return (
     <motion.div
       className={cardClass}
       onClick={() => onClick(table)}
-      whileHover={{ y: -2, boxShadow: "0 6px 24px rgba(44,26,14,0.14)" }}
+      whileHover={!isClosed ? { y: -2, boxShadow: "0 6px 24px rgba(44,26,14,0.14)" } : {}}
       layout
     >
       <div className="tableCardTop">
@@ -58,36 +61,44 @@ function TableCard({ table, isSelected, onClick }) {
         <span className="tableCardPax">{table.pax} pax</span>
       </div>
 
-      {table.isVip && <span className="tableVip">★ VIP</span>}
+      {isClosed ? (
+        <div style={{ marginTop: "1rem", color: "#C04040", fontWeight: "600", fontSize: "0.8rem", letterSpacing: "0.05em" }}>
+          🌧️ CLOSED
+        </div>
+      ) : (
+        <>
+          {table.isVip && <span className="tableVip">★ VIP</span>}
 
-      {table.guest && (
-        <p className="tableCardGuest">{table.guest}</p>
+          {table.guest && (
+            <p className="tableCardGuest">{table.guest}</p>
+          )}
+
+          {table.assignedServer && (
+            <p className="tableCardServer">🤵 {table.assignedServer.name}</p>
+          )}
+
+          {table.seatedAt && (
+            <p className="tableCardTime">{elapsed(table.seatedAt)} seated</p>
+          )}
+
+          {table.reservation && table.status === "reserved" && (
+            <p className="tableCardRes">Res: {table.reservation}</p>
+          )}
+
+          <div className="tableCardBadges">
+            {orderBadge && (
+              <span className="tableOrderBadge">
+                {orderBadge.icon} {orderBadge.label}
+                {table.activeOrders?.[0]?.total ? ` · ₹${table.activeOrders.reduce((s, o) => s + o.total, 0)}` : ""}
+              </span>
+            )}
+            {hasBillReq && <span className="tableAlertBadge">🧾 Bill Requested</span>}
+            {hasAlert && !hasBillReq && <span className="tableAlertBadge">🔔 Waiter Called</span>}
+          </div>
+        </>
       )}
 
-      {table.assignedServer && (
-        <p className="tableCardServer">🤵 {table.assignedServer.name}</p>
-      )}
-
-      {table.seatedAt && (
-        <p className="tableCardTime">{elapsed(table.seatedAt)} seated</p>
-      )}
-
-      {table.reservation && table.status === "reserved" && (
-        <p className="tableCardRes">Res: {table.reservation}</p>
-      )}
-
-      <div className="tableCardBadges">
-        {orderBadge && (
-          <span className="tableOrderBadge">
-            {orderBadge.icon} {orderBadge.label}
-            {table.activeOrders?.[0]?.total ? ` · ₹${table.activeOrders.reduce((s, o) => s + o.total, 0)}` : ""}
-          </span>
-        )}
-        {hasBillReq && <span className="tableAlertBadge">🧾 Bill Requested</span>}
-        {hasAlert && !hasBillReq && <span className="tableAlertBadge">🔔 Waiter Called</span>}
-      </div>
-
-      <div className={`tableStatusBar status-${table.status}`} />
+      <div className={`tableStatusBar status-${isClosed ? "closed" : table.status}`} />
     </motion.div>
   );
 }
@@ -126,6 +137,21 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
     }
   };
 
+  const handleAssignMyself = async () => {
+    if (!user) return;
+    setSaving(true);
+    try {
+      await tablesApi.assignServer(table.tableId, user.id);
+      toast.success(`You are now assigned to Table ${table.tableId}`);
+      onStatusChange();
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to assign server.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleStatusChange = async (status) => {
     setSaving(true);
     try {
@@ -143,6 +169,14 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
           "bussing_request",
           { name: user?.name, role: user?.role }
         );
+      }
+
+      if (status === "seated") {
+        socket.emit("table:seated", {
+          tableId: table.tableId,
+          guestName: guestName || table.guest || "Walk-In Guest",
+          pax: table.pax
+        });
       }
 
       onStatusChange();
@@ -178,6 +212,31 @@ function TableDetailPanel({ table, onClose, onStatusChange, user }) {
             {table.assignedServer && <p className="detailSub">🤵 Server: {table.assignedServer.name}</p>}
             {table.seatedAt && <p className="detailSub">{elapsed(table.seatedAt)} seated</p>}
             {table.reservation && <p className="detailSub">Reservation: {table.reservation}</p>}
+          </div>
+        )}
+
+        {table.status === "seated" && (
+          <div className="detailSection">
+            <p className="detailSectionTitle">SERVER ASSIGNMENT</p>
+            {table.assignedServer ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.25rem" }}>
+                <span className="detailSub" style={{ margin: 0 }}>🤵 Assigned: <strong>{table.assignedServer.name}</strong></span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.25rem" }}>
+                <span className="detailSub" style={{ color: "#C04040", fontWeight: "500", margin: 0 }}>⚠️ No server assigned yet</span>
+                {user && (
+                  <button 
+                    className="btnPrimary" 
+                    onClick={handleAssignMyself} 
+                    disabled={saving}
+                    style={{ fontSize: "0.7rem", padding: "0.2rem 0.5rem" }}
+                  >
+                    Assign Me
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -279,6 +338,23 @@ export default function FloorPlan() {
   const [occupancyFilter, setOccupancyFilter] = useState("all");
   const [selectedTableId, setSelectedTableId] = useState(null);
 
+  const activeSections = useMemo(() => {
+    const uniqueSecs = new Set();
+    tables.forEach((t) => {
+      const sec = t.sections;
+      if (sec && sec.is_active !== false) {
+        uniqueSecs.add(sec.label || t.section);
+      }
+    });
+    return ["All", ...Array.from(uniqueSecs)];
+  }, [tables]);
+
+  useEffect(() => {
+    if (section !== "All" && !activeSections.includes(section)) {
+      setSection("All");
+    }
+  }, [activeSections, section]);
+
   const selectedTableObj = tables.find((t) => t.tableId === selectedTableId);
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
@@ -328,6 +404,9 @@ export default function FloorPlan() {
   }, [fetchTables, fetchStats]);
 
   const filtered = tables.filter((t) => {
+    if (t.sections?.is_active === false) {
+      return false;
+    }
     const matchesSection = section === "All" || t.section === section;
     let matchesOccupancy = true;
     if (occupancyFilter === "occupied") {
@@ -338,11 +417,16 @@ export default function FloorPlan() {
     return matchesSection && matchesOccupancy;
   });
 
-  const sectionSummary = ["Indoor", "Terrace", "Garden", "Bar"].map((s) => {
-    const sec = tables.filter((t) => t.section === s);
-    const occ = sec.filter((t) => t.status === "seated" || t.status === "needs_bussing").length;
-    return { section: s, occupied: occ, total: sec.length };
-  });
+  const sectionSummary = activeSections
+    .filter((s) => s !== "All")
+    .map((s) => {
+      const sec = tables.filter((t) => {
+        const secLabel = t.sections?.label || t.section;
+        return secLabel === s && t.sections?.is_active !== false;
+      });
+      const occ = sec.filter((t) => t.status === "seated" || t.status === "needs_bussing").length;
+      return { section: s, occupied: occ, total: sec.length };
+    });
 
   return (
     <div className="floorPlanPage">
@@ -390,7 +474,7 @@ export default function FloorPlan() {
 
       <div className="filterRow" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.25rem" }}>
         <div className="filterTabs" style={{ marginBottom: 0 }}>
-          {SECTIONS.map((s) => (
+          {activeSections.map((s) => (
             <button
               key={s}
               className={`filterTab ${section === s ? "activeTab" : ""}`}
@@ -433,7 +517,13 @@ export default function FloorPlan() {
               key={table.tableId}
               table={table}
               isSelected={selectedTableId === table.tableId}
-              onClick={(t) => setSelectedTableId(t.tableId)}
+              onClick={(t) => {
+                if (t.sections?.is_active === false) {
+                  toast.error("This section is closed.");
+                  return;
+                }
+                setSelectedTableId(t.tableId);
+              }}
             />
           ))}
         </div>

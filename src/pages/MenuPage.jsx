@@ -1,8 +1,8 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { menuData } from '../data/menuData'
 import { createOrder } from '../services/orderApi'
 import { callWaiter, requestBill } from '../services/serviceRequestApi'
+import { supabase } from '../lib/supabase'
 import './MenuPage.css'
 
 const IMAGE_RULES = [
@@ -287,13 +287,57 @@ function MenuPage() {
   }, [rawTableId])
 
   const [cart, setCart] = useState([])
-  const [activeCategory, setActiveCategory] = useState(
-    menuData[0]?.category || ''
-  )
+  const [categories, setCategories] = useState([])
+  const [menuItems, setMenuItems] = useState([])
+  const [activeCategory, setActiveCategory] = useState('')
+  const [loading, setLoading] = useState(true)
   const [activeTable, setActiveTable] = useState('Digital Menu')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isCallingWaiter, setIsCallingWaiter] = useState(false)
   const [isRequestingBill, setIsRequestingBill] = useState(false)
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const [categoriesRes, menuRes] = await Promise.all([
+          supabase.from("menu_categories").select("*").eq("is_active", true).order("sort_order"),
+          supabase.from("menu_items").select("*, menu_categories(id, name, label)").order("sort_order")
+        ]);
+
+        if (categoriesRes.error) throw categoriesRes.error;
+        if (menuRes.error) throw menuRes.error;
+
+        const cats = categoriesRes.data || [];
+        const items = menuRes.data || [];
+        setCategories(cats);
+        setMenuItems(items);
+        
+        if (cats.length > 0) {
+          setActiveCategory(cats[0].label);
+        }
+      } catch (err) {
+        console.error("Error loading menu:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenu();
+  }, []);
+
+  const menuData = useMemo(() => {
+    return categories.map(cat => ({
+      category: cat.label,
+      items: menuItems
+        .filter(item => item.category_id === cat.id && (item.is_available ?? true))
+        .map(item => ({
+          name: item.name,
+          desc: item.description,
+          price: item.price,
+          image: item.image_url
+        }))
+    }));
+  }, [categories, menuItems]);
 
   useEffect(() => {
     if (tableId && tableId !== 'digital-menu') {
@@ -457,15 +501,19 @@ function MenuPage() {
           <h3>Categories</h3>
 
           <div className="categoryList">
-            {menuData.map(section => (
-              <button
-                key={section.category}
-                className={activeCategory === section.category ? 'active' : ''}
-                onClick={() => setActiveCategory(section.category)}
-              >
-                {section.category}
-              </button>
-            ))}
+            {loading ? (
+              <p style={{ color: "rgba(247,239,228,0.5)", fontSize: "0.8rem", padding: "1rem 0" }}>Loading categories...</p>
+            ) : (
+              menuData.map(section => (
+                <button
+                  key={section.category}
+                  className={activeCategory === section.category ? 'active' : ''}
+                  onClick={() => setActiveCategory(section.category)}
+                >
+                  {section.category}
+                </button>
+              ))
+            )}
           </div>
         </aside>
 
@@ -475,55 +523,59 @@ function MenuPage() {
             <p>{filteredMenu?.items.length} items</p>
           </div>
 
-          <div className="itemsGrid">
-            {filteredMenu?.items.map(item => {
-              const cartItem = cart.find(c => c.name === item.name)
-              const currentQty = cartItem ? cartItem.qty : 0
-
-              return (
-                <article className="menuCard" key={item.name}>
-                  <div className="cardTop">
-                    <div className="cardInfo">
-                      <h3>{item.name}</h3>
-                      {item.desc && <p>{item.desc}</p>}
-                    </div>
-
-                    <div className="cardImageWrapper">
-                      <img
-                        src={getItemImage(item)}
-                        alt={item.name}
-                        loading="lazy"
-                        className="foodImg"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="cardBottom">
-                    <span>₹{item.price}</span>
-
-                    {currentQty === 0 ? (
-                      <button
-                        className="cardAddBtn"
-                        onClick={() => addToCart(item)}
-                      >
-                        Add
-                      </button>
-                    ) : (
-                      <div className="qtyControls cardQtyControls">
-                        <button onClick={() => decreaseQty(item.name)}>
-                          -
-                        </button>
-                        <span>{currentQty}</span>
-                        <button onClick={() => increaseQty(item.name)}>
-                          +
-                        </button>
+          {loading ? (
+            <p className="loadingMenu" style={{ color: "rgba(247,239,228,0.6)", padding: "3rem", textAlign: "center" }}>Loading menu items...</p>
+          ) : (
+            <div className="itemsGrid">
+              {(filteredMenu?.items || []).map(item => {
+                const cartItem = cart.find(c => c.name === item.name)
+                const currentQty = cartItem ? cartItem.qty : 0
+  
+                return (
+                  <article className="menuCard" key={item.name}>
+                    <div className="cardTop">
+                      <div className="cardInfo">
+                        <h3>{item.name}</h3>
+                        {item.desc && <p>{item.desc}</p>}
                       </div>
-                    )}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+  
+                      <div className="cardImageWrapper">
+                        <img
+                          src={getItemImage(item)}
+                          alt={item.name}
+                          loading="lazy"
+                          className="foodImg"
+                        />
+                      </div>
+                    </div>
+  
+                    <div className="cardBottom">
+                      <span>₹{item.price}</span>
+  
+                      {currentQty === 0 ? (
+                        <button
+                          className="cardAddBtn"
+                          onClick={() => addToCart(item)}
+                        >
+                          Add
+                        </button>
+                      ) : (
+                        <div className="qtyControls cardQtyControls">
+                          <button onClick={() => decreaseQty(item.name)}>
+                            -
+                          </button>
+                          <span>{currentQty}</span>
+                          <button onClick={() => increaseQty(item.name)}>
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         <aside className="cartPanel">

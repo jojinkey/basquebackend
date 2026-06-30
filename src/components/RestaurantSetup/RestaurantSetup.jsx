@@ -285,6 +285,48 @@ export default function RestaurantSetup() {
     }
   };
 
+  // Toggle Menu Item Availability
+  const handleToggleAvailability = async (id, currentAvailable) => {
+    try {
+      const { error } = await supabase
+        .from("menu_items")
+        .update({ is_available: !currentAvailable, updated_at: new Date().toISOString() })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast.success(`Dish marked ${!currentAvailable ? "available" : "unavailable"}`);
+      
+      setMenuItems(prev => 
+        prev.map(item => item.id === id ? { ...item, is_available: !currentAvailable } : item)
+      );
+    } catch (err) {
+      console.error("Error toggling availability:", err);
+      toast.error("Failed to update availability.");
+    }
+  };
+
+  // Toggle Section Active Status
+  const handleToggleSectionActive = async (id, currentActive) => {
+    try {
+      const { error } = await supabase
+        .from("sections")
+        .update({ is_active: !currentActive })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast.success(`Section marked ${!currentActive ? "active" : "closed"}`);
+      
+      setSections(prev => 
+        prev.map(sec => sec.id === id ? { ...sec, is_active: !currentActive } : sec)
+      );
+    } catch (err) {
+      console.error("Error toggling section status:", err);
+      toast.error("Failed to update section status.");
+    }
+  };
+
   // Reset menu form
   const resetMenuForm = () => {
     setDishName("");
@@ -447,8 +489,10 @@ export default function RestaurantSetup() {
 
       {activeTab === "tables" ? (
         <div className="setupSplitLayout">
-          {/* Add Table Form */}
-          <div className="setupFormCard">
+          {/* Form Column */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", width: "100%" }}>
+            {/* Add Table Form */}
+            <div className="setupFormCard">
             <h3>Add New Table</h3>
             <form onSubmit={handleAddTable} className="setupForm">
               <div className="formField">
@@ -515,7 +559,36 @@ export default function RestaurantSetup() {
             </form>
           </div>
 
-          {/* Tables List */}
+          {/* Section Management Card */}
+          <div className="setupFormCard">
+            <h3>Section Management</h3>
+            <div className="setupForm">
+              {sections.map(sec => (
+                <div key={sec.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0", borderBottom: "1px solid rgba(200, 133, 42, 0.1)" }}>
+                  <span style={{ fontSize: "0.9rem", color: "var(--charcoal)", fontWeight: "500" }}>{sec.label}</span>
+                  <button
+                    type="button"
+                    className={`btnAction ${sec.is_active !== false ? "available" : "unavailable"}`}
+                    onClick={() => handleToggleSectionActive(sec.id, sec.is_active !== false)}
+                    style={{
+                      padding: "0.25rem 0.5rem",
+                      fontSize: "0.75rem",
+                      background: sec.is_active !== false ? "rgba(72, 176, 118, 0.15)" : "rgba(192, 64, 64, 0.15)",
+                      color: sec.is_active !== false ? "#48b076" : "#ffb0b0",
+                      border: sec.is_active !== false ? "1px solid rgba(72, 176, 118, 0.3)" : "1px solid rgba(192, 64, 64, 0.3)",
+                      borderRadius: "4px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {sec.is_active !== false ? "● Active" : "○ Closed"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tables List */}
           <div className="setupListCard">
             <div className="setupListHeader">
               <h3>Active Layout Tables ({tables.length})</h3>
@@ -828,7 +901,7 @@ export default function RestaurantSetup() {
                     <h4>{cat.label} ({cat.items.length})</h4>
                     <div className="setupMenuItemsGrid">
                       {cat.items.map(item => (
-                        <div key={item.id} className="setupMenuItemCard">
+                        <div key={item.id} className={`setupMenuItemCard ${item.is_available === false ? "card-unavailable" : ""}`}>
                           {item.image_url ? (
                             <img src={item.image_url} alt={item.name} className="setupMenuItemImg" />
                           ) : (
@@ -872,6 +945,24 @@ export default function RestaurantSetup() {
                                   </button>
                                 )}
                               </div>
+
+                              {/* Availability Toggle */}
+                              <button 
+                                className={`btnAction ${item.is_available !== false ? "available" : "unavailable"}`}
+                                onClick={() => handleToggleAvailability(item.id, item.is_available !== false)}
+                                style={{
+                                  padding: "0.25rem 0.5rem",
+                                  fontSize: "0.75rem",
+                                  background: item.is_available !== false ? "rgba(72, 176, 118, 0.15)" : "rgba(192, 64, 64, 0.15)",
+                                  color: item.is_available !== false ? "#48b076" : "#ffb0b0",
+                                  border: item.is_available !== false ? "1px solid rgba(72, 176, 118, 0.3)" : "1px solid rgba(192, 64, 64, 0.3)",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                  marginRight: "auto"
+                                }}
+                              >
+                                {item.is_available !== false ? "● Active" : "○ Unavailable"}
+                              </button>
 
                               <button 
                                 className="btnAction delete"

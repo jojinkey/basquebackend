@@ -183,6 +183,15 @@
 .tableStatusBar.status-seated { background: #2C2C2C; }
 .tableStatusBar.status-reserved { background: #B0A99F; }
 .tableStatusBar.status-needs_bussing { background: #C04040; }
+.tableStatusBar.status-closed { background: #8C7B6A; }
+
+.floorTableCard.section-closed {
+  opacity: 0.55;
+  background: #EFEBE4;
+  border-style: dashed;
+  border-color: rgba(192, 64, 64, 0.35);
+  cursor: not-allowed !important;
+}
 
 /* Detail Drawer */
 .tableDetailDrawer {

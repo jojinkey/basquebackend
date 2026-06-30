@@ -38,7 +38,7 @@ export const tablesApi = {
     let q = supabase
       .from("tables")
       .select(
-        "id, capacity, status, current_session, sort_order, is_active, sections(id, name, label), session:current_session(id, guest_name, party_size, is_vip, created_at, server_id, server:users(id, name))"
+        "id, capacity, status, current_session, sort_order, is_active, sections(id, name, label, is_active), session:current_session(id, guest_name, party_size, is_vip, created_at, server_id, server:users(id, name))"
       )
       .eq("is_active", true)
       .order("sort_order");
@@ -121,6 +121,7 @@ export const tablesApi = {
           tableId: t.id,
           tableName: `Table ${t.id}`,
           section: t.sections?.label || "",
+          sections: t.sections,
           pax: t.capacity,
           status: (t.status === "needs_bussing" || t.status === "reserved")
             ? t.status
@@ -141,7 +142,7 @@ export const tablesApi = {
   getOne: async (tableId) => {
     const { data: table, error } = await supabase
       .from("tables")
-      .select("id, capacity, status, current_session, sections(label)")
+      .select("id, capacity, status, current_session, sections(id, name, label, is_active)")
       .eq("id", tableId)
       .single();
 
@@ -206,6 +207,7 @@ export const tablesApi = {
         tableId: table.id,
         tableName: `Table ${table.id}`,
         section: table.sections?.label || "",
+        sections: table.sections,
         pax: table.capacity,
         status: (table.status === "needs_bussing" || table.status === "reserved")
           ? table.status
@@ -222,7 +224,7 @@ export const tablesApi = {
 
   getStats: async () => {
     const tablesRes = await tablesApi.getAll();
-    const rows = tablesRes.data || [];
+    const rows = (tablesRes.data || []).filter((t) => t.sections?.is_active !== false);
 
     return {
       data: {
@@ -323,6 +325,39 @@ export const tablesApi = {
       to: status,
     });
 
+    return { data };
+  },
+
+  assignServer: async (tableId, userId) => {
+    const { data: tbl, error: tblError } = await supabase
+      .from("tables")
+      .select("current_session")
+      .eq("id", tableId)
+      .single();
+    
+    if (tblError) throw tblError;
+    if (!tbl.current_session) {
+      throw new Error("Table does not have an active session.");
+    }
+
+    const { data: sess, error: sessError } = await supabase
+      .from("table_sessions")
+      .select("server_id")
+      .eq("id", tbl.current_session)
+      .single();
+
+    if (sessError) throw sessError;
+    if (sess.server_id) {
+      throw new Error("Table is already assigned to a server.");
+    }
+
+    const { data, error } = await supabase
+      .from("table_sessions")
+      .update({ server_id: userId })
+      .eq("id", tbl.current_session)
+      .select();
+
+    if (error) throw error;
     return { data };
   },
 };

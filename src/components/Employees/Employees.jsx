@@ -27,7 +27,22 @@ export default function Employees() {
   const [pin, setPin] = useState("");
   const [phone, setPhone] = useState("");
   const [section, setSection] = useState("");
+  const [allowedPages, setAllowedPages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const DASHBOARD_PAGES = [
+    { id: "floor", label: "Floor Plan" },
+    { id: "orders", label: "Kitchen Orders" },
+    { id: "tableOrders", label: "Table Ordering" },
+    { id: "alerts", label: "Service Alerts" },
+    { id: "waitlist", label: "Waitlist & Queue" },
+    { id: "reservations", label: "Reservations" },
+    { id: "events", label: "Events CMS" },
+    { id: "insights", label: "Insights & Analytics" },
+    { id: "audit", label: "Audit Reports" },
+    { id: "employees", label: "Employee Directory" },
+    { id: "setup", label: "Restaurant Setup" }
+  ];
 
   // Fetch employees from database
   const fetchEmployees = useCallback(async () => {
@@ -111,6 +126,7 @@ export default function Employees() {
     setPin("");
     setPhone("");
     setSection("");
+    setAllowedPages([]);
   };
 
   // Add employee submit
@@ -150,6 +166,7 @@ export default function Employees() {
         pin: pin || null,
         phone: phone || null,
         section: role === "server" && section ? section : null,
+        allowed_pages: allowedPages.length > 0 ? allowedPages : null,
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -239,6 +256,7 @@ export default function Employees() {
                   <th>Date of Joining</th>
                   <th>PIN / Login</th>
                   <th>Assigned Section</th>
+                  <th>Dashboard Access</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -285,6 +303,19 @@ export default function Employees() {
                         <span style={{ textTransform: "capitalize" }}>{emp.section}</span>
                       ) : (
                         <span style={{ color: "#C8C0B8" }}>—</span>
+                      )}
+                    </td>
+                    <td>
+                      {emp.allowed_pages && emp.allowed_pages.length > 0 ? (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
+                          {emp.allowed_pages.map(p => (
+                            <span key={p} style={{ fontSize: "0.62rem", background: "rgba(200, 133, 42, 0.1)", color: "#C8852A", padding: "1px 4px", borderRadius: "3px", textTransform: "capitalize" }}>
+                              {p === "managerOrders" ? "Pending" : p === "tableOrders" ? "Ordering" : p === "activityLogs" ? "Logs" : p}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: "#8C7B6A", fontSize: "0.72rem" }}>Role Defaults</span>
                       )}
                     </td>
                     <td>
@@ -437,6 +468,31 @@ export default function Employees() {
                         </select>
                       </div>
                     )}
+
+                    <div className="formField formSpan2" style={{ marginTop: "0.25rem", marginBottom: "0.5rem" }}>
+                      <label>Dashboard Section Access Permissions</label>
+                      <p className="formFieldHint" style={{ marginBottom: "0.5rem", color: "#8C7B6A" }}>
+                        Select custom access permissions for this employee (optional. Leave blank to use role defaults).
+                      </p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", background: "rgba(0,0,0,0.02)", padding: "0.75rem", borderRadius: "4px", border: "1px solid #E2D9CA" }}>
+                        {DASHBOARD_PAGES.map(page => (
+                          <label key={page.id} style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.78rem", color: "var(--charcoal)", cursor: "pointer", userSelect: "none" }}>
+                            <input 
+                              type="checkbox"
+                              checked={allowedPages.includes(page.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAllowedPages(prev => [...prev, page.id]);
+                                } else {
+                                  setAllowedPages(prev => prev.filter(p => p !== page.id));
+                                }
+                              }}
+                            />
+                            {page.label}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
 
                     <div className="formField formSpan2">
                       <label htmlFor="empPhone">Phone Number</label>
